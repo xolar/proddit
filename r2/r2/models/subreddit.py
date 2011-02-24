@@ -62,7 +62,7 @@ class Subreddit(Thing, Printable):
                      domain = None,
                      over_18 = False,
                      mod_actions = 0,
-                     sponsorship_text = "this reddit is sponsored by",
+                     sponsorship_text = "acest proddit este sponsorizat de",
                      sponsorship_url = None,
                      sponsorship_img = None,
                      sponsorship_name = None,
@@ -599,8 +599,9 @@ class FakeSubreddit(Subreddit):
         return queries.get_all_comments()
 
 class FriendsSR(FakeSubreddit):
-    name = 'friends'
-    title = 'friends'
+    name = 'prieteni'
+    title = 'prieteni'
+    path = '/r/friends'
 
     @classmethod
     @memoize("get_important_friends", 5*60)
@@ -690,8 +691,9 @@ class FriendsSR(FakeSubreddit):
             return q
 
 class AllSR(FakeSubreddit):
-    name = 'all'
-    title = 'all'
+    name = 'tot'
+    title = 'tot'
+    path = '/r/all'
 
     def get_links(self, sort, time):
         from r2.lib import promote
@@ -716,9 +718,10 @@ class AllSR(FakeSubreddit):
 
 class _DefaultSR(FakeSubreddit):
     #notice the space before reddit.com
-    name = ' reddit.com'
+    name = ' proddit.com'
     path = '/'
-    header = 'http://static.reddit.com/reddit.com.header.png'
+    header =  os.path.join(g.static_path,'reddit.com.header.png')
+    #header = 'http://static.reddit.com/reddit.com.header.png'
 
     def get_links_sr_ids(self, sr_ids, sort, time):
         from r2.lib.db import queries
@@ -842,14 +845,14 @@ class ModContribSR(_DefaultSR):
         return self.get_links_sr_ids(self.sr_ids(), sort, time)
 
 class ModSR(ModContribSR):
-    name  = "communities you moderate"
-    title = "communities you moderate"
+    name  = "comunitati moderate de tine"
+    title = "comunitati moderate de tine"
     query_param = "moderator"
     real_path = "mod"
 
 class ContribSR(ModContribSR):
     name  = "contrib"
-    title = "communities you're approved on"
+    title = "comunitati pe care ai fost aprobat ca contribuitor"
     query_param = "contributor"
     real_path = "contrib"
 
@@ -869,7 +872,7 @@ class SubSR(FakeSubreddit):
 
     @property
     def path(self):
-        return "/reddits/"
+        return "/proddits/"
 
 class DomainSR(FakeSubreddit):
     @property

@@ -69,7 +69,7 @@ class I18nController(RedditController):
               VAdmin())
     def GET_list(self):
         res = AdminPage(content = AdminTranslations(),
-                        title = 'translate reddit',
+                        title = 'translate proddit',
                         show_sidebar = False).render()
         return res
 
@@ -95,7 +95,7 @@ class I18nController(RedditController):
         else:
             content = UnfoundPage()
         res = AdminPage(content = content, 
-                        title = 'translate reddit',
+                        title = 'translate proddit',
                         show_sidebar = False).render()
         return res
 

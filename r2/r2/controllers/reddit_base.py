@@ -80,11 +80,12 @@ class UnloggedUser(FakeAccount):
     def __init__(self, browser_langs, *a, **kw):
         FakeAccount.__init__(self, *a, **kw)
         if browser_langs:
-            lang = browser_langs[0]
-            content_langs = list(browser_langs)
-            # try to coerce the default language 
-            if g.lang not in content_langs:
-                content_langs.append(g.lang)
+            lang = 'ro'#browser_langs[0]
+            langsplus = ['ro']
+            if  'ro' in browser_langs:
+                browser_langs.remove('ro')
+            langsplus.extend(browser_langs)            
+            content_langs = list(langsplus)
             content_langs.sort()
         else:
             lang = g.lang
@@ -275,7 +276,7 @@ def set_subreddit():
         except NotFound:
             sr_name = chksrname(sr_name)
             if sr_name:
-                redirect_to("/reddits/search?q=%s" % sr_name)
+                redirect_to("/proddits/search?q=%s" % sr_name)
             elif not c.error_page:
                 abort(404)
     #if we didn't find a subreddit, check for a domain listing

@@ -213,7 +213,7 @@ def _promo_email(thing, kind, body = "", **kw):
     body = Promo_Email(link = thing, kind = kind,
                        body = body, **kw).render(style = "email")
     return _system_email(a.email, body, kind, thing = thing,
-                         reply_to = "selfservicesupport@reddit.com")
+                         reply_to = "selfservicesupport@proddit.com")
 
 
 def new_promo(thing):

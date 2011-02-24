@@ -66,7 +66,7 @@ def all_users():
 
 
 def copy_karmas():
-    reddit = Subreddit._by_name('reddit.com')
+    reddit = Subreddit._by_name('proddit.com')
     for user in all_users():
         print user.name, user.link_karma, user.comment_karma
         user.incr_karma('link', reddit, user.link_karma)

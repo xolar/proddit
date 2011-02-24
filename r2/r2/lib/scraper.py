@@ -35,7 +35,7 @@ log = g.log
 useragent = g.useragent
 
 chunk_size = 1024
-thumbnail_size = 70, 70
+thumbnail_size = 80, 80
 
 def image_to_str(image):
     s = StringIO.StringIO()

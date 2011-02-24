@@ -186,33 +186,6 @@ function update_title(elem) {
     </div>
   </%utils:line_field>
 
-  <%utils:line_field title="${_('domain')}" css_class="usertext">
-    <div class="delete-field">
-      %if thing.site and c.site.domain:
-          <input class="nomargin" type="checkbox" 
-                 name="css_on_cname" id="css_on_cname"
-                 ${thing.site.css_on_cname and "checked='checked'" or ""}/>
-          <label for="css_on_cname">
-            ${_("make custom CSS styles apply only when accessed from the cname.")}
-          </label>
-      %endif
-    </div>
-    <div class="usertext-edit">
-      %if thing.site:
-        <input id="domain" type="text" name="domain" class="text"
-               value="${getattr(thing.site, 'domain', None) or ""}"/>
-      %else:
-        <input id="domain" type="text" name="domain" class="text" />
-      %endif
-      <div class="bottom-area">
-        ${toggle_button("help-toggle", _("what's this?"), _("hide help"),
-            "helpon", "helpoff")}
-      </div>
-      <div class="infobar markhelp md" style="display: none">
-        ${_("Own a domain?  Enter it here and then go to your DNS provider and add a CNAME record aliasing your domain to rhs.reddit.com. You will be able to access your reddit through your domain.")}
-      </div>
-    </div>
-  </%utils:line_field>
 
 %if thing.site:
   <input type="hidden" name="sr" value="${thing.site._fullname}"/> 
@@ -260,29 +233,7 @@ function update_title(elem) {
   %if c.user_is_admin:
     <%utils:line_field title="${_('sponsorship')}">
       <ul class="upload">
-        <li>
-          <input type="text" name="sponsorship-text"
-                 value="${thing.site.sponsorship_text}"
-                 />
-        </li>
-        <li>
-          <input type="text" name="sponsorship-name"
-                 %if thing.site.sponsorship_name:
-                     value="${thing.site.sponsorship_name}"
-                 %else:
-                     value="${'name this campaign (for traffic)'}" class="gray"
-                 %endif
-                 />
-        </li>
-        <li>
-          <input type="text" name="sponsorship-url" 
-                 %if thing.site.sponsorship_url:
-                     value="${thing.site.sponsorship_url}"
-                 %else:
-                     value="${'enter link url here'}" class="gray"
-                 %endif
-                 />
-        </li>
+ 
         <li>
           <%utils:image_upload post_target="/api/upload_sr_img" 
                                current_image="${thing.site.sponsorship_img}"

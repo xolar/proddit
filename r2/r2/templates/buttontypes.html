@@ -30,7 +30,7 @@
 
 <%def name="submiturl(url, title='')">${("http://%s/submit" % get_domain(cname = c.cname, subreddit = not c.cname)) + query_string(dict(url=url, title=title))}</%def>
 
-<%def name="submitlink(url, title='', text='submit')">
+<%def name="submitlink(url, title='', text='trimite')">
   <a href='${submiturl(url, title)}' target='${thing.target}'>${text}</a>
 </%def>
 
@@ -56,7 +56,7 @@
                  width="${choose_width(thing, thing.width)}">
   <div class="headimgcell">
     <a href="${submiturl(thing.url, thing.title)}" target="${thing.target}">
-      <img src="http://www.reddit.com/static/blog_head.png" alt=""/>
+      <img src="http://www.proddit.com/static/blog_head.png" alt=""/>
     </a>
   </div>
   %if thing._fullname:
@@ -89,15 +89,15 @@
         &nbsp;<br />
       %endif
     %else:
-      <img src="http://www.reddit.com/static/blog_head.png" alt=""/>
-      ${submitlink(thing.url, thing.title, 'submit to')}
+      <img src="http://www.proddit.com/static/blog_head.png" alt=""/>
+      ${submitlink(thing.url, thing.title, 'trimite la')}
     %endif
       %if thing.bgcolor:
       <div class="bottomreddit" style="background-color: #${thing.bgcolor}">
       %else:
       <div class="bottomreddit">
       %endif
-      <a href="${submiturl(thing.url, thing.title)}" target="${thing.target}">reddit</a>
+      <a href="${submiturl(thing.url, thing.title)}" target="${thing.target}">proddit</a>
     </div>
 </%self:class_def>
 </%def>
@@ -142,8 +142,8 @@
       &nbsp;<br />
       %endif
     %else:
-      <img src="http://www.reddit.com/static/blog_head.png" alt=""/>
-      ${submitlink(thing.url, thing.title, 'submit to')}
+      <img src="http://www.proddit.com/static/blog_head.png" alt=""/>
+      ${submitlink(thing.url, thing.title, 'trimite la')}
     %endif
 </%self:class_def>
 </%def>

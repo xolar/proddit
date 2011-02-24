@@ -1322,6 +1322,23 @@ class ApiController(RedditController):
         end_trial(thing, why + "-approved")
         admintools.unspam(thing, c.user.name)
 
+
+    @noresponse(VModhash(),
+                user = VExistingUname('user'))
+    def POST_spam(self, user):
+        if not c.user_is_admin:
+            return
+        user._spam=True
+        user._commit()
+        
+    @noresponse(VModhash(),
+                user = VExistingUname('user'))
+    def POST_unspam(self, user):
+        if not c.user_is_admin:
+            return
+        user._spam=False
+        user._commit()        
+
     @validatedForm(VUser(), VModhash(),
                    VSrCanDistinguish('id'),
                    thing = VByName('id'),

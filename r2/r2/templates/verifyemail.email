@@ -20,12 +20,12 @@
 ## CondeNet, Inc. All Rights Reserved.
 ################################################################################
 
-your username is:
+numele tau de utilizator este:
 
     ${thing.user.name}
 
-visit this link to verify your email address:
+intra pe urmatorul link pentru a verifica adresa:
 
     ${thing.emaillink}
 
-thanks for using the site!
+multumim ca folosesti proddit.com!

@@ -497,7 +497,7 @@ class TimeMenu(SimpleGetMenu):
 
 class ControversyTimeMenu(TimeMenu):
     """time interval for controversial sort.  Make default time 'day' rather than 'all'"""
-    default = 'day'
+    default = 'week'
 
 class SubredditMenu(NavMenu):
     def find_selected(self):

@@ -21,14 +21,13 @@
 ################################################################################
 %if thing.leave:
 
-Your email address will no longer receive email from us.  If you want to reconsider, visit:
+Nu vei mai primi email de la noi, dar daca te razgandesti viziteaza:
 
 http://${g.domain}/mail/optin?x=${thing.msg_hash}
 
-We promise not to hold it against you.
 
 %else:
 
-Your email address is once again to allowed to receive messages from ${g.domain}.  Welcome back.  
+Pe adresa ta se pot primi din nou email-uri de la ${g.domain}.  Bine ai revenit.  
 
 %endif

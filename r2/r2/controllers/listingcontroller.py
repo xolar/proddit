@@ -769,7 +769,7 @@ class RedditsController(ListingController):
                 reddits = Subreddit._query( write_cache = True,
                                             read_cache = True,
                                             cache_time = 60 * 60)
-                reddits._sort = desc('_downs')
+                reddits._sort = desc('_ups')
             # Consider resurrecting when it is not the World Cup
             #if c.content_langs != 'all':
             #    reddits._filter(Subreddit.c.lang == c.content_langs)
@@ -790,7 +790,7 @@ class MyredditsController(ListingController):
                     NavButton(getattr(plurals, "approved submitter"), 'contributor'),
                     NavButton(plurals.moderator,   'moderator'))
 
-        return [NavMenu(buttons, base_path = '/reddits/mine/',
+        return [NavMenu(buttons, base_path = '/proddits/mine/',
                         default = 'subscriber', type = "flatlist")]
 
     def title(self):

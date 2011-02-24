@@ -43,25 +43,25 @@
 %endif
     write_string += '">';
 %if thing.image > 0:
-    write_string += unstyled_submit + '<img style="height: 2.3ex; vertical-align:top; margin-right: 1ex" src="http://${get_domain(subreddit=False)}/static/spreddit${thing.image}.gif">' + "</a>";
+    write_string += unstyled_submit + '<img style="height: 2.5ex; vertical-align:top; margin-right: 1ex" src="http://${get_domain(subreddit=False)}/static/spreddit${thing.image}.gif">' + "</a>";
 %endif
 %if thing._fullname:
     write_string += '${Score.safepoints(thing.score)}';
     %if thing.styled:  
-        write_string += ' on ' + styled_submit + 'reddit</a>';
+        write_string += ' pe ' + styled_submit + 'proddit</a>';
     %else:
-        write_string += ' on ' + unstyled_submit + 'reddit</a>';
+        write_string += ' pe ' + unstyled_submit + 'proddit</a>';
     %endif
 %else:
     %if thing.styled:
-    write_string += styled_submit + 'submit';
+    write_string += styled_submit + 'trimite';
     %else:
-    write_string += unstyled_submit + 'submit';
+    write_string += unstyled_submit + 'trimite';
     %endif
     %if thing.image > 0:
     write_string += '</a>';
     %else:
-    write_string += ' to reddit</a>';
+    write_string += ' pe proddit</a>';
     %endif
 %endif
     write_string += '</span>';

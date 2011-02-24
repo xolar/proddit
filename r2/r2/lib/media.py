@@ -49,23 +49,24 @@ def thumbnail_url(link):
 def upload_thumb(link, image, never_expire = True, reduced_redundancy=True):
     """Given a link and an image, uploads the image to s3 into an image
     based on the link's fullname"""
-    f = tempfile.NamedTemporaryFile(suffix = '.png', delete=False)
-    try:
-        image.save(f)
-        f.close()
-        g.log.debug("optimizing %s in %s" % (link._fullname,f.name))
-        optimize_png(f.name, g.png_optimizer)
-        contents = open(f.name).read()
+    #f = tempfile.NamedTemporaryFile(suffix = '.png', delete=False)
+    f = os.path.join('r2/public/thumbs/',link._fullname+ '.png') #
+    #try:
+    image.save(f)
+    #f.close()
+        #g.log.debug("optimizing %s in %s" % (link._fullname,f.name))
+        #ptimize_png(f.name, g.png_optimizer)
+        #contents = open(f.name).read()
 
-        s3fname = link._fullname + '.png'
+        #s3fname = link._fullname + '.png'
 
-        log.debug('uploading to s3: %s' % link._fullname)
-        s3cp.send_file(g.s3_thumb_bucket, s3fname, contents, 'image/png',
-                       never_expire=never_expire,
-                       reduced_redundancy=reduced_redundancy)
-        log.debug('thumbnail %s: %s' % (link._fullname, thumbnail_url(link)))
-    finally:
-        os.unlink(f.name)
+        #log.debug('uploading to s3: %s' % link._fullname)
+        #s3cp.send_file(g.s3_thumb_bucket, s3fname, contents, 'image/png',
+        #               never_expire=never_expire,
+        #               reduced_redundancy=reduced_redundancy)
+    log.debug('thumbnail %s: %s' % (link._fullname, thumbnail_url(link)))
+    #finally:
+    #    os.unlink(f.name)
 
 
 def update_link(link, thumbnail, media_object):
@@ -73,7 +74,6 @@ def update_link(link, thumbnail, media_object):
     database."""
     if thumbnail:
         link.has_thumbnail = True
-
     if media_object:
         link.media_object = media_object
 

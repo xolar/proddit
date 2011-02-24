@@ -52,14 +52,14 @@ def make_map(global_conf={}, app_conf={}):
     mc('/about/:location', controller='front', 
        action='editreddit', location = 'about')
 
-    mc('/reddits/create', controller='front', action='newreddit')
-    mc('/reddits/search', controller='front', action='search_reddits')
-    mc('/reddits/login', controller='forms', action='login')
-    mc('/reddits/:where', controller='reddits', action='listing',
+    mc('/proddits/create', controller='front', action='newreddit')
+    mc('/proddits/search', controller='front', action='search_reddits')
+    mc('/proddits/login', controller='forms', action='login')
+    mc('/proddits/:where', controller='reddits', action='listing',
        where = 'popular',
        requirements=dict(where="popular|new|banned"))
 
-    mc('/reddits/mine/:where', controller='myreddits', action='listing',
+    mc('/proddits/mine/:where', controller='myreddits', action='listing',
        where='subscriber',
        requirements=dict(where='subscriber|contributor|moderator'))
 
@@ -226,13 +226,13 @@ def make_map(global_conf={}, app_conf={}):
     mc('/doquery', controller='query', action='doquery')
 
     mc('/store', controller='redirect', action='redirect',
-       dest='http://store.reddit.com/index.html')
+       dest='http://store.proddit.com/index.html')
 
     mc('/code', controller='redirect', action='redirect',
        dest='http://code.reddit.com/')
 
     mc('/mobile', controller='redirect', action='redirect',
-       dest='http://m.reddit.com/')
+       dest='http://m.proddit.com/')
 
     mc('/authorize_embed', controller = 'front', action = 'authorize_embed')
 

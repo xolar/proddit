@@ -33,7 +33,7 @@
   %if not request.GET.get("nobranding"):
   <div class="reddit-header" 
        ${optionalstyle("padding: 5px; padding-bottom:1px;" + 
-                    ("background-color:#CEE3F8" if not c.bgcolor else ""))}>
+                    ("background-color:#ebf5ff" if not c.bgcolor else ""))}>
   <h4 class="reddit-title" 
       ${optionalstyle("margin:0;" + 
                       ("padding-bottom:3px" if not c.cname else ""))}

@@ -381,7 +381,7 @@ subreddit_rx = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_]{2,20}$")
 
 def chksrname(x):
     #notice the space before reddit.com
-    if x in ('friends', 'all', ' reddit.com'):
+    if x in ('prieteni', 'tot', ' proddit.com'):
         return False
 
     try:

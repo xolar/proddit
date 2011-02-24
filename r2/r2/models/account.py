@@ -45,7 +45,7 @@ class Account(Thing):
     _defaults = dict(pref_numsites = 25,
                      pref_frame = False,
                      pref_frame_commentspanel = False,
-                     pref_newwindow = False,
+                     pref_newwindow = True,
                      pref_clickgadget = 5,
                      pref_public_votes = False,
                      pref_research = False,

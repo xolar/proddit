@@ -231,12 +231,12 @@ def dockletStr(context, type, browser):
     # while site_domain will hold the (possibly) cnamed version
     site_domain = get_domain(True)
 
-    if type == "serendipity!":
+    if type == "la intamplare":
         return "http://"+site_domain+"/random"
-    elif type == "submit":
+    elif type == "trimite":
         return ("javascript:location.href='http://"+site_domain+
                "/submit?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)")
-    elif type == "reddit toolbar":
+    elif type == "toolbar proddit":
         return ("javascript:%20var%20h%20=%20window.location.href;%20h%20=%20'http://" +
                 site_domain + "/s/'%20+%20escape(h);%20window.location%20=%20h;")
     else:

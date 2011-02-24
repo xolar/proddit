@@ -30,12 +30,24 @@
   <div class="spacer">
     <%utils:round_field title="${_('are you sure?')}">
       <div class="rounded delete-field">
-        <input name="${name}" id="${name}yes" type="radio" value="${yes}"/>
+        <input name="${name}" id="${name}yes" type="radio" value= 
+        	% if yes == _('yes'): 
+        	'yes'
+        	% else: 
+        	'no'
+        	% endif
+        />
         <label for="${name}yes">${yes}</label>
 
         <br/>
   
-        <input name="${name}" id="${name}no" type="radio" value="${no}"/>
+        <input name="${name}" id="${name}no" type="radio" value=
+			% if no == _('yes'): 
+        	'yes'
+        	% else: 
+        	'no'
+        	% endif
+        />
         <label for="${name}no">${no}</label>
       </div>
     </%utils:round_field>

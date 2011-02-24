@@ -45,7 +45,7 @@
 
     <h2>${_("buttons with points")}</h2>
     <ul class="buttons">
-    %for x in xrange(0,6):
+    %for x in xrange(0,4):
        ${demo(capture(draw_point_button, x))}
     %endfor
     </ul>
@@ -56,7 +56,7 @@
         ${_('no styles will be added, so you can style it yourself')}</li>
       <li><strong>url=[URL]</strong><br />
         ${_('specify a url to use instead of the current url')}</li>
-      <li><strong>newwindow=1</strong><br />
+      <li><strong>paginanoua=1</strong><br />
         ${_('opens links in a new window')}</li>
     </ul>
     <p>${_('Example:')}</p>
@@ -92,23 +92,23 @@
         </li>
         <li>
           <p><strong>${_("specify a community to target")}</strong></p>
-          <code>${drawoption('target','[COMMUNITY]')}</code>
+          <code>${drawoption('tinta','[COMUNITATE]')}</code>
         </li>
         <li>
           <p><strong>${_("specify a title")}</strong></p>
-          <code>${drawoption('title','[TITLE]')}</code>
+          <code>${drawoption('titlu','[TITLU]')}</code>
         </li>
         <li>
           <p><strong>${_("open links in a new window")}</strong></p>
-          <code>${drawoption('newwindow','1')}</code>
+          <code>${drawoption('paginanoua','1')}</code>
         </li>
         <li>
           <p><strong>${_("specify the color")}</strong></p>
-          <code>${drawoption('bgcolor','[COLOR]')}</code>
+          <code>${drawoption('bgcolor','[CULOARE]')}</code>
         </li>
         <li>
           <p><strong>${_("specify a border color")}</strong></p>
-          <code>${drawoption('bordercolor','[COLOR]')}</code>
+          <code>${drawoption('bordercolor','[CULOARE]')}</code>
         </li>
       </ul>
       <p style="font-weight: bold">${_('Example:')}</p>
@@ -123,13 +123,6 @@
       ${unsafe(ex)}
       </code>
     </div>
-
-    <h2>${_("more badges and buttons")}</h2>
-    <ul class="buttons">
-      %for x in xrange(1,15):
-        ${demo(capture(drawbadge, x))}
-      %endfor
-    </ul>
 
 
 </div>
@@ -149,7 +142,7 @@ $(function() {
   <a href="http://${domain}/submit" 
     onclick="window.location = 'http://${domain}/submit?url=' + encodeURIComponent(window.location); return false">
    <img src="http://${get_domain(subreddit=False)}/static/spreddit${image}.gif" 
-        alt="submit to reddit" border="0" />
+        alt="trimite pe proddit" border="0" />
    </a>
 </%def>
 
@@ -172,7 +165,7 @@ $(function() {
 
 <%def name="point_option_example()" buffered="True">
    <script type="text/javascript" 
-        src="http://${domain}/buttonlite.js?i=1&styled=off&url=foo.com&newwindow=1"></script>
+        src="http://${domain}/buttonlite.js?i=1&styled=off&url=foo.com&paginanoua=1"></script>
 </%def>
 
 <%def name="draw_interactive(type)">
@@ -185,14 +178,14 @@ $(function() {
 </%def>
 
 <%def name="drawoption(option, val)" buffered="True">
-  <script type="text/javascript">reddit_${option}='${val}'</script>
+  <script type="text/javascript">proddit_${option}='${val}'</script>
 </%def>
 
 <%def name="draw_interactive_example()"><script type="text/javascript">
-  reddit_url = "http://${domain}/buttons";
-  reddit_title = "Buttons!";
-  reddit_bgcolor = "FF3";
-  reddit_bordercolor = "00F";
+  proddit_url = "http://${domain}/buttons";
+  proddit_titlu = "Buttons!";
+  proddit_bgcolor = "FF3";
+  proddit_bordercolor = "00F";
 </script>
 <script type="text/javascript" src="http://${domain}/static/button/button3.js"></script>
 </%def>

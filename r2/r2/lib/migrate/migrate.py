@@ -33,7 +33,9 @@ def add_allow_top_to_srs():
     q = Subreddit._query(Subreddit.c._spam == (True,False),
                          sort = desc('_date'))
     for sr in fetch_things2(q):
-        sr.allow_top = True; sr._commit()
+        sr.allow_top = True; 
+	sr._commit()
+	print sr.allow_top
 
 def subscribe_to_blog_and_annoucements(filename):
     import re

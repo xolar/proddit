@@ -48,7 +48,7 @@ ${unsafe(safemarkdown(_("All feeds are invalidated if you change your password, 
 
 <table class="preftable">
   <tr>
-    <th>private listings</th>
+    <th>listari private</th>
     <td class="prefright">
       <%self:feedbuttons path="/"></%self:feedbuttons>
       ${_("your front page")}
@@ -58,7 +58,7 @@ ${unsafe(safemarkdown(_("All feeds are invalidated if you change your password, 
     </td>
   </tr>
   <tr>
-    <th>private profile pages</th>
+    <th>pagini de profil private</th>
     <td class="prefright">
       <%self:feedbuttons path="/user/${c.user.name}/liked"></%self:feedbuttons>
       ${_("links you've liked")}
@@ -71,7 +71,7 @@ ${unsafe(safemarkdown(_("All feeds are invalidated if you change your password, 
     </td>
   </tr>
    <tr>
-    <th>your inbox</th>
+    <th>inbox-ul tau</th>
     <td class="prefright">
       <%self:feedbuttons path="/message/inbox/"></%self:feedbuttons>
       ${_("everything")}
@@ -91,7 +91,7 @@ ${unsafe(safemarkdown(_("All feeds are invalidated if you change your password, 
    </tr>
    %if c.show_mod_mail:
    <tr>
-    <th>your moderator inbox</th>
+    <th>inbox-ul tau de moderator</th>
     <td class="prefright">
       <%self:feedbuttons path="/message/moderator/inbox/"></%self:feedbuttons>
       ${_("everything")}

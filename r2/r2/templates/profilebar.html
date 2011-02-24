@@ -27,7 +27,7 @@
    from r2.lib.utils import timesince
  %>
 <%namespace file="utils.html" import="submit_form, plain_link"/>
-<%namespace file="printablebuttons.html" import="toggle_button"/>
+<%namespace file="printablebuttons.html" import="toggle_button, state_button"/>
 
 <div class="titlebox">
   <h1>
@@ -40,9 +40,16 @@
         %if thing.user._deleted:
           <span class="unusual">(deleted)</span>
         %endif
-
+		<br>
         %if thing.user._spam:
-          <span class="unusual">(banned)</span>
+			${state_button("unspam", _("unban"),
+			        "return change_state(this, 'unspam');", _("unbanned"),
+			        hidden_data = dict(user = thing.user.name))}
+          	<span class="unusual">(banned)</span>
+		%else:
+      		${state_button("spam", _("ban"),
+        	"return change_state(this, 'spam');", _("banned"),
+        	hidden_data = dict(user = thing.user.name))}   
         %endif
       </span>
     %endif
@@ -83,7 +90,7 @@
     %if i >= 5:
       <a href="javascript:void(0)"
          onclick="$('.more-karmas').show();$(this).hide();return false">
-         show karma for all ${len(karmas)} reddits
+         karma pentru toate ${len(karmas)} de proddituri
       </a>
     %endif
   %else:

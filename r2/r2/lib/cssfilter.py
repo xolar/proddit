@@ -410,12 +410,15 @@ def save_sr_image(sr, data, resource = None):
             resource = ""
         fname = resource = sr._fullname + resource + ".png"
 
-        s3cp.send_file(g.s3_thumb_bucket, fname, contents, 'image/png')
+        f = open('r2/public/thumbs/' + resource,'wb')
+        f.write(data)
+        f.flush()
 
+        
     finally:
-        os.unlink(f.name)
+        f.close()
 
-    return 'http://%s/%s?v=%s' % (g.s3_thumb_bucket, 
+    return '%s%s?v=%s' % (g.thumbs_path, 
                                   resource.split('/')[-1], hash)
 
  

@@ -83,7 +83,7 @@ def cache_lists():
 
     for (lang, over18), srs in bylang.iteritems():
         srs = _chop(srs)
-        sr_tuples = map(lambda sr: (sr._downs, sr.allow_top, sr._id), srs)
+        sr_tuples = map(lambda sr: (sr._ups, sr.allow_top, sr._id), srs)
 
         print "For %s/%s setting %s" % (lang, over18,
                                         map(lambda sr: sr.name, srs[:50]))
@@ -106,16 +106,12 @@ def pop_reddits(langs, over18, over18_only, filter_allow_top = False):
 
     # dict(lang_key -> [(_downs, allow_top, sr_id)])
     srs = g.permacache.get_multi(keys)
-
     tups = flatten(srs.values())
-
     if filter_allow_top:
         # remove the folks that have opted out of being on the front
         # page as appropriate
         tups = filter(lambda tpl: tpl[1], tups)
-
-    if len(srs) > 1:
+    if len(tups) > 1:
         # if there was only one returned, it's already sorted
         tups.sort(key = lambda tpl: tpl[0], reverse=True)
-
     return map(lambda tpl: tpl[2], tups)

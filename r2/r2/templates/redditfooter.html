@@ -33,25 +33,14 @@
         ${toolbar}
       </div>
       %endfor
-    %if g.domain != "reddit.com":
-      <!-- http://code.reddit.com/LICENSE see Exhibit B -->
-      <a href="http://code.reddit.com" style="text-align:center;display:block">
-        <img src="http://code.reddit.com/reddit_logo.png" 
-             style="width:140px"/>
-      </a>
-    %endif
+  <div>
     <p class="bottommenu">
-      ${text_with_links(
-              _("Use of this site constitutes acceptance of our "
-                "%(user_agreement)s and %(privacy_policy)s"), nocname=True, 
-        user_agreement= (_("User Agreement {Genitive}"), 
-                         "http://reddit.com/help/useragreement"), 
-        privacy_policy = (_("Privacy Policy {Genitive}"), 
-                          "http://reddit.com/help/privacypolicy"))}.  
+
       ${_("(c) %(year)d Conde Nast Digital. All rights reserved.") % \
       dict(year=datetime.datetime.now().timetuple()[0])}
     </p>
-    <p class="bottommenu">REDDIT and the ALIEN Logo are registered trademarks of Advance Magazine
-Publishers Inc.</p>
+		<br>
+ 		 <p><a href="http://code.reddit.com"><img src="/static/reddit_logo.png" alt="powered by reddit" /></a></p>
   </div>
+</div>
 </div>

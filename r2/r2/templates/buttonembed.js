@@ -22,19 +22,14 @@
 (function() {
 var write_string="<iframe src=\"http://${thing.domain}/static/button/button${thing.button}.html?${unsafe(thing.arg)}width=${thing.width}&url=${(thing.url or "")|u}";
 %if not thing.url:
-  if (window.reddit_url)  { write_string += encodeURIComponent(reddit_url); }
+if (window.proddit_url)  { write_string += encodeURIComponent(proddit_url); }
 else { write_string += encodeURIComponent('${thing.referer}');}
 %endif
-if (window.reddit_title) { 
-     write_string += '&title=' + encodeURIComponent(window.reddit_title); }
-if (window.reddit_css) { 
-    write_string += '&css=' + encodeURIComponent(window.reddit_css); }
-if (window.reddit_bgcolor) { 
-    write_string += '&bgcolor=' + encodeURIComponent(window.reddit_bgcolor); }
-if (window.reddit_bordercolor) { 
-    write_string += '&bordercolor=' + encodeURIComponent(window.reddit_bordercolor); }
-if (window.reddit_newwindow) { 
-    write_string += '&newwindow=' + encodeURIComponent(window.reddit_newwindow);}
+if (window.proddit_titlu) { write_string += '&title=' + encodeURIComponent(window.proddit_titlu); }
+if (window.proddit_css) { write_string += '&css=' + encodeURIComponent(window.proddit_css); }
+if (window.proddit_bgcolor) { write_string += '&bgcolor=' + encodeURIComponent(window.proddit_bgcolor); }
+if (window.proddit_bordercolor) { write_string += '&bordercolor=' + encodeURIComponent(window.proddit_bordercolor); }
+if (window.proddit_paginanoua) { write_string += '&newwindow=' + encodeURIComponent(window.proddit_paginanoua);}
 write_string += "\" height=\"${thing.height}\" width=\"${thing.width}\" scrolling='no' frameborder='0'></iframe>";
 document.write(write_string);
 })()

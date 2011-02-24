@@ -162,8 +162,8 @@ class Reddit(Templated):
         self.toolbars = self.build_toolbars()
 
     def sr_admin_menu(self):
-        buttons = [NavButton('community_settings', css_class = 'reddit-edit',
-                             dest = "edit"),
+        buttons = [NamedButton('community_settings', dest = "edit",
+                             css_class = 'reddit-edit'),
                    NamedButton('modmail', dest = "message/inbox",
                                css_class = 'moderator-mail'),
                    NamedButton('moderators', css_class = 'reddit-moderators')]
@@ -177,7 +177,7 @@ class Reddit(Templated):
                                      css_class = 'reddit-contributors'))
 
         buttons.extend([
-                NamedButton('traffic', css_class = 'reddit-traffic'),
+                #NamedButton('traffic', css_class = 'reddit-traffic'),
                 NamedButton('reports', css_class = 'reddit-reported'),
                 NamedButton('spam', css_class = 'reddit-spam'),
                 NamedButton('banned', css_class = 'reddit-ban'),
@@ -229,7 +229,7 @@ class Reddit(Templated):
             delta = datetime.datetime.now(g.tz) - c.user._date
             if delta.days > 30:
                 ps.append(SideBox(_('Create your own community'),
-                           '/reddits/create', 'create',
+                           '/proddits/create', 'create',
                            subtitles = rand_strings.get("create_reddit", 2),
                            show_cover = True, nocname=True))
 
@@ -251,7 +251,7 @@ class Reddit(Templated):
                     more_text = "...and %d more" % (total - len(moderators))
                     mod_href = "http://%s/about/moderators" % get_domain()
                 helplink = ("/message/compose?to=%%23%s" % c.site.name,
-                            "message the moderators")
+                            "trimite un mesaj moderatorilor")
                 ps.append(SideContentBox(_('moderators'), moderators,
                                          helplink = helplink, 
                                          more_href = mod_href,
@@ -368,12 +368,11 @@ class RedditFooter(CachedTemplate):
 
     def __init__(self):
         self.nav = [NavMenu([
-                         OffsiteButton(_("gold"), nocname=True,
-                                       dest = '/help/gold', css_class = "buygold"),
-                         OffsiteButton("mobile",
-                                       "/static/reddit_mobile/index.htm"),
+                         #OffsiteButton(_("gold"), nocname=True,
+                         #             dest = '/help/gold', css_class = "buygold"),
+                         OffsiteButton("mobile","/static/reddit_mobile/index.htm"),
                          OffsiteButton("rss", dest = '/.rss'),
-                         NamedButton("store", False, nocname=True),
+                         #NamedButton("store", False, nocname=True),
                          NamedButton("awards", False, nocname=True),
                          NamedButton('random', False, nocname=False),
                          ],
@@ -383,10 +382,10 @@ class RedditFooter(CachedTemplate):
                     NavMenu([NamedButton("help", False, nocname=True),
                          OffsiteButton(_("FAQ"), dest = '/help/faq',
                                        nocname=True),
-                         OffsiteButton(_("reddiquette"), nocname=True,
-                                       dest = '/help/reddiquette'),
+                         #OffsiteButton(_("reddiquette"), nocname=True,
+                         #              dest = '/help/reddiquette'),
                          NamedButton("feedback", False),
-                         NamedButton("i18n", False),
+                         #NamedButton("i18n", False),
                              ],
                         title = _('help'), type = 'flat_vert',
                         separator = ''),
@@ -394,43 +393,55 @@ class RedditFooter(CachedTemplate):
                          NamedButton("buttons", True),
                          NamedButton("code", False, nocname=True),
                          NamedButton("socialite", False),
-                         NamedButton("widget", True)],
+                         NamedButton("widget", True),
+                         OffsiteButton("socialite", "https://addons.mozilla.org/en-US/firefox/addon/7799")],
                         title = _('reddit tools'), type = 'flat_vert',
                         separator = ''),
-                    NavMenu([NamedButton("blog", False, nocname=True),
-                         NamedButton("promote", False, nocname=True,
-                                     dest = '/promoted', css_class = "red"),
-                         NamedButton("ad_inq", False, nocname=True)],
-                        title = _('about us'), type = 'flat_vert',
-                        separator = ''),
-                    NavMenu([OffsiteButton('BaconBuzz',
-                                       "http://www.baconbuzz.com"),
-                         OffsiteButton('Destructoid reddit',
-                                       "http://reddit.destructoid.com"),
-                         OffsiteButton('TheCuteList',
-                                       "http://www.thecutelist.com"),
-                         OffsiteButton('The Independent reddit',
-                                       "http://reddit.independent.co.uk"),
-                         OffsiteButton('redditGadgetGuide',
-                                       "http://www.redditgadgetguide.com"),
-                         OffsiteButton('WeHeartGossip',
-                                       "http://www.weheartgossip.com"),
-                         OffsiteButton('idealistNews',
-                                       "http://www.idealistnews.com"),],
+                    #NavMenu([NamedButton("blog", False, nocname=True),
+                    #     NamedButton("promote", False, nocname=True,
+                    #                 dest = '/promoted', css_class = "red"),
+                    #     NamedButton("ad_inq", False, nocname=True)],
+                    #    title = _('about us'), type = 'flat_vert',
+                    #    separator = ''),
+                    NavMenu([OffsiteButton('rezistenta.net',
+                                       "http://www.rezistenta.net"),
+                         OffsiteButton('tlp.ro',
+                                       "http://www.tlp.ro"),
+                         OffsiteButton('utopia balcanica',
+                                       "http://utopiabalcanica.net/"),                                       
+                         OffsiteButton('cti97',
+                                       "http://ct97.ro"),
+                         OffsiteButton('bezbojnicul',
+                                       "http://bezbojnicul.blogspot.com/"),   
+                         #[OffsiteButton('BaconBuzz',
+                         #              "http://www.baconbuzz.com"),
+                         #OffsiteButton('Destructoid reddit',
+                         #              "http://reddit.destructoid.com"),
+                         #OffsiteButton('TheCuteList',
+                         #              "http://www.thecutelist.com"),
+                         #OffsiteButton('The Independent reddit',
+                         #              "http://reddit.independent.co.uk"),
+                         #OffsiteButton('redditGadgetGuide',
+                         #              "http://www.redditgadgetguide.com"),
+                         #OffsiteButton('WeHeartGossip',
+                         #              "http://www.weheartgossip.com"),
+                         #OffsiteButton('idealistNews',
+                         #              "http://www.idealistnews.com"),
+                         ],
                         title = _('brothers'), type = 'flat_vert',
                         separator = ''),
-                    NavMenu([OffsiteButton('Wired.com',
-                                       "http://www.wired.com"),
-                         OffsiteButton('Ars Technica',
-                                       "http://www.arstechnica.com"),
-                         OffsiteButton('Style.com',
-                                       "http://www.style.com"),
-                         OffsiteButton('Epicurious.com',
-                                       "http://www.epicurious.com"),
-                         OffsiteButton('Concierge.com',
-                                       "http://www.concierge.com")],
-                        title = _('sisters'), type = 'flat_vert',
-                        separator = '')
+                    #NavMenu([OffsiteButton('Wired.com',
+                    #                   "http://www.wired.com"),
+                    #     OffsiteButton('Ars Technica',
+                    #                   "http://www.arstechnica.com"),
+                    #     OffsiteButton('Style.com',
+                     #                  "http://www.style.com"),
+                    #     OffsiteButton('Epicurious.com',
+                     #                  "http://www.epicurious.com"),
+                    #     OffsiteButton('Concierge.com',
+                    #                   "http://www.concierge.com")],
+                    #    title = _('sisters'), type = 'flat_vert',
+                   #     separator = '')
                     ]
         CachedTemplate.__init__(self)
 
@@ -496,7 +507,7 @@ class SubredditInfoBar(CachedTemplate):
                     NamedButton('reports'),
                     NavButton(menu.banusers, 'banned'),
                     NamedButton('traffic'),
-                    NavButton(menu.community_settings, 'edit'),
+                    NavButton(menu.communitysettings, 'edit'),
                     ])
         return [NavMenu(buttons, type = "flat_vert", base_path = "/about/",
                         separator = '')]
@@ -1014,12 +1025,12 @@ class SubredditsPage(Reddit):
         if c.user_is_loggedin:
             #add the aliases to "my reddits" stays highlighted
             buttons.append(NamedButton("mine",
-                                       aliases=['/reddits/mine/subscriber',
-                                                '/reddits/mine/contributor',
-                                                '/reddits/mine/moderator']))
+                                       aliases=['/mine/subscriber',
+                                                '/mine/contributor',
+                                                '/mine/moderator']))
 
         return [PageNameNav('reddits'),
-                NavMenu(buttons, base_path = '/reddits', type="tabmenu")]
+                NavMenu(buttons, base_path = '/proddits', type="tabmenu")]
 
     def content(self):
         return self.content_stack((self.searchbar, self.nav_menu,
@@ -1219,6 +1230,7 @@ class SubredditTopBar(CachedTemplate):
                                                  limit = Subreddit.sr_limit)
             self._pop_reddits = [ sr for sr in p_srs
                                   if sr.name not in g.automatic_reddits ]
+
         return self._pop_reddits
 
 
@@ -1229,7 +1241,7 @@ class SubredditTopBar(CachedTemplate):
         drop_down_buttons.append(NavButton(menu.edit_subscriptions,
                                            sr_path = False,
                                            css_class = 'bottom-option',
-                                           dest = '/reddits/'))
+                                           dest = '/proddits/'))
         return SubredditMenu(drop_down_buttons,
                              title = _('my reddits'),
                              type = 'srdrop')
@@ -1690,11 +1702,11 @@ class Bookmarklets(Templated):
     """The bookmarklets page."""
     def __init__(self, buttons=None):
         if buttons is None:
-            buttons = ["submit", "serendipity!"]
+            buttons = ["trimite", "la intamplare"]
             # only include the toolbar link if we're not on an
             # unathorised cname. See toolbar.py:GET_s for discussion
             if not (c.cname and c.site.domain not in g.authorized_cnames):
-                buttons.insert(0, "reddit toolbar")
+                buttons.insert(0, "toolbar proddit")
         Templated.__init__(self, buttons = buttons)
 
 

@@ -53,7 +53,7 @@ NUM_FAILIENS = 3
 redditbroke =  \
 '''<html>
   <head>
-    <title>Reddit broke!</title>
+    <title>Proddit a crapat!</title>
   </head>
   <body>
     <div style="margin: auto; text-align: center">

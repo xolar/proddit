@@ -41,9 +41,9 @@ __all__ = ['StringHandler', 'strings', 'PluralManager', 'plurals',
 # StringHandler instance strings
 string_dict = dict(
 
-    banned_by = "removed by %s",
-    banned    = "removed",
-    reports   = "reports: %d",
+    banned_by = "sters de %s",
+    banned    = "sters",
+    reports   = "raportari: %d",
     
     # this accomodates asian languages which don't use spaces
     number_label = _("%(num)d %(thing)s"),
@@ -58,7 +58,7 @@ string_dict = dict(
     float_label = _("%(num)5.3f %(thing)s"),
 
     # this is for Japanese which treats people counds differently
-    person_label = _("<span class='number'>%(num)s</span>&#32;<span class='word'>%(persons)s</span>"),
+    person_label = _("%(num)s %(persons)s"),
 
     firsttext = _("reddit is a source for what's new and popular online. vote on links that you like or dislike and help decide what's popular, or submit your own!"),
 

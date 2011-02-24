@@ -30,7 +30,7 @@
 <%def name="action_button(name, btn_type, onclick, display)">
   <button type="${btn_type}" onclick="${onclick}" class="${name}"
           ${"style='display:none'" if not display else ""}>
-    ${name}
+    ${_(name)}
   </button>
 </%def>
 
@@ -97,10 +97,10 @@
         <tr>
           <td>**${_( "bold")}**</td>
           <td><b>${_( "bold")}</b></td>
-        </tr>
+       </tr>
         <tr>
-          <td>[reddit!](http://reddit.com)</td>
-          <td><a href="http://reddit.com">reddit!</a></td>
+          <td>[proddit!](http://proddit.com)</td>
+          <td><a href="http://proddit.com">proddit!</a></td>
         </tr>
         <tr>
           <td>
@@ -122,8 +122,8 @@
         </tr>
         <tr>
             <td>
-                Lines starting with four spaces <br/>
-                are treated like code:<br/><br/>
+                Liniile care incep cu 4 spatii <br/>
+                sunt tratate ca si cod:<br/><br/>
                 <span class="spaces">
                     &nbsp;&nbsp;&nbsp;&nbsp;
                 </span>
@@ -133,8 +133,8 @@
                 </span>
                 print "hello, world!"<br/>
             </td>
-            <td>Lines starting with four spaces <br/>
-                are treated like code:<br/>
+            <td> Liniile care incep cu 4 spatii <br/>
+                 sunt tratate ca si cod:<br/>
                 <pre>if 1 * 2 &lt 3:<br/>&nbsp;&nbsp;&nbsp;&nbsp;print "hello,
                 world!"</pre>
             </td>

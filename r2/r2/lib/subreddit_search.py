@@ -10,8 +10,8 @@ def load_all_reddits():
     query_cache = {}
 
     q = Subreddit._query(Subreddit.c.type == 'public',
-                         Subreddit.c._downs > 1,
-                         sort = (desc('_downs'), desc('_ups')),
+                         Subreddit.c._downs > -1,
+                         sort = (desc('_ups'), desc('_downs')),
                          data = True)
     for sr in utils.fetch_things2(q):
         name = sr.name.lower()
@@ -20,6 +20,7 @@ def load_all_reddits():
             names = query_cache.setdefault(prefix, [])
             if len(names) < 10:
                 names.append(sr.name)
+	    print names
 
     g.permacache.set_multi(query_cache, prefix = sr_prefix)
 

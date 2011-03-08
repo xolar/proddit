@@ -36,7 +36,7 @@
 
 <script type="text/javascript">
 function admincheck(elem) {
-  var admins = ${unsafe(simplejson.dumps(list(g.admins)))};
+  var admins = ${unsafe(simplejson.dumps(thing.admins))};
 
   if (admins.indexOf(elem.value) >= 0) {
     $(".admin-to").text(elem.value);
@@ -72,57 +72,13 @@ function admincheck(elem) {
 </div>
 
 <div class="clippy"
-%if thing.to not in g.admins:
+%if thing.to not in thing.admins:
   style="display:none"
 %endif
 >
    <img src="/static/alien-clippy.png" />
 
-   <div class="clippy-bubble">
-     <p class="clippy-headline">It looks like you're writing to an admin!</p>
-     <p>
-
-       Before you click "send", you might want to make sure that
-       &#32;
-       <span class="admin-to">${thing.to}</span>
-       &#32;
-       is the right man for the job.
-
-       &#32;
-       <a href="http://reddit.com/help/faq#WhichstaffmembershouldIwritetoifIhaveaproblemorquestion">
-         The FAQ has some guidelines</a>
-       &#32;
-       about who handles what.
-
-       Also:
-     </p>
-     <ul>
-       <li>If you'd like to message the admins, send your message to the&#32;<a href="/message/compose?to=${g.admin_message_acct|u}">admin message list.</a></li>
-
-       <li>If you think your posts are being caught in the spam filter,
-         please write to
-         &#32;
-         <a href="http://reddit.com/help/faq#HowcanItellwhomoderatesagivenreddit">
-          the moderator of the reddit
-         </a>
-         &#32;
-         instead.
-       </li>
-
-       <li>If
-         &#32;
-         <span class="admin-to">${thing.to}</span>
-         &#32;<i>is</i>&#32; the moderator, and that's
-         actually the reason you're writing to him, please include specific
-         links to the submissions that you're having trouble with.</li>
-
-       <li>If you're concerned that something is wrong with your entire
-         account, please
-         &#32;<a href="/message/compose?to=${g.admin_message_acct|u}">send a private message to all of the admins.</a>&#32;(It'll be dealt with faster)</li>
-     </ul>
-  </div>
-
-  <br class="clear"/>
+   <br class="clear"/>
 
  </div>
 

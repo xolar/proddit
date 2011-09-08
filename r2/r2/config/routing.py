@@ -238,7 +238,7 @@ def make_map(global_conf={}, app_conf={}):
        dest='http://code.reddit.com/')
 
     mc('/mobile', controller='redirect', action='redirect',
-       dest='http://m.proddit.com/')
+       dest='http://i.proddit.com/')
 
     mc('/authorize_embed', controller = 'front', action = 'authorize_embed')
 

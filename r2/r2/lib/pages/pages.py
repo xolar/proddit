@@ -331,8 +331,8 @@ class Reddit(Templated):
             if c.user_is_admin:
                 more_buttons.append(NamedButton('admin', False))
                 more_buttons.append(NamedButton('traffic', False))
-            if c.user.pref_show_promote or c.user_is_sponsor:
-                more_buttons.append(NavButton(menu.promote, 'promoted', False))
+            #if c.user.pref_show_promote or c.user_is_sponsor:
+            #    more_buttons.append(NavButton(menu.promote, 'promoted', False))
 
         #if there's only one button in the dropdown, get rid of the dropdown
         if len(more_buttons) == 1:
@@ -373,7 +373,7 @@ class RedditFooter(CachedTemplate):
         self.nav = [NavMenu([
                          #OffsiteButton(_("gold"), nocname=True,
                          #             dest = '/help/gold', css_class = "buygold"),
-                         OffsiteButton("mobile","/static/reddit_mobile/index.htm"),
+                         OffsiteButton("mobile","http://i.proddit.com"),
                          OffsiteButton("rss", dest = '/.rss'),
                          #NamedButton("store", False, nocname=True),
                          NamedButton("awards", False, nocname=True),
@@ -413,7 +413,7 @@ class RedditFooter(CachedTemplate):
                          OffsiteButton('utopia balcanica',
                                        "http://utopiabalcanica.net/"),                                       
                          OffsiteButton('cti97',
-                                       "http://ct97.ro"),
+                                       "http://cti97.ro"),
                          OffsiteButton('bezbojnicul',
                                        "http://bezbojnicul.blogspot.com/"),   
                          #[OffsiteButton('BaconBuzz',
@@ -1045,6 +1045,7 @@ class SubredditsPage(Reddit):
 
     def content(self):
         return self.content_stack((self.searchbar, self.nav_menu,
+        #return self.content_stack((self.nav_menu,
                                    self.sr_infobar, self._content))
 
     def rightbox(self):

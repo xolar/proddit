@@ -145,7 +145,8 @@ def maps_from_things(things, boost_only = False):
 
     maps = []
 
-    if not boost_only:
+    #boo if not boost_only:
+    if True:
         # we can avoid looking these up at all if only the boosts were
         # updated
 
@@ -164,7 +165,8 @@ def maps_from_things(things, boost_only = False):
                      downs = thing._downs,
                      num_comments = getattr(thing, 'num_comments', 0))
 
-            if not boost_only:
+            #boo if not boost_only:
+            if True:
                 a = accounts[thing.author_id]
                 sr = srs[thing.sr_id]
 
@@ -208,10 +210,13 @@ def inject_maps(maps, boost_only=False):
         num_comments = d.pop("num_comments")
         boosts = to_variables(ups, downs, num_comments)
 
-        if boost_only:
+        #boo if boost_only:
+        if False:
             index.update_variables(docid=fullname, variables=boosts)
         else:
+            print 'bagam %s',fullname
             index.add_document(docid=fullname, fields=d, variables=boosts)
+            print 'added %s',fullname
 
 def delete_thing(thing):
     index.delete_document(docid=thing._fullname)
@@ -220,7 +225,7 @@ def inject(things, boost_only=False):
     things = [x for x in things if isinstance(x, indextank_indexed_types)]
 
     update_things = [x for x in things if not x._spam and not x._deleted
-                     and x.promoted is None
+                     and x.promoted is None and x._score>=3
                      and getattr(x, 'sr_id', None) != -1]
     delete_things = [x for x in things if x._spam or x._deleted]
 
@@ -279,7 +284,8 @@ def run_changed(drain=False, limit=1000):
                 # we're already going to do all of the work
                 continue
 
-            if boost_only:
+            #boo if boost_only:
+            if False:
                 boost.add(fname)
             else:
                 if fname in boost:

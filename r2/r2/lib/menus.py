@@ -437,7 +437,7 @@ class CommentSortMenu(SortMenu):
 class SearchSortMenu(SortMenu):
     """Sort menu for search pages."""
     default   = 'relevance'
-    mapping   = indextank_sorts
+    mapping   = indextank_sorts 
     options   = mapping.keys()
 
     @classmethod

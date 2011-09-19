@@ -22,9 +22,8 @@
 """Pylons middleware initialization"""
 from paste.cascade import Cascade
 from paste.registry import RegistryManager
-from paste.urlparser import StaticURLParser
+from paste.urlparser import URLParser, StaticURLParser
 from paste.deploy.converters import asbool
-from paste.gzipper import make_gzip_middleware
 
 from pylons import config, request, Response
 from pylons.error import error_template
@@ -307,23 +306,8 @@ class DomainMiddleware(object):
         sr_redirect = None
         for sd in list(sub_domains):
             # subdomains to disregard completely
-            if sd in ('www', 'origin', 'beta', 'pay'):
+            if sd in ('www', 'origin', 'beta', 'pay', 'buttons'):
                 continue
-            elif sd == 'blog':
-                r = Response()
-                try:
-                    conn = HTTPConnection(config['global_conf']['blog_host'])
-                    conn.request("GET", environ['PATH_INFO'], None,
-                                 {"Host": "blog.reddit.com"})
-                    res = conn.getresponse()
-                    r.status_code = res.status
-                    r.content = res.read()
-                    conn.close()
-                except:
-                    r.status_code = 500
-                    environ['HTTP_HOST'] = base_domain
-                    r.content = "failed to load blog"
-                return r(environ, start_response)
             # subdomains which change the extension
             elif sd == 'm':
                 environ['reddit-domain-extension'] = 'mobile'
@@ -453,31 +437,6 @@ class RewriteMiddleware(object):
 
         return self.app(environ, start_response)
 
-class RequestLogMiddleware(object):
-    def __init__(self, log_path, process_iden, app):
-        self.log_path = log_path
-        self.app = app
-        self.process_iden = str(process_iden)
-
-    def __call__(self, environ, start_response):
-        request = '\n'.join('%s: %s' % (k,v) for k,v in environ.iteritems()
-                           if k.isupper())
-        iden = self.process_iden + '-' + sha.new(request).hexdigest()
-
-        fname = os.path.join(self.log_path, iden)
-        f = open(fname, 'w')
-        f.write(request)
-        f.close()
-
-        r = self.app(environ, start_response)
-
-        if os.path.exists(fname):
-            try:
-                os.remove(fname)
-            except OSError:
-                pass
-        return r
-
 class LimitUploadSize(object):
     """
     Middleware for restricting the size of uploaded files (such as
@@ -575,14 +534,6 @@ def make_app(global_conf, full_stack=True, **app_conf):
     app = ExtensionMiddleware(app)
     app = DomainMiddleware(app)
 
-    log_path = global_conf.get('log_path')
-    if log_path:
-        process_iden = global_conf.get('scgi_port', 'default')
-        app = RequestLogMiddleware(log_path, process_iden, app)
-
-    #TODO: breaks on 404
-    #app = make_gzip_middleware(app, app_conf)
-
     if asbool(full_stack):
         # Handle Python exceptions
         app = ErrorHandler(app, global_conf, error_template=error_template,
@@ -599,8 +550,6 @@ def make_app(global_conf, full_stack=True, **app_conf):
     javascripts_app = StaticJavascripts()
     static_app = StaticURLParser(config['pylons.paths']['static_files'])
     app = Cascade([static_app, javascripts_app, app])
-
-    app = make_gzip_middleware(app, app_conf)
 
     #add the rewrite rules
     app = RewriteMiddleware(app)

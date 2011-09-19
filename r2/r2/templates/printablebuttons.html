@@ -42,8 +42,7 @@
     %if not getattr(thing.thing, "use_big_modbuttons", False):
       %if not thing.show_spam:
         <li>
-           ${self.state_button("remove", _("remove"),
-              "return change_state(this, 'remove');", _("removed"))}
+           ${ynbutton(_("remove"), _("removed"), "remove")}
         </li>
       %endif
 
@@ -58,6 +57,12 @@
     <li>
       ${ynbutton(_("report"), _("reported"), "report", "hide_thing")}
     </li>
+  %endif
+  %if thing.show_marknsfw:
+    <li>${ynbutton(_("nsfw"), _("marked"), "marknsfw")}</li>
+  %endif
+  %if thing.show_unmarknsfw:
+    <li>${ynbutton(_("un-nsfw"), _("unmarked"), "unmarknsfw")}</li>
   %endif
 </%def>
 
@@ -143,10 +148,12 @@
       ${self.simple_button(_("edit"), "edit_usertext", css_class="edit-usertext")}
     </li>
   %endif
+  % if c.user_is_loggedin or not g.read_only_mode:
   <li class="share">
     ${self.toggle_button("share-button", _("share"), _("cancel"),
                          "share", "cancelShare", login_required = True)}
   </li>
+  % endif
   %if thing.is_loggedin:
     <li>
     %if thing.saved:
@@ -296,6 +303,11 @@
   %endif
   %if thing.recipient:
     ${self.banbuttons()}
+      %if not thing.was_comment and thing.thing.author_id != c.user._id and thing.thing.author_id not in c.user.enemies:
+        <li>
+          ${ynbutton(_("block user"), _("blocked"), "block", "hide_thing")}
+        </li>
+      %endif
     <li class="unread">
      ${self.state_button("unread", _("mark unread"), \
         "return change_state(this, 'unread_message', unread_thing, true);", \

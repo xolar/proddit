@@ -50,6 +50,7 @@ class Link(Thing, Printable):
     _data_int_props = Thing._data_int_props + ('num_comments', 'reported')
     _defaults = dict(is_self = False,
                      over_18 = False,
+                     nsfw_str = False,
                      reported = 0, num_comments = 0,
                      moderator_banned = False,
                      banned_before_moderator = False,
@@ -61,7 +62,7 @@ class Link(Thing, Printable):
                      selftext = '',
                      noselfreply = False,
                      ip = '0.0.0.0')
-    _essentials = ('sr_id',)
+    _essentials = ('sr_id', 'author_id')
     _nsfw = re.compile(r"\bnsfw\b", re.I)
 
     def __init__(self, *a, **kw):
@@ -212,10 +213,10 @@ class Link(Thing, Printable):
                 #return False
 
         if user and not c.ignore_hide_rules:
-            if user.pref_hide_ups and wrapped.likes == True:
+            if user.pref_hide_ups and wrapped.likes == True and self.author_id != user._id:
                 return False
 
-            if user.pref_hide_downs and wrapped.likes == False:
+            if user.pref_hide_downs and wrapped.likes == False and self.author_id != user._id:
                 return False
 
             if wrapped._score < user.pref_min_link_score:
@@ -224,15 +225,16 @@ class Link(Thing, Printable):
             if wrapped.hidden:
                 return False
 
-        # Uncomment to skip based on nsfw
-        #
-        # skip the item if 18+ and the user has that preference set
-        # ignore skip if we are visiting a nsfw reddit
-        if ( not c.user_is_loggedin and
-             (wrapped.subreddit != c.site or c.site.name == 'multi')):
-            return not bool(wrapped.subreddit.over_18 or 
-                            wrapped.over_18)
+        # hide NSFW links from non-logged users and under 18 logged users 
+        # if they're not explicitly visiting an NSFW subreddit
+        if ((not c.user_is_loggedin and c.site != wrapped.subreddit)
+            or (c.user_is_loggedin and not c.over18)):
+            is_nsfw = bool(wrapped.over_18)
+            is_from_nsfw_sr = bool(wrapped.subreddit.over_18)
 
+            if is_nsfw or is_from_nsfw_sr:
+                return False
+                
         return True
 
     # none of these things will change over a link's lifetime
@@ -272,9 +274,12 @@ class Link(Thing, Printable):
         elif not c.cname and not force_domain:
             res = "/r/%s/%s" % (sr.name, p)
         elif sr != c.site or force_domain:
-            res = "http://%s/%s" % (get_domain(cname = (c.cname and
-                                                        sr == c.site),
-                                               subreddit = not c.cname), p)
+            if(c.cname and sr == c.site):
+                res = "http://%s/%s" % (get_domain(cname = True,
+                                                    subreddit = False),p)
+            else:
+                res = "http://%s/r/%s/%s" % (get_domain(cname = False,
+                                                    subreddit = False),sr.name,p)
         else:
             res = "/%s" % p
 
@@ -287,6 +292,21 @@ class Link(Thing, Printable):
     def make_permalink_slow(self, force_domain = False):
         return self.make_permalink(self.subreddit_slow,
                                    force_domain = force_domain)
+
+    @staticmethod
+    def _should_expunge_selftext(link):
+        verdict = getattr(link, "verdict", "")
+        if verdict not in ("admin-removed", "mod-removed"):
+            return False
+        if not c.user_is_loggedin:
+            return True
+        if c.user_is_admin:
+            return False
+        if c.user == link.author:
+            return False
+        if link.can_ban:
+            return False
+        return True
     
     @classmethod
     def add_props(cls, user, wrapped):
@@ -343,8 +363,9 @@ class Link(Thing, Printable):
                 elif pref_media != 'off' and not user.pref_compress:
                     show_media = True
 
+            item.nsfw_str = item._nsfw.findall(item.title)
             item.over_18 = bool(item.over_18 or item.subreddit.over_18 or
-                                item._nsfw.findall(item.title))
+                                item.nsfw_str)
             item.nsfw = item.over_18 and user.pref_label_nsfw
 
             item.is_author = (user == item.author)
@@ -478,6 +499,12 @@ class Link(Thing, Printable):
 
             item.approval_checkmark = None
 
+            item_age = datetime.now(g.tz) - item._date
+            if item_age.days > g.VOTE_AGE_LIMIT and item.promoted is None:
+                item.votable = False
+            else:
+                item.votable = True
+
             if item.can_ban:
                 verdict = getattr(item, "verdict", None)
                 if verdict in ('admin-approved', 'mod-approved'):
@@ -493,6 +520,10 @@ class Link(Thing, Printable):
                 if item.trial_info is not None:
                     item.reveal_trial_info = True
                     item.use_big_modbuttons = True
+
+            item.expunged = False
+            if item.is_self:
+                item.expunged = Link._should_expunge_selftext(item)
 
         if user_is_loggedin:
             incr_counts(wrapped)
@@ -513,7 +544,13 @@ class LinksByUrl(tdb_cassandra.View):
 
     @classmethod
     def _key_from_url(cls, url):
-        keyurl = _force_utf8(UrlParser.base_url(url.lower()))
+        if not utils.domain(url) in g.case_sensitive_domains:
+            keyurl = _force_utf8(UrlParser.base_url(url.lower()))
+        else:
+            # Convert only hostname to lowercase
+            up = UrlParser(url)
+            up.hostname = up.hostname.lower()
+            keyurl = _force_utf8(UrlParser.base_url(up.unparse()))
         return keyurl
 
 # Note that there are no instances of PromotedLink or LinkCompressed,
@@ -554,13 +591,6 @@ class Comment(Thing, Printable):
     def _markdown(self):
         pass
 
-    def _delete(self):
-        from r2.lib.db.queries import changed
-
-        link = Link._byID(self.link_id, data = True)
-        link._incr('num_comments', -1)
-        changed(link, True)
-
     @classmethod
     def _new(cls, author, link, parent, body, ip):
         from r2.lib.db.queries import changed
@@ -590,12 +620,18 @@ class Comment(Thing, Printable):
 
         c._commit()
 
-        changed(link, True) # only the number of comments has changed
+        changed(link, True)  # link's number of comments changed
 
         inbox_rel = None
         # only global admins can be message spammed.
-        if to and (not c._spam or to.name in g.admins):
-            inbox_rel = Inbox._add(to, c, name)
+        # Don't send the message if the recipient has blocked
+        # the author
+        if to and ((not c._spam and author._id not in to.enemies)
+            or to.name in g.admins):
+            # When replying to your own comment, record the inbox
+            # relation, but don't give yourself an orangered
+            orangered = (to.name != author.name)
+            inbox_rel = Inbox._add(to, c, name, orangered=orangered)
 
         return (c, inbox_rel)
 
@@ -640,13 +676,18 @@ class Comment(Thing, Printable):
 
     @classmethod
     def add_props(cls, user, wrapped):
-        from r2.lib.template_helpers import add_attr
+        from r2.lib.template_helpers import add_attr, get_domain
         from r2.lib import promote
         from r2.lib.wrapped import CachedVariable
+        from r2.lib.pages import WrappedUser
 
         #fetch parent links
         links = Link._byID(set(l.link_id for l in wrapped), data = True,
                            return_dict = True, stale=True)
+
+        # fetch authors
+        authors = Account._byID(set(l.author_id for l in links.values()), data=True, 
+                                return_dict=True, stale=True)
 
         #get srs for comments that don't have them (old comments)
         for cm in wrapped:
@@ -673,6 +714,8 @@ class Comment(Thing, Printable):
         user_is_admin = c.user_is_admin
         user_is_loggedin = c.user_is_loggedin
         focal_comment = c.focal_comment
+        cname = c.cname
+        site = c.site
 
         for item in wrapped:
             # for caching:
@@ -703,7 +746,7 @@ class Comment(Thing, Printable):
 
             item.can_reply = False
             if c.can_reply or (item.sr_id in can_reply_srs):
-                age = c.start_time - item._date
+                age = datetime.now(g.tz) - item._date
                 if age.days < g.REPLY_AGE_LIMIT:
                     item.can_reply = True
 
@@ -727,12 +770,28 @@ class Comment(Thing, Printable):
             if focal_comment == item._id36:
                 extra_css += " border"
 
+            if profilepage:
+                item.link_author = WrappedUser(authors[item.link.author_id])
+
+                item.subreddit_path = item.subreddit.path
+                if cname:
+                    item.subreddit_path = ("http://" + 
+                         get_domain(cname = (site == item.subreddit),
+                                    subreddit = False))
+                    if site != item.subreddit:
+                        item.subreddit_path += item.subreddit.path
 
             # don't collapse for admins, on profile pages, or if deleted
-            item.collapsed = ((item.score < min_score) and
-                             not (profilepage or
-                                  item.deleted or
-                                  user_is_admin))
+            item.collapsed = False
+            if ((item.score < min_score) and not (profilepage or
+                item.deleted or user_is_admin)):
+                item.collapsed = True
+                item.collapsed_reason = _("comment score below threshold")
+            if c.user_is_loggedin and item.author_id in c.user.enemies:
+                if "grayed" not in extra_css:
+                    extra_css += " grayed"
+                item.collapsed = True
+                item.collapsed_reason = _("blocked user")
 
             item.editted = getattr(item, "editted", False)
 
@@ -745,6 +804,12 @@ class Comment(Thing, Printable):
 
             item.is_author = (user == item.author)
             item.is_focal  = (focal_comment == item._id36)
+
+            item_age = c.start_time - item._date
+            if item_age.days > g.VOTE_AGE_LIMIT:
+                item.votable = False
+            else:
+                item.votable = True
 
             #will seem less horrible when add_props is in pages.py
             from r2.lib.pages import UserText
@@ -926,7 +991,13 @@ class Message(Thing, Printable):
             # if the current "to" is not a sr moderator,
             # they need to be notified
             if not sr_id or not sr.is_moderator(to):
-                inbox_rel.append(Inbox._add(to, m, 'inbox'))
+                # Record the inbox relation, but don't give the user
+                # an orangered, if they PM themselves.
+                # Don't notify on PMs from blocked users, either
+                orangered = (to.name != author.name and
+                             author._id not in to.enemies)
+                inbox_rel.append(Inbox._add(to, m, 'inbox',
+                                            orangered=orangered))
             # find the message originator
             elif sr_id and m.first_message:
                 first = Message._byID(m.first_message, True)
@@ -1021,7 +1092,6 @@ class Message(Thing, Printable):
             else:
                 item.new = (item.lookups[0] in mod_unread)
 
-
             item.score_fmt = Score.none
 
             item.message_style = ""
@@ -1057,6 +1127,12 @@ class Message(Thing, Printable):
                     item.is_collapsed = item.author_collapse
                 if c.user.pref_collapse_read_messages:
                     item.is_collapsed = (item.is_collapsed is not False)
+            if item.author_id in c.user.enemies and not item.was_comment:
+                item.is_collapsed = True
+                if not c.user_is_admin:
+                    item.subject = _('[message from blocked user]')
+                    item.body = _('[unblock user to see this message]')
+
 
         # Run this last
         Printable.add_props(user, wrapped)
@@ -1157,6 +1233,7 @@ class Inbox(MultiRelation('inbox',
 
     @classmethod
     def _add(cls, to, obj, *a, **kw):
+        orangered = kw.pop("orangered", True)
         i = Inbox(to, obj, *a, **kw)
         i.new = True
         i._commit()
@@ -1165,7 +1242,7 @@ class Inbox(MultiRelation('inbox',
             to._load()
 
         #if there is not msgtime, or it's false, set it
-        if not hasattr(to, 'msgtime') or not to.msgtime:
+        if orangered and (not hasattr(to, 'msgtime') or not to.msgtime):
             to.msgtime = obj._date
             to._commit()
 

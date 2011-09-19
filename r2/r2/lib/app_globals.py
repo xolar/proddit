@@ -24,6 +24,8 @@ from pylons import config
 import pytz, os, logging, sys, socket, re, subprocess, random
 import signal
 from datetime import timedelta, datetime
+from urlparse import urlparse
+import json
 from pycassa.pool import ConnectionPool as PycassaConnectionPool
 from r2.lib.cache import LocalCache, SelfEmptyingCache
 from r2.lib.cache import CMemcache, StaleCacheChain
@@ -47,12 +49,15 @@ class Globals(object):
                  'MIN_DOWN_KARMA',
                  'MIN_RATE_LIMIT_KARMA',
                  'MIN_RATE_LIMIT_COMMENT_KARMA',
+                 'VOTE_AGE_LIMIT',
                  'REPLY_AGE_LIMIT',
                  'WIKI_KARMA',
                  'HOT_PAGE_AGE',
                  'MODWINDOW',
                  'RATELIMIT',
                  'QUOTA_THRESHOLD',
+                 'LOGANS_RUN_LOW',
+                 'LOGANS_RUN_HIGH',
                  'num_comments',
                  'max_comments',
                  'max_comments_gold',
@@ -62,6 +67,7 @@ class Globals(object):
                  'num_serendipity',
                  'sr_dropdown_threshold',
                  'comment_visits_period',
+                  'min_membership_create_community',
                  ]
 
     float_props = ['min_promote_bid',
@@ -84,6 +90,10 @@ class Globals(object):
                   'amqp_logging',
                   'read_only_mode',
                   'frontpage_dart',
+                  'allow_wiki_editing',
+                  'heavy_load_mode',
+                  'disable_captcha',
+                  'disable_ads',
                   ]
 
     tuple_props = ['stalecaches',
@@ -101,7 +111,8 @@ class Globals(object):
                    'authorized_cnames',
                    'hardcache_categories',
                    'proxy_addr',
-                   'allowed_pay_countries']
+                   'allowed_pay_countries',
+                   'case_sensitive_domains']
 
     choice_props = {'cassandra_rcl': {'ONE':    CL_ONE,
                                       'QUORUM': CL_QUORUM},
@@ -136,6 +147,8 @@ class Globals(object):
 
         """
 
+        global_conf.setdefault("debug", False)
+
         # slop over all variables to start with
         for k, v in  global_conf.iteritems():
             if not k.startswith("_") and not hasattr(self, k):
@@ -154,7 +167,30 @@ class Globals(object):
                     v = self.choice_props[k][v]
                 setattr(self, k, v)
 
+        self.paths = paths
+
         self.running_as_script = global_conf.get('running_as_script', False)
+        
+        # turn on for language support
+        if not hasattr(self, 'lang'): self.lang = 'en'
+        self.languages, self.lang_name = \
+                        get_active_langs(default_lang= self.lang)
+
+        all_languages = self.lang_name.keys()
+        all_languages.sort()
+        self.all_languages = all_languages
+        
+        # set default time zone if one is not set
+        tz = global_conf.get('timezone', 'UTC')
+        self.tz = pytz.timezone(tz)
+        
+        dtz = global_conf.get('display_timezone', tz)
+        self.display_tz = pytz.timezone(dtz)
+
+    def setup(self, global_conf):
+        # heavy load mode is read only mode with a different infobar
+        if self.heavy_load_mode:
+            self.read_only_mode = True
 
         if hasattr(signal, 'SIGUSR1'):
             # not all platforms have user signals
@@ -177,6 +213,7 @@ class Globals(object):
             raise ValueError("cassandra_seeds not set in the .ini")
         self.cassandra = PycassaConnectionPool('reddit',
                                                server_list = self.cassandra_seeds,
+                                               pool_size = len(self.cassandra_seeds),
                                                # TODO: .ini setting
                                                timeout=15, max_retries=3,
                                                prefill=False)
@@ -218,13 +255,6 @@ class Globals(object):
         self.thing_cache = CacheChain((localcache_cls(),))
         self.cache_chains.append(self.thing_cache)
 
-        # set default time zone if one is not set
-        tz = global_conf.get('timezone')
-        dtz = global_conf.get('display_timezone', tz)
-
-        self.tz = pytz.timezone(tz)
-        self.display_tz = pytz.timezone(dtz)
-
         #load the database info
         self.dbm = self.load_db_params(global_conf)
 
@@ -255,40 +285,16 @@ class Globals(object):
 
         self.REDDIT_MAIN = bool(os.environ.get('REDDIT_MAIN'))
 
-        # turn on for language support
-        self.languages, self.lang_name = \
-                        get_active_langs(default_lang= self.lang)
+        self.secure_domains = set([urlparse(self.payment_domain).netloc])
 
-        all_languages = self.lang_name.keys()
-        all_languages.sort()
-        self.all_languages = all_languages
-
-        self.paths = paths
-
-        # load the md5 hashes of files under static
-        static_files = os.path.join(paths.get('static_files'), 'static')
-        self.static_md5 = {}
-        if os.path.exists(static_files):
-            for f in os.listdir(static_files):
-                if f.endswith('.md5'):
-                    key = f[0:-4]
-                    f = os.path.join(static_files, f)
-                    with open(f, 'r') as handle:
-                        md5 = handle.read().strip('\n')
-                    self.static_md5[key] = md5
-
-
-        #set up the logging directory
-        log_path = self.log_path
-        process_iden = global_conf.get('scgi_port', 'default')
-        self.reddit_port = process_iden
-        if log_path:
-            if not os.path.exists(log_path):
-                os.makedirs(log_path)
-            for fname in os.listdir(log_path):
-                if fname.startswith(process_iden):
-                    full_name = os.path.join(log_path, fname)
-                    os.remove(full_name)
+        # load the unique hashed names of files under static
+        static_files = os.path.join(self.paths.get('static_files'), 'static')
+        names_file_path = os.path.join(static_files, 'names.json')
+        if os.path.exists(names_file_path):
+            with open(names_file_path) as handle:
+                self.static_names = json.load(handle)
+        else:
+            self.static_names = {}
 
         #setup the logger
         self.log = logging.getLogger('reddit')
@@ -306,14 +312,6 @@ class Globals(object):
         if self.media_domain == self.domain:
             print ("Warning: g.media_domain == g.domain. " +
                    "This may give untrusted content access to user cookies")
-
-        #read in our CSS so that it can become a default for subreddit
-        #stylesheets
-        stylesheet_path = os.path.join(paths.get('static_files'),
-                                       self.static_path.lstrip('/'),
-                                       self.stylesheet)
-        with open(stylesheet_path) as s:
-            self.default_stylesheet = s.read()
 
         self.profanities = None
         if self.profanity_wordlist and os.path.exists(self.profanity_wordlist):
@@ -349,21 +347,36 @@ class Globals(object):
 
         # try to set the source control revision number
         try:
-            popen = subprocess.Popen(["git", "log", "--date=short",
-                                      "--pretty=format:%H %h", '-n1'],
-                                     stdin=subprocess.PIPE,
-                                     stdout=subprocess.PIPE)
-            resp, stderrdata = popen.communicate()
-            resp = resp.strip().split(' ')
-            self.version, self.short_version = resp
+            #popen = subprocess.Popen(["git", "log", "--date=short",
+            #                          "--pretty=format:%H %h", '-n1'],
+            #                         stdin=subprocess.PIPE,
+            #                         stdout=subprocess.PIPE)
+            #resp, stderrdata = popen.communicate()
+            #resp = resp.strip().split(' ')
+            #self.version, self.short_version = resp
+            self.version = self.short_version = '(unknown)'
         except object, e:
             self.log.info("Couldn't read source revision (%r)" % e)
+            self.version = self.short_version = '(unknown)'
+        except ValueError:
             self.version = self.short_version = '(unknown)'
 
         if self.log_start:
             self.log.error("reddit app %s:%s started %s at %s" %
                            (self.reddit_host, self.reddit_pid,
                             self.short_version, datetime.now()))
+
+        if self.LOGANS_RUN_LOW:
+            minutes_to_live = random.randint(self.LOGANS_RUN_LOW,
+                                             self.LOGANS_RUN_HIGH)
+            self.logans_run_limit = datetime.now(self.tz) + timedelta(0,
+                                                 minutes_to_live * 60)
+            disptime = self.logans_run_limit.astimezone(self.display_tz)
+            self.log.info("Will shut down at %s (%d minutes from now)" %
+                (disptime.strftime("%H:%M:%S"), minutes_to_live))
+        else:
+            self.logans_run_limit = None
+
 
     @staticmethod
     def to_bool(x):

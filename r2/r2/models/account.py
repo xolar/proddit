@@ -25,6 +25,7 @@ from r2.lib.db.userrel   import UserRel
 from r2.lib.memoize      import memoize
 from r2.lib.utils        import modhash, valid_hash, randstr, timefromnow
 from r2.lib.utils        import UrlParser, set_last_visit, last_visit
+from r2.lib.utils        import constant_time_compare
 from r2.lib.cache        import sgm
 from r2.lib.log import log_text
 
@@ -39,7 +40,7 @@ class Account(Thing):
     _data_int_props = Thing._data_int_props + ('link_karma', 'comment_karma',
                                                'report_made', 'report_correct',
                                                'report_ignored', 'spammer',
-                                               'reported', 'gold_creddits')
+                                               'reported', 'gold_creddits', )
     _int_prop_suffix = '_karma'
     _essentials = ('name', )
     _defaults = dict(pref_numsites = 25,
@@ -48,6 +49,7 @@ class Account(Thing):
                      pref_newwindow = True,
                      pref_clickgadget = 5,
                      pref_public_votes = False,
+                     pref_hide_from_robots = False,
                      pref_research = False,
                      pref_hide_ups = False,
                      pref_hide_downs = False,
@@ -66,6 +68,7 @@ class Account(Thing):
                      pref_threaded_messages = True,
                      pref_collapse_read_messages = False,
                      pref_private_feeds = True,
+                     pref_local_js = False,
                      pref_show_adbox = True,
                      pref_show_sponsors = True, # sponsored links
                      pref_show_sponsorships = True,
@@ -207,7 +210,7 @@ class Account(Thing):
         return id_time + ',' + sha.new(to_hash).hexdigest()
 
     def needs_captcha(self):
-        return self.link_karma < 1
+        return self.link_karma < 1 and not g.disable_captcha
 
     def modhash(self, rand=None, test=False):
         return modhash(self, rand = rand, test = test)
@@ -249,6 +252,10 @@ class Account(Thing):
     @property
     def friends(self):
         return self.friend_ids()
+
+    @property
+    def enemies(self):
+        return self.enemy_ids()
 
     # Used on the goldmember version of /prefs/friends
     @memoize('account.friend_rels')
@@ -311,6 +318,12 @@ class Account(Thing):
                           eager_load = True)
         for f in q:
             f._thing1.remove_friend(f._thing2)
+
+        q = Friend._query(Friend.c._thing2_id == self._id,
+                          Friend.c._name == 'enemy',
+                          eager_load=True)
+        for f in q:
+            f._thing1.remove_enemy(f._thing2)
 
     @property
     def subreddits(self):
@@ -517,6 +530,9 @@ class Account(Thing):
         except (NotFound, AttributeError):
             return None
 
+    def flair_enabled_in_sr(self, sr_id):
+        return getattr(self, 'flair_%d_enabled' % sr_id, True)
+
 class FakeAccount(Account):
     _nodb = True
     pref_no_profanity = True
@@ -539,9 +555,9 @@ def valid_cookie(cookie):
     except NotFound:
         return (False, False)
 
-    if cookie == account.make_cookie(timestr, admin = False):
+    if constant_time_compare(cookie, account.make_cookie(timestr, admin = False)):
         return (account, False)
-    elif cookie == account.make_cookie(timestr, admin = True):
+    elif constant_time_compare(cookie, account.make_cookie(timestr, admin = True)):
         return (account, True)
     return (False, False)
 
@@ -552,7 +568,7 @@ def valid_feed(name, feedhash, path):
         try:
             user = Account._by_name(name)
             if (user.pref_private_feeds and
-                feedhash == make_feedhash(user, path)):
+                constant_time_compare(feedhash, make_feedhash(user, path))):
                 return user
         except NotFound:
             pass
@@ -579,17 +595,21 @@ def valid_login(name, password):
 
 def valid_password(a, password):
     try:
-        if a.password == passhash(a.name, password, ''):
+        # A constant_time_compare isn't strictly required here
+        # but it is doesn't hurt
+        if constant_time_compare(a.password, passhash(a.name, password, '')):
             #add a salt
             a.password = passhash(a.name, password, True)
             a._commit()
             return a
         else:
             salt = a.password[:3]
-            if a.password == passhash(a.name, password, salt):
+            if constant_time_compare(a.password, passhash(a.name, password, salt)):
                 return a
     except AttributeError, UnicodeEncodeError:
         return False
+    # Python defaults to returning None
+    return False
 
 def passhash(username, password, salt = ''):
     if salt is True:
@@ -621,7 +641,8 @@ def register(name, password):
 
 class Friend(Relation(Account, Account)): pass
 
-Account.__bases__ += (UserRel('friend', Friend, disable_reverse_ids_fn = True),)
+Account.__bases__ += (UserRel('friend', Friend, disable_reverse_ids_fn=True),
+                      UserRel('enemy', Friend, disable_reverse_ids_fn=False))
 
 class DeletedUser(FakeAccount):
     @property

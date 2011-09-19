@@ -133,10 +133,13 @@ string_dict = dict(
     email_verified =  _("your email address has been verfied"),
     email_verify_failed = _("Verification failed.  Please try that again"),
     search_failed = _("Our search machines are under too much load to handle your request right now. :( Sorry for the inconvenience. [Try again](%(link)s) in a little bit -- but please don't mash reload; that only makes the problem worse."),
+    invalid_search_query = _("I couldn't understand your query, so I simplified it and searched for \"%(clean_query)s\" instead."),
+    completely_invalid_search_query = _("I couldn't understand your search query. Please try again."),
     generic_quota_msg = _("You've submitted too many links recently. Please try again in an hour."),
     verified_quota_msg = _("You've submitted several links recently that haven't been doing very well. You'll have to wait a while before you can submit again, or [write to the moderators of this reddit](%(link)s) and ask for an exemption."),
     unverified_quota_msg = _("You haven't [verified your email address](%(link1)s); until you do, your submitting privileges will be severely limited. Please try again in an hour or verify your email address. If you'd like an exemption from this rule, please [write to the moderators of this reddit](%(link2)s)."),
     read_only_msg = _("reddit is in \"emergency read-only mode\" right now. :( you won't be able to log in. we're sorry, and are working frantically to fix the problem."),
+    heavy_load_msg = _("reddit is under heavy load right now. :( we're sorry, and are working frantically to fix the problem. in the mean time, here's a read-only cached version of the page you were trying to access."),
     lounge_msg = _("Please grab a drink and join us in [the lounge](%(link)s)."),
     postcard_msg = _("You sent us a postcard! (Or something similar.) When we run out of room on our refrigerator, we might one day auction off the stuff that people sent in. Is it okay if we include your thing?"),
     over_comment_limit = _("Sorry, the maximum number of comments is %(max)d. (However, if you subscribe to reddit gold, it goes up to %(goldmax)d.)"),
@@ -148,6 +151,7 @@ string_dict = dict(
     gold_summary_creddits = _("You're about to purchase %(amount)s of reddit gold creddits. They work like gift certificates: each creddit you have will allow you to give one month of reddit gold to someone else."),
     gold_summary_signed_gift = _("You're about to give %(amount)s of reddit gold to %(recipient)s, who will be told that it came from you."),
     gold_summary_anonymous_gift = _("You're about to give %(amount)s of reddit gold to %(recipient)s. It will be an anonymous gift."),
+    unvotable_message = _("sorry, this has been archived and can no longer be voted on"),
 )
 
 class StringHandler(object):
@@ -172,6 +176,12 @@ class StringHandler(object):
             return dict((k, _(v)) for k, v in rval.iteritems())
         else:
             raise AttributeError
+    
+    def __iter__(self):
+        return iter(self.string_dict)
+
+    def keys(self):
+        return self.string_dict.keys()
 
 strings = StringHandler(**string_dict)
 

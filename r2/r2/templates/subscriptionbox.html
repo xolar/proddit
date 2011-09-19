@@ -22,14 +22,51 @@
 <%namespace file="utils.html" import="plain_link"/>
 <%namespace file="subreddit.html" import="addremove_button, permission_icons"/>
 
+<%
+  from r2.models import MultiReddit
+  is_multi = isinstance(c.site, MultiReddit)
+%>
+
 <div class="subscription-box">
-  <ul>
-  %for sr in thing.reddits:
-    <li>
-      ${addremove_button(sr)}
-      ${plain_link(sr.name, sr.path, _class="title")}
-      ${permission_icons(sr)}
-    </li>
-  %endfor
-  </ul>
+  % if thing.prelink or thing.goldlink:
+  <div class="box-top">
+    % if thing.prelink:
+    <span class="column centered">
+      <a href="${thing.prelink[0]}">${thing.prelink[1]}</a>
+    </span>
+    % endif
+    % if thing.goldlink:
+    <span class="giftgold column">
+    <a href="${thing.goldlink}">
+      ${thing.goldmsg}
+    </a>
+    </span>
+    % endif
+  </div>
+  % endif
+  <div class="clear">
+  % if thing.prelink or thing.goldlink:
+    <div class="box-separator"></div>
+  % endif
+    <ul>
+    %for sr in thing.reddits:
+      <% is_spam = hasattr(sr, "_spam") and sr._spam %>
+      <li>
+        %if is_multi and is_spam:
+          <span class="fancy-toggle-button">
+            <span class="active banned">${_("banned")}</span>
+          </span>
+          <span class="title banned">${sr.name}</span>
+        %elif is_spam:
+          ${addremove_button(sr)}
+          <span class="title banned">${sr.name}</span>
+        %else:
+          ${addremove_button(sr)}
+          ${plain_link(sr.name, sr.path, _class="title")}
+          ${permission_icons(sr)}
+        %endif
+      </li>
+    %endfor
+    </ul>
+  </div>
 </div>

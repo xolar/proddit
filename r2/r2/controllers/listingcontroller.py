@@ -106,6 +106,7 @@ class ListingController(RedditController):
                               show_sidebar = self.show_sidebar,
                               nav_menus = self.menus,
                               title = self.title(),
+                              robots = getattr(self, "robots", None),
                               **self.render_params).render()
         return res
 
@@ -296,7 +297,7 @@ class HotController(FixListing, ListingController):
 
         if isinstance(c.site, DefaultSR):
             if c.user_is_loggedin:
-                srlimit = Subreddit.sr_limit
+                srlimit = Subreddit.DEFAULT_LIMIT
                 over18 = c.user.has_subscribed and c.over18
             else:
                 srlimit = g.num_default_reddits
@@ -379,6 +380,12 @@ class NewController(ListingController):
             return c.site.get_links('new', 'all')
 
     @validate(sort = VMenu('controller', NewMenu))
+    def POST_listing(self, sort, **env):
+        # VMenu validator will save the value of sort before we reach this
+        # point. Now just redirect to GET mode.
+        return self.redirect(request.fullpath + query_string(dict(sort=sort)))
+
+    @validate(sort = VMenu('controller', NewMenu))
     def GET_listing(self, sort, **env):
         self.sort = sort
         return ListingController.GET_listing(self, **env)
@@ -406,14 +413,23 @@ class BrowseController(ListingController):
 
     # TODO: this is a hack with sort.
     @validate(sort = VOneOf('sort', ('top', 'controversial')),
-              time = VMenu('where', ControversyTimeMenu))
-    def GET_listing(self, sort, time, **env):
+              t = VMenu('sort', ControversyTimeMenu))
+    def POST_listing(self, sort, t, **env):
+        # VMenu validator will save the value of time before we reach this
+        # point. Now just redirect to GET mode.
+        return self.redirect(
+            request.fullpath + query_string(dict(sort=sort, t=t)))
+
+    # TODO: this is a hack with sort.
+    @validate(sort = VOneOf('sort', ('top', 'controversial')),
+              t = VMenu('sort', ControversyTimeMenu))
+    def GET_listing(self, sort, t, **env):
         self.sort = sort
         if sort == 'top':
             self.title_text = _('top scoring links')
         elif sort == 'controversial':
             self.title_text = _('most controversial links')
-        self.time = time
+        self.time = t
         return ListingController.GET_listing(self, **env)
 
 
@@ -581,6 +597,9 @@ class UserController(ListingController):
         self.render_params = {'user' : vuser}
         c.profilepage = True
 
+        if vuser.pref_hide_from_robots:
+            self.robots = 'noindex,nofollow'
+
         return ListingController.GET_listing(self, **env)
 
     @validate(vuser = VExistingUname('username'))
@@ -621,8 +640,11 @@ class MessageController(ListingController):
     def keep_fn(self):
         def keep(item):
             wouldkeep = item.keep_item(item)
+
             # TODO: Consider a flag to disable this (and see above plus builder.py)
             if (item._deleted or item._spam) and not c.user_is_admin:
+                return False
+            if item.author_id in c.user.enemies:
                 return False
             # don't show user their own unread stuff
             if ((self.where == 'unread' or self.subwhere == 'unread')
@@ -723,7 +745,7 @@ class MessageController(ListingController):
 
     @validate(VUser(),
               message = VMessageID('mid'),
-              mark = VOneOf('mark',('true','false'), default = 'true'))
+              mark = VOneOf('mark',('true','false')))
     def GET_listing(self, where, mark, message, subwhere = None, **env):
         if not (c.default_sr or c.site.is_moderator(c.user) or c.user_is_admin):
             abort(403, "forbidden")
@@ -732,7 +754,14 @@ class MessageController(ListingController):
         else:
             self.where = where
         self.subwhere = subwhere
-        self.mark = mark
+        if mark is not None:
+            self.mark = mark
+        elif is_api():
+            self.mark = 'false'
+        elif c.render_style and c.render_style == "xml":
+            self.mark = 'false'
+        else:
+            self.mark = 'true'
         self.message = message
         return ListingController.GET_listing(self, **env)
 
@@ -777,6 +806,11 @@ class RedditsController(ListingController):
             # Consider resurrecting when it is not the World Cup
             #if c.content_langs != 'all':
             #    reddits._filter(Subreddit.c.lang == c.content_langs)
+
+            if g.domain != 'reddit.com':
+                # don't try to render special subreddits (like promos)
+                reddits._filter(Subreddit.c.author_id != -1)
+
             if not c.over18:
                 reddits._filter(Subreddit.c.over_18 == False)
 

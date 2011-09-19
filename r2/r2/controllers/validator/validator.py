@@ -141,7 +141,7 @@ def validate(*simple_vals, **param_vals):
     return val
 
 
-def api_validate(response_function):
+def api_validate(response_type=None):
     """
     Factory for making validators for API calls, since API calls come
     in two flavors: responsive and unresponsive.  The machinary
@@ -149,47 +149,49 @@ def api_validate(response_function):
     so this function abstracts away the kw validation and creation of
     a Json-y responder object.
     """
-    def _api_validate(*simple_vals, **param_vals):
-        def val(fn):
-            def newfn(self, *a, **env):
-                c.render_style = api_type(request.params.get("renderstyle",
-                                                             "html"))
-                c.response_content_type = 'application/json; charset=UTF-8'
-                # generate a response object
-                if request.params.get('api_type') == "json":
-                    responder = JsonResponse()
-                else:
-                    responder = JQueryResponse()
-                try:
-                    kw = _make_validated_kw(fn, simple_vals, param_vals, env)
-                    return response_function(self, fn, responder,
-                                             simple_vals, param_vals, *a, **kw)
-                except UserRequiredException:
-                    responder.send_failure(errors.USER_REQUIRED)
-                    return self.api_wrapper(responder.make_response())
-                except VerifiedUserRequiredException:
-                    responder.send_failure(errors.VERIFIED_USER_REQUIRED)
-                    return self.api_wrapper(responder.make_response())
-            return newfn
-        return val
-    return _api_validate
+    def wrap(response_function):
+        def _api_validate(*simple_vals, **param_vals):
+            def val(fn):
+                def newfn(self, *a, **env):
+                    c.render_style = api_type(request.params.get("renderstyle",
+                                                                 response_type))
+                    c.response_content_type = 'application/json; charset=UTF-8'
+                    # generate a response object
+                    if response_type is None or request.params.get('api_type') == "json":
+                        responder = JsonResponse()
+                    else:
+                        responder = JQueryResponse()
+                    try:
+                        kw = _make_validated_kw(fn, simple_vals, param_vals, env)
+                        return response_function(self, fn, responder,
+                                                 simple_vals, param_vals, *a, **kw)
+                    except UserRequiredException:
+                        responder.send_failure(errors.USER_REQUIRED)
+                        return self.api_wrapper(responder.make_response())
+                    except VerifiedUserRequiredException:
+                        responder.send_failure(errors.VERIFIED_USER_REQUIRED)
+                        return self.api_wrapper(responder.make_response())
+                return newfn
+            return val
+        return _api_validate
+    return wrap
     
 
-@api_validate
+@api_validate("html")
 def noresponse(self, self_method, responder, simple_vals, param_vals, *a, **kw):
     self_method(self, *a, **kw)
     return self.api_wrapper({})
 
-@api_validate
+@api_validate("html")
 def textresponse(self, self_method, responder, simple_vals, param_vals, *a, **kw):
     return self_method(self, *a, **kw)
 
-@api_validate
+@api_validate()
 def json_validate(self, self_method, responder, simple_vals, param_vals, *a, **kw):
     r = self_method(self, *a, **kw)
     return self.api_wrapper(r)
 
-@api_validate
+@api_validate("html")
 def validatedForm(self, self_method, responder, simple_vals, param_vals,
                   *a, **kw):
     # generate a form object
@@ -221,11 +223,8 @@ class nop(Validator):
 
 class VLang(Validator):
     def run(self, lang):
-        if lang:
-            lang = str(lang.split('[')[1].strip(']'))
-            if lang in g.all_languages:
-                return lang
-        #else
+        if lang in g.all_languages:
+            return lang
         return g.lang
 
 class VRequired(Validator):
@@ -357,10 +356,15 @@ class VCount(Validator):
 
 
 class VLimit(Validator):
+    def __init__(self, param, default=25, max_limit=100, **kw):
+        self.default_limit = default
+        self.max_limit = max_limit
+        Validator.__init__(self, param, **kw)
+
     def run(self, limit):
         default = c.user.pref_numsites
         if c.render_style in ("compact", api_type("compact")):
-            default = 25 # TODO: ini param?
+            default = self.default_limit  # TODO: ini param?
 
         if limit is None:
             return default
@@ -370,7 +374,7 @@ class VLimit(Validator):
         except ValueError:
             return default
 
-        return min(max(i, 1), 100)
+        return min(max(i, 1), self.max_limit)
 
 class VCssMeasure(Validator):
     measure = re.compile(r"\A\s*[\d\.]+\w{0,3}\s*\Z")
@@ -520,16 +524,17 @@ class VByName(Validator):
     splitter = re.compile('[ ,]+')
     def __init__(self, param, thing_cls = None, multiple = False,
                  error = errors.NO_THING_ID, **kw):
-        self.re = fullname_regex(thing_cls, multiple)
+        self.re = fullname_regex(thing_cls)
         self.multiple = multiple
         self._error = error
         
         Validator.__init__(self, param, **kw)
     
     def run(self, items):
-        if items and self.re.match(items):
-            if self.multiple:
-                items = filter(None, self.splitter.split(items))
+        if items and self.multiple:
+            items = [item for item in self.splitter.split(items)
+                     if item and self.re.match(item)]
+        if items and (self.multiple or self.re.match(items)):
             try:
                 return Thing._by_fullname(items, return_dict = False,
                                           data=True)
@@ -639,6 +644,14 @@ class VSrModerator(Validator):
                 or c.user_is_admin):
             abort(403, "forbidden")
 
+class VFlairManager(VSrModerator):
+    """Validates that a user is permitted to manage flair for a subreddit.
+       
+    Currently this is the same as VSrModerator. It's a separate class to act as
+    a placeholder if we ever need to give mods a way to delegate this aspect of
+    subreddit administration."""
+    pass
+
 class VSrCanDistinguish(VByName):
     def run(self, thing_name):
         if c.user_is_admin:
@@ -646,6 +659,23 @@ class VSrCanDistinguish(VByName):
         elif c.user_is_loggedin:
             item = VByName.run(self, thing_name)
             if item.author_id == c.user._id:
+                # will throw a legitimate 500 if this isn't a link or
+                # comment, because this should only be used on links and
+                # comments
+                subreddit = item.subreddit_slow
+                if subreddit.can_distinguish(c.user):
+                    return True
+        abort(403,'forbidden')
+
+class VSrCanAlter(VByName):
+    def run(self, thing_name):
+        if c.user_is_admin:
+            return True
+        elif c.user_is_loggedin:
+            item = VByName.run(self, thing_name)
+            if item.author_id == c.user._id:
+                return True
+            else:
                 # will throw a legitimate 500 if this isn't a link or
                 # comment, because this should only be used on links and
                 # comments
@@ -684,11 +714,6 @@ class VSrSpecial(VByName):
                 return True
         abort(403,'forbidden')
 
-class VSRSubmitPage(Validator):
-    def run(self):
-        if not (c.default_sr or c.user_is_loggedin and 
-                c.site.can_submit(c.user)):
-            abort(403, "forbidden")
 
 class VSubmitParent(VByName):
     def run(self, fullname, fullname2):
@@ -696,11 +721,14 @@ class VSubmitParent(VByName):
         fullname = fullname or fullname2
         if fullname:
             parent = VByName.run(self, fullname)
-            if parent and parent._deleted:
-                if isinstance(parent, Link):
-                    self.set_error(errors.DELETED_LINK)
-                else:
-                    self.set_error(errors.DELETED_COMMENT)
+            if parent:
+                if c.user_is_loggedin and parent.author_id in c.user.enemies:
+                    self.set_error(errors.USER_BLOCKED)
+                if parent._deleted:
+                    if isinstance(parent, Link):
+                        self.set_error(errors.DELETED_LINK)
+                    else:
+                        self.set_error(errors.DELETED_COMMENT)
             if isinstance(parent, Message):
                 return parent
             else:
@@ -788,7 +816,10 @@ class VUname(VRequired):
         else:
             try:
                 a = Account._by_name(user_name, True)
-                return self.error(errors.USERNAME_TAKEN)
+                if a._deleted:
+                   return self.error(errors.USERNAME_TAKEN_DEL)
+                else:
+                   return self.error(errors.USERNAME_TAKEN)
             except NotFound:
                 return user_name
 
@@ -852,8 +883,9 @@ class VUrl(VRequired):
                 return url
         return self.error(errors.BAD_URL)
 
-class VExistingUname(VRequired):
-    def __init__(self, item, *a, **kw):
+class VOptionalExistingUname(VRequired):
+    def __init__(self, item, allow_deleted=False, *a, **kw):
+        self.allow_deleted = allow_deleted
         VRequired.__init__(self, item, errors.NO_USER, *a, **kw)
 
     def run(self, name):
@@ -869,12 +901,18 @@ class VExistingUname(VRequired):
         name = chkuser(name)
         if name:
             try:
-                return Account._by_name(name)
+                return Account._by_name(name, allow_deleted=self.allow_deleted)
             except NotFound:
                 return self.error(errors.USER_DOESNT_EXIST)
-        self.error()
 
-class VMessageRecipent(VExistingUname):
+class VExistingUname(VOptionalExistingUname):
+    def run(self, name):
+        user = VOptionalExistingUname.run(self, name)
+        if not user:
+            self.error()
+        return user
+
+class VMessageRecipient(VExistingUname):
     def run(self, name):
         if not name:
             return self.error()
@@ -889,7 +927,11 @@ class VMessageRecipent(VExistingUname):
             except NotFound:
                 self.set_error(errors.SUBREDDIT_NOEXIST)
         else:
-            return VExistingUname.run(self, name)
+            account = VExistingUname.run(self, name)
+            if account and account._id in c.user.enemies:
+                self.set_error(errors.USER_BLOCKED)
+            else:
+                return account
 
 class VUserWithEmail(VExistingUname):
     def run(self, name):
@@ -977,28 +1019,34 @@ class VBid(VNumber):
                 return float(bid)
 
 
-
 class VCssName(Validator):
     """
     returns a name iff it consists of alphanumeric characters and
     possibly "-", and is below the length limit.
     """
+
     r_css_name = re.compile(r"\A[a-zA-Z0-9\-]{1,100}\Z")
+
     def run(self, name):
-        if name and self.r_css_name.match(name):
-            return name
+        if name:
+            if self.r_css_name.match(name):
+                return name
+            else:
+                self.set_error(errors.BAD_CSS_NAME)
+        return ''
+
 
 class VMenu(Validator):
 
     def __init__(self, param, menu_cls, remember = True, **kw):
         self.nav = menu_cls
         self.remember = remember
-        param = (menu_cls.get_param, param)
+        param = (menu_cls.name, param)
         Validator.__init__(self, param, **kw)
 
     def run(self, sort, where):
         if self.remember:
-            pref = "%s_%s" % (where, self.nav.get_param)
+            pref = "%s_%s" % (where, self.nav.name)
             user_prefs = copy(c.user.sort_options) if c.user else {}
             user_pref = user_prefs.get(pref)
 
@@ -1010,8 +1058,9 @@ class VMenu(Validator):
         if sort not in self.nav.options:
             sort = self.nav.default
 
-        # commit the sort if changed
-        if self.remember and c.user_is_loggedin and sort != user_pref:
+        # commit the sort if changed and if this is a POST request
+        if (self.remember and c.user_is_loggedin and sort != user_pref
+            and request.method.upper() == 'POST'):
             user_prefs[pref] = sort
             c.user.sort_options = user_prefs
             user = c.user
@@ -1136,13 +1185,14 @@ class CachedUser(object):
 
 class VCacheKey(Validator):
     def __init__(self, cache_prefix, param, *a, **kw):
+        self.cache = g.cache
         self.cache_prefix = cache_prefix
         Validator.__init__(self, param, *a, **kw)
 
     def run(self, key):
         c_user = CachedUser(self.cache_prefix, None, key)
         if key:
-            uid = g.cache.get(str(self.cache_prefix + "_" + key))
+            uid = self.cache.get(str(self.cache_prefix + "_" + key))
             if uid:
                 try:
                     c_user.user = Account._byID(uid, data = True)
@@ -1150,6 +1200,11 @@ class VCacheKey(Validator):
                     return
             return c_user
         self.set_error(errors.EXPIRED)
+
+class VHardCacheKey(VCacheKey):
+    def __init__(self, cache_prefix, param, *a, **kw):
+        VCacheKey.__init__(self, cache_prefix, param, *a, **kw)
+        self.cache = g.hardcache
 
 class VOneOf(Validator):
     def __init__(self, param, options = (), *a, **kw):
@@ -1434,3 +1489,30 @@ class VTarget(Validator):
     def run(self, name):
         if name and self.target_re.match(name):
             return name
+
+class VFlairCss(VCssName):
+    def __init__(self, param, max_css_classes=10, **kw):
+        self.max_css_classes = max_css_classes
+        VCssName.__init__(self, param, **kw)
+
+    def run(self, css):
+        if not css:
+            return css
+
+        names = css.split()
+        if len(names) > self.max_css_classes:
+            self.set_error(errors.TOO_MUCH_FLAIR_CSS)
+            return ''
+
+        for name in names:
+            if not self.r_css_name.match(name):
+                self.set_error(errors.BAD_CSS_NAME)
+                return ''
+
+        return css
+
+
+class VFlairText(VLength):
+    def __init__(self, param, max_length=64, **kw):
+        VLength.__init__(self, param, max_length, **kw)
+

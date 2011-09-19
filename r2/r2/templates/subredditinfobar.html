@@ -22,12 +22,11 @@
 
 <%!
    import locale
-   from r2.lib.utils import timesince
    from r2.lib.strings import strings, Score
    from r2.lib.pages import WrappedUser
  %>
 
-<%namespace file="utils.html" import="plain_link"/>
+<%namespace file="utils.html" import="plain_link, timestamp"/>
 <%namespace file="subreddit.html" import="addremove_button" />
 <%namespace file="printablebuttons.html" import="ynbutton, state_button" />
 
@@ -35,6 +34,22 @@
   ${ynbutton(_("leave"), left, location,
              question = question, format = fmt, format_arg = "leave",
              hidden_data = dict(id = thing.sr._fullname))}
+</%def>
+
+<%def name="flair_control(flair_user)">
+  %if flair_user:
+    <form class="toggle flairtoggle">
+      <input id="flair_enabled" type="checkbox" name="flair_enabled"
+          %if flair_user.flair_enabled:
+            checked="checked"
+          %endif
+          >
+      ${_("Show my flair on this reddit. It looks like:")}
+      <div class="tagline">
+        ${flair_user}
+      </div>
+    </form>
+  %endif
 </%def>
 
 <div class="titlebox">
@@ -60,17 +75,19 @@
                       _("you are no longer an approved submitter"))}
   %endif
 
+  ${flair_control(thing.flair_user)}
+
   %if thing.sr.description:
     ${thing.sr.usertext}
   %endif
 
   <div class="bottom">
     %if thing.sr.author:
-      ${unsafe(_("creat de -  %(user)s") % dict(user = unsafe(WrappedUser(thing.sr.author).render())))}
+      ${unsafe(_("created by %(user)s") % dict(user = unsafe(WrappedUser(thing.sr.author).render())))}
     %endif
     
     <span class="age">
-      ${_("a community for %(time)s") % dict(time=timesince(thing.sr._date))}
+      ${_("a community for")}&#32;${timestamp(thing.sr)}
     </span>  
   </div>
 

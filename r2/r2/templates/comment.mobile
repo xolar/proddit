@@ -23,6 +23,7 @@
 <%!
    from pylons.i18n import _, ungettext
    from r2.lib.filters import safemarkdown
+   from r2.lib.pages import WrappedUser
 %>
 <%inherit file="printable.mobile" />
 
@@ -46,9 +47,8 @@
   </p>
 %else:
 
-<p>
-  <a href="/user/${thing.author.name}">
-      <b>${thing.author.name}</b></a>
+<p class="byline">
+  ${WrappedUser(thing.author, thing.attribs, thing, gray = collapse).render()}
   &nbsp;|<span class="score">${thing.score} ${ungettext("point", "points", thing.score)} </span> 
   ${_("written")} ${thing.timesince} ${_("ago")}
 </p>

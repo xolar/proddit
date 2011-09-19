@@ -22,6 +22,7 @@
 from r2.lib.db.thing import MultiRelation, Relation
 from r2.lib.db import tdb_cassandra
 from r2.lib.db.tdb_cassandra import TdbException
+from r2.lib.utils._utils import flatten
 
 from account import Account
 from link import Link, Comment
@@ -62,6 +63,23 @@ class CassandraVote(tdb_cassandra.Relation):
         raise TdbException("Can't find relation for %r(%r,%r)"
                            % (cls, thing1_cls, thing2_cls))
 
+    @classmethod
+    def _copy_from(cls, v):
+        voter = v._thing1
+        votee = v._thing2
+        cvc = cls._rel(Account, votee.__class__)
+        try:
+            cv = cvc._fast_query(voter._id36, votee._id36)
+        except tdb_cassandra.NotFound:
+            cv = cvc(thing1_id = voter._id36, thing2_id = votee._id36)
+        cv.name = v._name
+        cv.valid_user, cv.valid_thing = v.valid_user, v.valid_thing
+        if hasattr(v, 'ip'):
+            cv.ip = v.ip
+        if getattr(v, 'organic', False) or hasattr(cv, 'organic'):
+            cv.organic = getattr(v, 'organic', False)
+        cv._commit()
+
 
 class VotesByLink(tdb_cassandra.View):
     _use_db = True
@@ -70,9 +88,13 @@ class VotesByLink(tdb_cassandra.View):
     # _view_of = CassandraLinkVote
 
     @classmethod
-    def get_all(cls, link_id):
-        vbl = cls._byID(link_id)
-        return CassandraLinkVote._byID(vbl._values()).values()
+    def get_all(cls, *link_ids):
+        vbls = cls._byID(link_ids)
+        
+        lists = [vbl._values().keys() for vbl in vbls.values()]
+        vals = flatten(lists)
+        
+        return CassandraLinkVote._byID(vals).values()
 
 class VotesByDay(tdb_cassandra.View):
     _use_db = True
@@ -122,7 +144,7 @@ class CassandraLinkVote(CassandraVote):
 
         v_id = {self._id: self._id}
 
-        VotesByLink._set_values(self.thing1_id, v_id,
+        VotesByLink._set_values(self.thing2_id, v_id,
                                 write_consistency_level=wcl)
         VotesByDay._set_values(VotesByDay._id_for_day(self.date), v_id,
                                write_consistency_level=wcl)
@@ -175,7 +197,7 @@ class Vote(MultiRelation('vote',
             old_valid_thing = getattr(v, 'valid_thing', False)
             v.valid_thing = (valid_thing(v, karma, cheater = cheater)
                              and getattr(v,'valid_thing', False))
-            v.valid_user = (v.valid_user
+            v.valid_user = (getattr(v, 'valid_user', False)                   
                             and v.valid_thing
                             and valid_user(v, sr, karma))
         #new vote
@@ -213,21 +235,9 @@ class Vote(MultiRelation('vote',
 
         # now write it out to Cassandra. We'll write it out to both
         # this way for a while
-        voter = v._thing1
-        votee = v._thing2
-        cvc = CassandraVote._rel(Account, votee.__class__)
-        try:
-            cv = cvc._fast_query(voter._id36, votee._id36)
-        except tdb_cassandra.NotFound:
-            cv = cvc(thing1_id = voter._id36, thing2_id = votee._id36)
-        cv.name = v._name
-        cv.valid_user, cv.valid_thing = v.valid_user, v.valid_thing
-        cv.ip = v.ip
-        if getattr(v, 'organic', False) or hasattr(cv, 'organic'):
-            cv.organic = getattr(v, 'organic', False)
-        cv._commit()
+        CassandraVote._copy_from(v)
 
-        queries.changed(votee, True)
+        queries.changed(v._thing2, True)
 
         return v
 

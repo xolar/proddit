@@ -32,7 +32,7 @@ function hover_open_menu(menu) { };
 
 function update_user(form) {
   try {
-    var user = $(form).find("input[name=user]").val();
+    var user = $(form).find('input[name="user"]').val();
     form.action += "/" + user;
   } catch (e) {
     // ignore
@@ -42,7 +42,7 @@ function update_user(form) {
 }
 
 function post_user(form, where) {
-  var user = $(form).find("input[name=user]").val();
+  var user = $(form).find('input[name="user"]').val();
 
   if (user == null) {
     return post_form (form, where);
@@ -75,8 +75,8 @@ function get_form_fields(form, fields, filter_func) {
             var type = $(this).attr("type");
             if (filter_func(this) && 
                 ( (type != "radio" && type != "checkbox") || 
-                  $(this).attr("checked")) )
-                fields[$(this).attr("name")] = $(this).attr("value");
+                  $(this).is(":checked")) )
+                fields[$(this).attr("name")] = $(this).val();
         });
     if (fields.id == null) {
         fields.id = $(form).attr("id") ? ("#" + $(form).attr("id")) : "";
@@ -111,8 +111,8 @@ function post_pseudo_form(form, where, block) {
 }
 
 function emptyInput(elem, msg) {
-    if (! $(elem).attr("value") || $(elem).attr("value") == msg ) 
-        $(elem).addClass("gray").attr("value", msg).attr("rows", 3);
+    if (! $(elem).val() || $(elem).val() == msg ) 
+        $(elem).addClass("gray").val(msg).attr("rows", 3);
     else
         $(elem).focus(function(){});
 };
@@ -130,7 +130,7 @@ function showcover(warning, reason) {
     else
         $("#cover_disclaim, #cover_msg").hide();
     $(".login-popup:first").show()
-        .find("form input[name=reason]").attr("value", (reason || ""));
+        .find('form input[name="reason"]').val(reason || "");
     return false;
 };
 
@@ -152,9 +152,9 @@ function deleteRow(elem) {
 function change_state(elem, op, callback, keep) {
     var form = $(elem).parents("form");
     /* look to see if the form has an id specified */
-    var id = form.find("input[name=id]");
+    var id = form.find('input[name="id"]');
     if (id.length) 
-        id = id.attr("value");
+        id = id.val();
     else /* fallback on the parent thing */
         id = $(elem).thing_id();
 
@@ -164,7 +164,7 @@ function change_state(elem, op, callback, keep) {
         callback(form.length ? form : elem, op);
     }
     if(!$.defined(keep)) {
-        form.html(form.attr("executed").value);
+        form.html(form.find('[name="executed"]').val());
     }
     return false;
 };
@@ -219,7 +219,7 @@ function hide_thing(elem) {
 
 function toggle_label (elem, callback, cancelback) {
   $(elem).parent().find(".option").toggle();
-  $(elem).onclick = function() {
+  $(elem)[0].onclick = function() {
     return(toggle_label(elem, cancelback, callback));
   }
   if (callback) callback(elem);
@@ -623,10 +623,11 @@ function updateEventHandlers(thing) {
                     text = title.html();
                 }
 
-                $(this).find("a.title").attr("href", tracker.click).end()
-                    .find("a.thumbnail").attr("href", tracker.click).end()
-                    .find("img.promote-pixel")
-                    .attr("src", tracker.show);
+                save_href($(this).find("a.title"))
+                    .attr("href", tracker.click).end();
+                save_href($(this).find("a.thumbnail"))
+                    .attr("href", tracker.click).end();
+                $(this).find("img.promote-pixel").attr("src", tracker.show);
 
                 if ($.browser.msie) {
                     if (text != title.html()) {
@@ -729,7 +730,7 @@ function last_click(thing, organic) {
               
               /* and ask the server to fill it in */
               $.request('fetch_links',
-                        {links: [current.what],
+                        {links: current.what,
                                 show: current.what,
                                 listing: olisting.attr('id')});
           }
@@ -1031,7 +1032,7 @@ function comment_reply_for_elem(elem) {
     if (!form.length || form.parent().thing_id() != thing.thing_id()) {
         form = $(".usertext.cloneable:first").clone(true);
         elem.new_thing_child(form);
-        form.attr("thing_id").value = thing_id;
+        form.prop("thing_id").value = thing_id;
         form.attr("id", "commentreply_" + thing_id);
         form.find(".error").hide();
     }
@@ -1188,7 +1189,7 @@ var toolbar_p = function(expanded_size, collapsed_size) {
     };
     
     this.gourl = function(form, base_url) {
-        var url = $(form).find('input[type=text]').attr('value');
+        var url = $(form).find('input[type="text"]').val();
         var newurl = base_url + escape(url);
         
         this.top_window().location.href = newurl;
@@ -1205,11 +1206,11 @@ var toolbar_p = function(expanded_size, collapsed_size) {
 };
 
 function clear_all_langs(elem) {
-    $(elem).parents("td").find("input[type=checkbox]").attr("checked", false);
+    $(elem).parents("td").find('input[type="checkbox"]').prop("checked", false);
 }
 
 function check_some_langs(elem) {
-    $(elem).parents("td").find("#some-langs").attr("checked", true);
+    $(elem).parents("td").find("#some-langs").prop("checked", true);
 }
 
 function fetch_parent(elem, parent_permalink, parent_id) {
@@ -1311,7 +1312,7 @@ $(function() {
         $("textarea.gray, input.gray")
             .focus( function() {
                     $(this).attr("rows", 7)
-                        .filter(".gray").removeClass("gray").attr("value", "")
+                        .filter(".gray").removeClass("gray").val("")
                         });
         /* set cookies to be from this user if there is one */
         if (reddit.logged) {
@@ -1332,7 +1333,7 @@ $(function() {
 
         /* search form help expando */
         /* TODO: use focusin and focusout in jQuery 1.4 */
-        $("#search input[name=q]").focus(function () {
+        $('#search input[name="q"]').focus(function () {
             $("#searchexpando").slideDown();
         });
 
@@ -1350,6 +1351,11 @@ $(function() {
             $("#moresearchinfo").slideUp();
             event.preventDefault();
         });
+        
+        /* Select shortlink text on click */
+        $("#shortlink-text").click(function() {
+            $(this).select();
+        });
     });
 
 function show_friend(account_fullname) {
@@ -1359,7 +1365,7 @@ function show_friend(account_fullname) {
                 if (!$(this).html()) {
                     $(this).html(" [" + label + "]");
                 } else if ($(this).find(".friend").length == 0) {
-                    $(this).find("a:last").debug().after(", " + label);
+                    $(this).find("a:first").debug().before(label+',');
                 }
             });
 }
@@ -1377,9 +1383,9 @@ function show_unfriend(account_fullname) {
 
 function search_feedback(elem, approval) {
   f = $("form#search");
-  var q    = f.find("input[name=q]").val();
-  var sort = f.find("input[name=sort]").val();
-  var t    = f.find("input[name=t]").val();
+  var q    = f.find('input[name="q"]').val();
+  var sort = f.find('input[name="sort"]').val();
+  var t    = f.find('input[name="t"]').val();
   var d = {
     q: q,
     sort: sort,
@@ -1405,10 +1411,29 @@ function highlight_new_comments(period) {
   }
 }
 
-function grab_tracking_pixel(url) {
-    var random_value = Math.round(Math.random() * 2147483647);
-    var cachebusted_url = url + "&r=" + random_value;
-    var img = new Image();
-    img.src = cachebusted_url;
-    document.getElementById("oldpixel").parentNode.appendChild(img);
+function save_href(link) {
+  if (!link.attr("srcurl")){
+    link.attr("srcurl", link.attr("href"));
+  }
+  return link;
+}
+
+function pure_domain(url) {
+    var domain = url.match(/:\/\/([^/]+)/)
+    if (domain) {
+        domain = domain[1].replace(/^www\./, '');
+    }
+    return domain;
+}
+
+function parse_domain(url) {
+    var domain = pure_domain(url);
+    if (!domain) {
+        /* Internal link? Get the SR name, if there is one */
+        var reddit = url.match(/\/r\/([^/]+)/)
+        if (reddit) {
+            domain = "self." + reddit[1].toLowerCase();
+        }
+    }
+    return domain;
 }

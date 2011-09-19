@@ -98,10 +98,8 @@ class CMemcache(CacheUtils):
             client = pylibmc.Client(servers, binary=True)
             behaviors = {
                 'no_block': no_block, # use async I/O
-                'cache_lookups': True, # cache DNS lookups
                 'tcp_nodelay': True, # no nagle
                 '_noreply': int(noreply),
-                'verify_key': int(debug),  # spend the CPU to verify keys
                 'ketama': True, # consistent hashing
                 }
 
@@ -177,10 +175,9 @@ class CMemcache(CacheUtils):
         with self.clients.reserve() as mc:
             return mc.delete(key)
 
-    def delete_multi(self, keys, prefix='', time=0):
+    def delete_multi(self, keys, prefix=''):
         with self.clients.reserve() as mc:
-            return mc.delete_multi(keys, time = time,
-                                   key_prefix = prefix)
+            return mc.delete_multi(keys, key_prefix=prefix)
 
     def __repr__(self):
         return '<%s(%r)>' % (self.__class__.__name__,

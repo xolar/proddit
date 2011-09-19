@@ -27,6 +27,7 @@ from random import choice
 from pylons import g, c
 from urllib import quote_plus, unquote_plus
 import sha
+import urllib
 
 key_len = 16
 pad_len = 32
@@ -157,14 +158,15 @@ class UserInfo(Info):
             return name
         return '-'.join((name, action))
 
+    @staticmethod
+    def get_usertype():
+        return "loggedin" if c.user_is_loggedin else "guest"
+
     def init_defaults(self):
         self.name = safe_str(c.user.name if c.user_is_loggedin else '')
         self.site = UserInfo.get_srpath()
         self.lang = safe_str(c.lang if c.lang else '')
         self.cname = safe_str(c.cname)
-
-class UserInfoNew(UserInfo):
-    tracker_url = g.newtracker_url
 
 class PromotedLinkInfo(Info):
     _tracked = []
@@ -197,7 +199,8 @@ class PromotedLinkClickInfo(PromotedLinkInfo):
         return PromotedLinkInfo.init_defaults(self, **kw)
 
     def tracking_url(self):
-        s = (PromotedLinkInfo.tracking_url(self) + '&url=' + self.dest)
+        s = (PromotedLinkInfo.tracking_url(self) + '&url=' +
+             urllib.quote_plus(self.dest))
         return s
 
 class AdframeInfo(PromotedLinkInfo):

@@ -43,6 +43,7 @@ from r2.lib.contrib.pysolr import SolrError
 from r2.lib import jsontemplates
 from r2.lib import sup
 import r2.lib.db.thing as thing
+from errors import errors
 from listingcontroller import ListingController
 from pylons import c, request, request, Response
 
@@ -168,6 +169,17 @@ class FrontController(RedditController):
               sort         = VMenu('controller', CommentSortMenu),
               limit        = VInt('limit'),
               depth        = VInt('depth'))
+    def POST_comments(self, article, comment, context, sort, limit, depth):
+        # VMenu validator will save the value of sort before we reach this
+        # point. Now just redirect to GET mode.
+        return self.redirect(request.fullpath + query_string(dict(sort=sort)))
+
+    @validate(article      = VLink('article'),
+              comment      = VCommentID('comment'),
+              context      = VInt('context', min = 0, max = 8),
+              sort         = VMenu('controller', CommentSortMenu),
+              limit        = VInt('limit'),
+              depth        = VInt('depth'))
     def GET_comments(self, article, comment, context, sort, limit, depth):
         """Comment page for a given 'article'."""
         if comment and comment.link_id != article._id:
@@ -240,13 +252,15 @@ class FrontController(RedditController):
             if num > g.max_comments_gold:
                 displayPane.append(InfoBar(message =
                                            strings.over_comment_limit_gold
-                                           % g.max_comments_gold))
+                                           % max(0, g.max_comments_gold)))
                 num = g.max_comments_gold
         elif num > g.max_comments:
-            displayPane.append(InfoBar(message =
+            if limit:
+                displayPane.append(InfoBar(message =
                                        strings.over_comment_limit
-                                       % dict(max=g.max_comments,
-                                              goldmax=g.max_comments_gold)))
+                                       % dict(max=max(0, g.max_comments),
+                                              goldmax=max(0,
+                                                   g.max_comments_gold))))
             num = g.max_comments
 
         # if permalink page, add that message first to the content
@@ -433,7 +447,8 @@ class FrontController(RedditController):
         return EditReddit(content = pane,
                           extension_handling = extension_handling).render()
 
-    def _edit_normal_reddit(self, location, num, after, reverse, count, created):
+    def _edit_normal_reddit(self, location, num, after, reverse, count, created,
+                            name, user):
         # moderator is either reddit's moderator or an admin
         is_moderator = c.user_is_loggedin and c.site.is_moderator(c.user) or c.user_is_admin
         extension_handling = False
@@ -470,6 +485,8 @@ class FrontController(RedditController):
                 extension_handling = "private"
         elif is_moderator and location == 'traffic':
             pane = RedditTraffic()
+        elif is_moderator and location == 'flair':
+            pane = FlairPane(num, after, reverse, name, user)
         elif c.user_is_sponsor and location == 'ads':
             pane = RedditAds()
         elif (not location or location == "about") and is_api():
@@ -483,9 +500,17 @@ class FrontController(RedditController):
     @base_listing
     @validate(location = nop('location'),
               created = VOneOf('created', ('true','false'),
-                               default = 'false'))
-    def GET_editreddit(self, location, num, after, reverse, count, created):
+                               default = 'false'),
+              name = nop('name'))
+    def GET_editreddit(self, location, num, after, reverse, count, created,
+                       name):
         """Edit reddit form."""
+        user = None
+        if name:
+            try:
+                user = Account._by_name(name)
+            except NotFound:
+                c.errors.add(errors.USER_DOESNT_EXIST, field='name')
         if isinstance(c.site, ModContribSR):
             return self._edit_modcontrib_reddit(location, num, after, reverse,
                                                 count, created)
@@ -496,7 +521,7 @@ class FrontController(RedditController):
             return self.abort404()
         else:
             return self._edit_normal_reddit(location, num, after, reverse,
-                                            count, created)
+                                            count, created, name, user)
 
 
     def GET_awards(self):
@@ -599,19 +624,21 @@ class FrontController(RedditController):
                 num, t, spane = self._search(q, num=num, after=after, 
                                              reverse = reverse, count = count)
             except InvalidIndextankQuery:
-                # delete special characters from the query and run again
-                special_characters = '+-&|!(){}[]^"~*?:\\'
-                translation = dict((ord(char), None) 
-                                   for char in list(special_characters))
-                cleaned = query.translate(translation)
+                # strip the query down to a whitelist
+                cleaned = re.sub("[^\w\s]+", "", query)
+                cleaned = cleaned.lower()
 
-                q = IndextankQuery(cleaned, site, sort)
-                num, t, spane = self._search(q, num=num, after=after, 
-                                             reverse = reverse, count = count)
-                cleanup_message = _('I couldn\'t understand your query, ' +
-                                    'so I simplified it and searched for ' + 
-                                    '"%(clean_query)s" instead.') % {
-                                        'clean_query': cleaned }
+                # if it was nothing but mess, we have to stop
+                if not cleaned.strip():
+                    num, t, spane = 0, 0, []
+                    cleanup_message = strings.completely_invalid_search_query
+                else:
+                    q = IndextankQuery(cleaned, site, sort)
+                    num, t, spane = self._search(q, num=num, after=after, 
+                                                 reverse=reverse, count=count)
+                    cleanup_message = strings.invalid_search_query % {
+                                          "clean_query": cleaned
+                                      }
 		
             if query:
                 query = query.replace('reddit:','proddit:')
@@ -654,9 +681,7 @@ class FrontController(RedditController):
         href = comment.make_permalink_slow(context=5, anchor=True)
         return self.redirect(href)
 
-    @validate(VUser(), 
-              VSRSubmitPage(),
-              url = VRequired('url', None),
+    @validate(url = VRequired('url', None),
               title = VRequired('title', None),
               then = VOneOf('then', ('tb','comments'), default = 'comments'))
     def GET_submit(self, url, title, then):
@@ -673,6 +698,12 @@ class FrontController(RedditController):
                                  content = wrap_links(links),
                                  infotext = infotext).render()
                 return res
+
+        if not c.user_is_loggedin:
+            raise UserRequiredException
+
+        if not (c.default_sr or c.site.can_submit(c.user)):
+            abort(403, "forbidden")
 
         captcha = Captcha() if c.user.needs_captcha() else None
         sr_names = (Subreddit.submit_sr_names(c.user) or
@@ -813,7 +844,7 @@ class FormsController(RedditController):
             Award.give_if_needed("verified_email", c.user)
             return self.redirect(dest)
 
-    @validate(cache_evt = VCacheKey('reset', ('key',)),
+    @validate(cache_evt = VHardCacheKey('email-reset', ('key',)),
               key = nop('key'))
     def GET_resetpassword(self, cache_evt, key):
         """page hit once a user has been sent a password reset email
@@ -827,10 +858,10 @@ class FormsController(RedditController):
 
         done = False
         if not key and request.referer:
-            referer_path =  request.referer.split(g.domain)[-1]
+            referer_path = request.referer.split(g.domain)[-1]
             done = referer_path.startswith(request.fullpath)
         elif not getattr(cache_evt, "user", None):
-            return self.abort404()
+            return self.redirect("/password?expired=true")
         return BoringPage(_("reset password"),
                           content=ResetPassword(key=key, done=done)).render()
 
@@ -895,6 +926,7 @@ class FormsController(RedditController):
             content = PaneStack()
             infotext = strings.friends % Friends.path
             content.append(FriendList())
+            content.append(EnemyList())
         elif location == 'update':
             content = PrefUpdate()
         elif location == 'feeds' and c.user.pref_private_feeds:
@@ -966,7 +998,7 @@ class FormsController(RedditController):
         returns their user name"""
         c.response_content_type = 'text/plain'
         if c.user_is_loggedin:
-            perm = str(c.user.can_wiki())
+            perm = str(g.allow_wiki_editing and c.user.can_wiki())
             c.response.content = c.user.name + "," + perm
         else:
             c.response.content = ''
@@ -1069,4 +1101,5 @@ class FormsController(RedditController):
                                                   signed, recipient,
                                                   giftmessage, passthrough)
                               ).render()
+
 

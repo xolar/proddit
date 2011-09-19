@@ -62,7 +62,6 @@
            name="default_stylesheet"
            readonly="readonly"
            >
-          ${keep_space(g.default_stylesheet)}
         </textarea>
       </div>
     </div>
@@ -121,7 +120,7 @@
                   .clone(true).attr("id", "")
                   .find(".img-name").html(name).end()
                   .find(".img-url").html("url(%%" + name + "%%)").end()
-                  .find("form input[name=img_name]").attr("value", name).end()
+                  .find("form input[name=img_name]").val(name).end()
                   .find("img").attr("id", "img-preview-" + name).end();
               
               list.append(new_li);
@@ -142,13 +141,22 @@
             $(".img-status").innerHTML = "";
         }
         function showDefaultStylesheet(btn) {
+            var default_stylesheet = $('#default_stylesheet');
+
+            if (!default_stylesheet.data('loaded')) {
+              default_stylesheet.text('loading...');
+              $.get(document.styleSheets[0].href, function(css) {
+                default_stylesheet.val(css);
+                default_stylesheet.data('loaded', true);
+              })
+            }
+
             $("#stylesheet_contents").parents(".col")
                 .animate( { width: "50%" }, function() { 
-                        $("#default_stylesheet").parents(".col")
+                        default_stylesheet.parents(".col")
                             .css("width", "50%")
                             .fadeIn();
-                    } );
-            
+                    });
         }
         function hideDefaultStylesheet(btn) {
             $("#default_stylesheet").parents(".col")
@@ -173,11 +181,11 @@
             $("#submit-header-img").show();
             $(".img-status").html("");
             if(file_input.value) {
-                if(! $('#img-name').attr("value")) {
+                if(! $('#img-name').val()) {
                    var f = file_input.value
                         .replace(/.*[\/\\]/, "").split('.')[0]
                         .replace(/[ _]/g, "-");
-                    $('#img-name').attr("value", f);
+                    $('#img-name').val(f);
                 }
             }
         }

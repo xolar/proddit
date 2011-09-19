@@ -20,38 +20,49 @@
 # CondeNet, Inc. All Rights Reserved.
 ################################################################################
 
-# Jacascript files to be compressified
-js_targets  = jquery.js jquery.json.js jquery.reddit.js reddit.js ui.core.js ui.datepicker.js sponsored.js jquery.flot.js compact.js
+# Javascript files to be compressified
+js_sources           = jquery.json.js jquery.reddit.js reddit.js base.js ui.core.js ui.datepicker.js sponsored.js jquery.flot.js jquery.lazyload.js compact.js blogbutton.js flair.js analytics.js
+js_targets           = button.js jquery.flot.js sponsored.js
+localized_js_targets = reddit.js mobile.js
+localized_js_outputs = $(localized_js_targets:.js=.*.js)
+
 # CSS targets 
 main_css = reddit.css
-css_targets = reddit-ie6-hax.css reddit-ie7-hax.css mobile.css spreadshirt.css compact.css
-
-SED=sed
-CAT=cat
-CSS_COMPRESS = $(SED) -e 's/ \+/ /' -e 's/\/\*.*\*\///g' -e 's/: /:/' | grep -v "^ *$$"
+main_sprite = $(static_dir)/sprite-main.png
+compact_css = compact.css
+compact_sprite = $(static_dir)/sprite-compact.png
+css_targets = $(main_css) $(compact_css) reddit-ie6-hax.css reddit-ie7-hax.css mobile.css spreadshirt.css
 
 package    = r2
 static_dir = $(package)/public/static
-contrib    = $(package)/lib/contrib
 
-JSCOMPRESS = $(contrib)/jsmin.py
+SED=sed
+CAT=cat
+PYTHON=python2.6
+JS_COMPRESS = paster run standalone $(package)/lib/js.py -c "build_reddit_js()"
+CSS_COMPRESS = $(SED) -e 's/ \+/ /' -e 's/\/\*.*\*\///g' -e 's/: /:/' | grep -v "^ *$$"
+UPDATE_NAMES = $(PYTHON) $(package)/lib/static.py
 
 # If admin codebase is install, get its path so that we can build ini
 # files against the primary production.ini
-PRIVATEREPOS = $(shell python -c 'exec "try: import r2admin; print r2admin.__path__[0]\nexcept:pass"')
+PRIVATEREPOS = $(shell $(PYTHON) -c 'exec "try: import r2admin; print r2admin.__path__[0]\nexcept:pass"')
 
 #------
 
-JSTARGETS  := $(foreach js,  $(js_targets),  $(static_dir)/$(js))
-CSSTARGETS := $(foreach css, $(css_targets), $(static_dir)/$(css))
-MAINCSS    := $(foreach css, $(main_css), $(static_dir)/$(css))
-RTLCSS      = $(CSSTARGETS:.css=-rtl.css) $(MAINCSS:.css=-rtl.css)
+JSTARGETS   = $(foreach js,  $(js_targets) $(localized_js_targets),  $(static_dir)/$(js))
+JSOUTPUTS   = $(foreach js,  $(js_targets) $(localized_js_outputs),  $(static_dir)/$(js))
+JSSOURCES   = $(foreach js,  $(js_sources),  $(static_dir)/js/$(js))
+CSSTARGETS  = $(foreach css, $(css_targets), $(static_dir)/$(css))
+SPRITES     = $(main_sprite) $(compact_sprite)
+RTLCSS      = $(CSSTARGETS:.css=-rtl.css)
+NAMES = $(static_dir)/names.json
 
 PYX_FILES := $(shell find . -name \*.pyx)
+PYXC_FILES := $(PYX_FILES:.pyx=.c)
 PYXSO_FILES := $(PYX_FILES:.pyx=.so)
 
-
-MD5S = $(JSTARGETS:=.md5) $(CSSTARGETS:=.md5) $(MAINCSS:=.md5) $(RTLCSS:=.md5)
+NAMED = $(JSOUTPUTS) $(CSSTARGETS) $(RTLCSS) $(SPRITES)
+NAMELINKS = $(patsubst %.css,%.*.css,$(patsubst %.js,%.*.js,$(NAMED)))
 
 INIUPDATE = $(wildcard *.update)
 INIS      = $(INIUPDATE:.update=.ini)
@@ -66,21 +77,24 @@ else
 endif
 
 
-all:	$(JSTARGETS) $(CSSTARGETS) $(MD5S) $(RTLCSS) $(INIS) $(PYXSO_FILES)
+all:	pyx static names $(INIS)
 
-.PHONY: 	js css md5 rtl clean all
+.PHONY: 	pyx js css rtl static names clean clean_static clean_pyx all
 
-$(MD5S): 	%.md5 : %
-	cat $< | openssl md5 > $@
+$(NAMES): $(JSTARGETS) $(CSSTARGETS) $(RTLCSS) $(SPRITES)
+	$(UPDATE_NAMES) $(NAMES) $(NAMED)
 
-$(JSTARGETS): 	$(static_dir)/%.js : $(static_dir)/js/%.js
-	$(JSCOMPRESS) < $< > $@
+$(JSTARGETS): $(JSSOURCES)
+	$(JS_COMPRESS)
 
-$(CSSTARGETS): 	$(static_dir)/%.css : $(static_dir)/css/%.css
+$(main_sprite) $(static_dir)/$(main_css): $(static_dir)/css/$(main_css)
+	$(PYTHON) r2/lib/contrib/nymph.py sprite-main.png $< | $(CSS_COMPRESS) > $@
+
+$(compact_sprite) $(static_dir)/$(compact_css) : $(static_dir)/css/$(compact_css)
+	$(PYTHON) r2/lib/contrib/nymph.py sprite-compact.png $< | $(CSS_COMPRESS) > $@
+
+$(static_dir)/%.css : $(static_dir)/css/%.css
 	$(CAT) $< | $(CSS_COMPRESS) > $@
-
-$(MAINCSS):  $(static_dir)/%.css : $(static_dir)/css/%.css
-	python r2/lib/contrib/nymph.py $< | $(CSS_COMPRESS) > $@
 
 $(RTLCSS):	%-rtl.css : %.css
 	$(SED) -e "s/left/>####</g" \
@@ -88,21 +102,32 @@ $(RTLCSS):	%-rtl.css : %.css
 	   -e "s/>####</right/g" \
 	   -e "s/\(margin\|padding\):\s*\([^; ]\+\)\s\+\([^; ]\+\)\s\+\([^; ]\+\)\s\+\([^; ]\+\)/\1:\2 \5 \4 \3/g" $< > $@
 
-$(PYXSO_FILES): %.so : %.pyx
-	rm -f $(<:.pyx=.pyc)
+%.c: %.pyx
 	cython $<
-	mkdir -p tmp
-	PYTHONPATH=tmp python pyx_setup.py develop -d tmp -b tmp $<
-	rm -r tmp
 
+$(PYXSO_FILES): $(PYXC_FILES)
+	python setup.py build_ext --inplace
 
-js: 		$(JSTARGETS)
+pyx: 		$(PYXSO_FILES)
 
-css: 		$(CSSTARGETS)
+static: 	js css rtl
 
-md5:    	$(MD5S)
+js: 		pyx $(JSTARGETS)
+
+css: 		$(CSSTARGETS) $(SPRITES)
 
 rtl:		$(RTLCSS)
 
-clean:
-	rm $(JSTARGETS) $(CSSTARGETS) $(MD5S) $(INIS)
+names:		$(NAMES)
+
+clean: clean_static clean_pyx
+	rm -f $(INIS)
+
+clean_pyx:
+	rm -f $(PYXSO_FILES) $(PYXC_FILES)
+
+clean_static: clean_names
+	rm -f $(JSOUTPUTS) $(CSSTARGETS) $(RTLCSS) $(SPRITES)
+
+clean_names:
+	rm -f $(NAMES) $(NAMELINKS) $(static_dir)/*.md5

@@ -29,34 +29,8 @@
 <%namespace file="printablebuttons.html" import="toggle_button, simple_button" />
 
 <%namespace name="utils" file="utils.html"/>
-
-<script type="text/javascript">
-function update_title(elem) {
-  var form = $(elem).parents("form");
-  var title = $(form).find("input[name=title]");
-  var name  = $(form).find("input[name=name]");
-  if (title.attr("value") == "")
-    title.attr("value", name.attr("value"));
-}
-</script>
-
-<%def name="radio_type(field_name, val_name, title, text, checked)">
-  <% full_name = field_name + "_" + val_name %>
-  <tr>
-    <td class="nowrap nopadding">
-      <input name="${field_name}" type="radio" id="${full_name}"
-             value="${val_name}" class="nomargin"
-             %if checked:
-               checked="checked"
-             %endif
-             />
-      <label for="${full_name}">${title}</label>
-    </td>
-    <td class="leftpad"><span class="gray">${text}</span></td>
-  </tr>
-</%def>
  
-<div class="create-reddit thing"
+<div class="create-reddit fancy-settings thing"
      %if thing.site:
        id="${thing.site._fullname}"
      %endif
@@ -64,7 +38,7 @@ function update_title(elem) {
 %if thing.site:
   <h1>${_("community settings")}
   %if thing.site:
-    | &#32;<b>${thing.site.name}</b>
+    | &#32;<strong>${thing.site.name}</strong>
   %endif
   </h1>
 %else:
@@ -126,32 +100,32 @@ function update_title(elem) {
 
   <%utils:line_field title="${_('type')}">
     <div class="delete-field">
-      <table >
-      ${radio_type('type', "public", _("public"),
-                   _("anyone can view and submit"),
-                   (not thing.site or thing.site.type=='public'))}
-      ${radio_type('type', "restricted", _("restricted"),
-                   _("anyone can view, but only some are approved to submit links"),
-                   (thing.site and thing.site.type=='restricted'))}
-      ${radio_type('type', "private", _("private"),
-                   _("only approved members can view and submit"),
-                   (thing.site and thing.site.type=='private'))}
+      <table>
+      ${utils.radio_type('type', "public", _("public"),
+                         _("anyone can view and submit"),
+                         (not thing.site or thing.site.type=='public'))}
+      ${utils.radio_type('type', "restricted", _("restricted"),
+                         _("anyone can view, but only some are approved to submit links"),
+                         (thing.site and thing.site.type=='restricted'))}
+      ${utils.radio_type('type', "private", _("private"),
+                         _("only approved members can view and submit"),
+                         (thing.site and thing.site.type=='private'))}
       </table>
     </div>
   </%utils:line_field>
 
   <%utils:line_field title="${_('content options')}">
     <div class="delete-field">
-      <table >
-        ${radio_type('link_type', "any", _("any"),
-                     _("any link type is allowed"),
-                     (not thing.site or thing.site.link_type=='any'))}
-        ${radio_type('link_type', "link", _("links only"),
-                     _("only links to external sites are allowed"),
-                     (thing.site and thing.site.link_type=='link'))}
-        ${radio_type('link_type', "self", _("text posts only"),
-                     _("only text/self posts are allowed"),
-                     (thing.site and thing.site.link_type=='self'))}
+      <table>
+        ${utils.radio_type('link_type', "any", _("any"),
+                           _("any link type is allowed"),
+                           (not thing.site or thing.site.link_type=='any'))}
+        ${utils.radio_type('link_type', "link", _("links only"),
+                           _("only links to external sites are allowed"),
+                           (thing.site and thing.site.link_type=='link'))}
+        ${utils.radio_type('link_type', "self", _("text posts only"),
+                           _("only text/self posts are allowed"),
+                           (thing.site and thing.site.link_type=='self'))}
       </table>
     </div>
   </%utils:line_field>
@@ -186,6 +160,42 @@ function update_title(elem) {
     </div>
   </%utils:line_field>
 
+%if c.user_is_admin:
+  <%utils:line_field title="${_('domain')}" css_class="usertext">
+    <div class="delete-field">
+      %if thing.site and c.site.domain:
+          <input class="nomargin" type="checkbox" 
+                 name="css_on_cname" id="css_on_cname"
+                 ${thing.site.css_on_cname and "checked='checked'" or ""}/>
+          <label for="css_on_cname">
+            ${_("make custom CSS styles apply only when accessed from the cname.")}
+          </label>
+          <br/>
+          <input class="nomargin" type="checkbox"
+                 name="show_cname_sidebar" id="show_cname_sidebar"
+                 ${thing.site and thing.site.show_cname_sidebar and "checked='checked'" or ""}/>
+          <label for="show_cname_sidebar">
+            ${_("show sidebar when accessed from the cname.")}
+          </label>
+      %endif
+    </div>
+    <div class="usertext-edit">
+      %if thing.site:
+        <input id="domain" type="text" name="domain" class="text"
+               value="${getattr(thing.site, 'domain', None) or ""}"/>
+      %else:
+        <input id="domain" type="text" name="domain" class="text" />
+      %endif
+      <div class="bottom-area">
+        ${toggle_button("help-toggle", _("what's this?"), _("hide help"),
+            "helpon", "helpoff")}
+      </div>
+      <div class="infobar markhelp md" style="display: none">
+        ${_("Own a domain?  Enter it here and then go to your DNS provider and add a CNAME record aliasing your domain to rhs.reddit.com. You will be able to access your reddit through your domain.")}
+      </div>
+    </div>
+  </%utils:line_field>
+  %endif
 
 %if thing.site:
   <input type="hidden" name="sr" value="${thing.site._fullname}"/> 
@@ -199,7 +209,7 @@ function update_title(elem) {
         <span class="gray">(${_("leaves this page")})</span>
         </li>
         <li>
-          <lable for="header-title">header mouseover text:</lable>
+          <label for="header-title">header mouseover text:</label>
           <input type="text" name="header-title" id="header-title"
                  value="${thing.site.header_title}"
                  />

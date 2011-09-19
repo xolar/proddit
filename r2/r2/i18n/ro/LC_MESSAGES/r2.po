@@ -1,0 +1,4551 @@
+# Romanian translations for r2.
+# Copyright (C) 2011 ORGANIZATION
+# This file is distributed under the same license as the r2 project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: r2 0.0.0\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2008-01-11 10:57+0800\n"
+"PO-Revision-Date: 2011-09-18 01:32+0300\n"
+"Last-Translator: xolar\n"
+"Language-Team: ro <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 0.9.5\n"
+
+#: r2/controllers/api.py:140 r2/controllers/api.py:2052
+#: r2/controllers/api.py:2077 r2/controllers/listingcontroller.py:457
+msgid "API"
+msgstr "API"
+
+#: r2/controllers/api.py:168
+msgid ""
+"thanks for your message! you should hear back from us shortly."
+msgstr ""
+"mulţumim pentru mesaj! vei primi un răspuns cât mai curând posibil."
+
+#: r2/controllers/api.py:196
+msgid "your message has been delivered"
+msgstr "mesajul tău a fost trimis"
+
+#: r2/controllers/api.py:385
+msgid "no title found"
+msgstr "niciun titlu găsit"
+
+#: r2/controllers/api.py:582 r2/controllers/promotecontroller.py:373
+msgid "added"
+msgstr "adăugat"
+
+#: r2/controllers/api.py:609 r2/controllers/api.py:1110
+#: r2/controllers/api.py:1258 r2/controllers/api.py:1366
+#: r2/controllers/api.py:1825 r2/controllers/api.py:1860
+#: r2/controllers/api.py:1901 r2/controllers/api.py:1947
+#: r2/controllers/api.py:1987 r2/controllers/api.py:2113
+#: r2/controllers/listingcontroller.py:337
+#: r2/controllers/promotecontroller.py:495 r2/lib/menus.py:50
+#: r2/templates/frametoolbar.html:200 r2/templates/printablebuttons.html:164
+msgid "saved"
+msgstr "salvat"
+
+#: r2/controllers/api.py:641
+msgid "you should be getting a verification email shortly."
+msgstr "ar trebui să primeşti un email de verificare în curând."
+
+#: r2/controllers/api.py:643
+msgid "your email has been updated"
+msgstr "adresa de email a fost actualizată"
+
+#: r2/controllers/api.py:652
+msgid "your email and password have been updated"
+msgstr "adresa de email şi parola au fost actualizate"
+
+#: r2/controllers/api.py:655
+msgid "your password has been updated"
+msgstr "parola a fost acualizată"
+
+#: r2/controllers/api.py:675
+msgid "see? you don't really want to leave"
+msgstr "vezi? nu vrei să pleci cu adevărat"
+
+#: r2/controllers/api.py:925
+msgid "replied"
+msgstr "răspuns"
+
+#: r2/controllers/api.py:986
+msgid "shared"
+msgstr "share-uit"
+
+#: r2/controllers/api.py:989
+msgid "your link has been shared."
+msgstr "linkul tău a fost share-uit."
+
+#: r2/controllers/api.py:1089
+msgid "validation errors"
+msgstr "erori de validare"
+
+#: r2/controllers/api.py:1180 r2/controllers/api.py:1909 r2/lib/menus.py:159
+#: r2/templates/printablebuttons.html:33
+#: r2/templates/subredditstylesheet.html:238
+msgid "deleted"
+msgstr "şterse"
+
+#: r2/controllers/api.py:1231 r2/templates/subredditstylesheet.html:197
+msgid "bad image name"
+msgstr "numele imaginii necorespunzător"
+
+#: r2/controllers/api.py:1238 r2/controllers/promotecontroller.py:488
+msgid "bad image"
+msgstr "imagine necorespunzătoare"
+
+#: r2/controllers/api.py:1242
+#, python-format
+msgid "too many images (you only get %d)"
+msgstr "prea multe imagini (primeşti doar %d)"
+
+#: r2/controllers/api.py:1693
+msgid ""
+"claimed! now go to someone's userpage and give them a present!"
+msgstr "luat!"
+
+#: r2/controllers/api.py:1698
+#, fuzzy
+msgid "claimed!"
+msgstr "plăcute"
+
+#: r2/controllers/api.py:1714
+msgid "an email will be sent to that account's address shortly"
+msgstr "un email va fi trimis către adresa acestui cont în curând"
+
+#: r2/controllers/api.py:1716
+msgid "try again tomorrow"
+msgstr "mai încearcă mâine"
+
+#: r2/controllers/api.py:1959
+#, fuzzy
+msgid "invalid css class"
+msgstr "parolă necorespunzătoare"
+
+#: r2/controllers/api.py:1962
+msgid "too many css classes"
+msgstr "prea multe clase css"
+
+#: r2/controllers/api.py:2209
+msgid "redirecting..."
+msgstr "redirectare"
+
+#: r2/controllers/api.py:2212
+msgid "error (sorry)"
+msgstr "eroare (ne pare rău)"
+
+#: r2/controllers/buttons.py:201 r2/controllers/buttons.py:209
+msgid "reddit buttons"
+msgstr "butoane proddit"
+
+#: r2/controllers/buttons.py:215
+msgid "reddit widget"
+msgstr "widget proddit"
+
+#: r2/controllers/buttons.py:220 r2/lib/menus.py:94
+msgid "bookmarklets"
+msgstr "bookmarklet-uri"
+
+#: r2/controllers/buttons.py:225 r2/controllers/front.py:712 r2/lib/menus.py:87
+#: r2/templates/newlink.html:108
+msgid "submit"
+msgstr "trimite"
+
+#: r2/controllers/embed.py:65
+msgid "edit this page"
+msgstr "editează pagina asta"
+
+#: r2/controllers/embed.py:66
+msgid "yes, it's okay!"
+msgstr "da, e ok!"
+
+#: r2/controllers/embed.py:67
+msgid "just read this first."
+msgstr "citeşte asta întâi."
+
+#: r2/controllers/embed.py:83 r2/lib/menus.py:88 r2/lib/pages/pages.py:403
+#: r2/templates/frametoolbar.html:107
+msgid "help"
+msgstr "ajutor"
+
+#: r2/controllers/error.py:114
+#, python-format
+msgid "forbidden (%(domain)s)"
+msgstr "( %(domain)s ) interzis "
+
+#: r2/controllers/error.py:131
+msgid "this reddit has been banned"
+msgstr "prodditul ăsta a fost interzis "
+
+#: r2/controllers/errors.py:27
+msgid "please login to do that"
+msgstr "trebuie să te loghezi ca să poţi face asta"
+
+#: r2/controllers/errors.py:28
+msgid "you need to set a valid email address to do that."
+msgstr ""
+"trebuie să setezi o adresă de email validă pentru a face asta."
+
+#: r2/controllers/errors.py:29
+msgid "a url is required"
+msgstr "e necesar un url"
+
+#: r2/controllers/errors.py:30
+msgid "you should check that url"
+msgstr "ar trebui să verifici acel url"
+
+#: r2/controllers/errors.py:31
+msgid "care to try these again?"
+msgstr "te superi dacă încerci din nou?"
+
+#: r2/controllers/errors.py:32
+msgid "invalid user name"
+msgstr "nume utilizator necorespunzător"
+
+#: r2/controllers/errors.py:33
+msgid "that username is already taken"
+msgstr "acel nume de utilizator este deja luat"
+
+#: r2/controllers/errors.py:34
+#, fuzzy
+msgid "that username is taken by a deleted account"
+msgstr "acel nume de utilizator este deja luat"
+
+#: r2/controllers/errors.py:35
+msgid "you can't send to a user that you have blocked"
+msgstr "nu poţi trimite unui utilizator blocat"
+
+#: r2/controllers/errors.py:36
+msgid "id not specified"
+msgstr "id nespecificat"
+
+#: r2/controllers/errors.py:37
+msgid "you can't do that"
+msgstr "nu poţi face asta"
+
+#: r2/controllers/errors.py:38
+#, fuzzy
+msgid "the link you are commenting on has been deleted"
+msgstr "acel comentariu a fost şters"
+
+#: r2/controllers/errors.py:39
+msgid "that comment has been deleted"
+msgstr "acel comentariu a fost şters"
+
+#: r2/controllers/errors.py:40
+#, fuzzy
+msgid "that element has been deleted"
+msgstr "acel element a fost şters"
+
+#: r2/controllers/errors.py:41
+msgid "that password is unacceptable"
+msgstr "parola asta e inacceptabilă"
+
+#: r2/controllers/errors.py:42
+msgid "invalid password"
+msgstr "parolă necorespunzătoare"
+
+#: r2/controllers/errors.py:43
+msgid "passwords do not match"
+msgstr "parolele nu se potrivesc"
+
+#: r2/controllers/errors.py:44
+msgid "please enter a name"
+msgstr "te rugăm să introduci un nume"
+
+#: r2/controllers/errors.py:45
+msgid "please enter an email address"
+msgstr "te rugăm să introduci o adresă de email"
+
+#: r2/controllers/errors.py:46
+msgid "no email address for that user"
+msgstr "utilizatorul nu are adresă de email"
+
+#: r2/controllers/errors.py:47
+msgid "send it to whom?"
+msgstr "cui să-l trimit?"
+
+#: r2/controllers/errors.py:48
+msgid "please enter a subject"
+msgstr "te rugăm să introduci un subiect"
+
+#: r2/controllers/errors.py:49 r2/templates/gold.html:143
+msgid "that user doesn't exist"
+msgstr "acel utilizator nu există"
+
+#: r2/controllers/errors.py:50
+msgid "please enter a username"
+msgstr "te rugăm să introduci un nume de utilizator"
+
+#: r2/controllers/errors.py:52
+#, python-format
+msgid "that number isn't in the right range (%(min)d to %(max)d)"
+msgstr ""
+"acel număr nu e între limitele potrivite (%(min)d - %(max)d)"
+
+#: r2/controllers/errors.py:53
+msgid "you used a character here that we can't handle"
+msgstr "ai folosit un caracter invalid"
+
+#: r2/controllers/errors.py:54
+#, python-format
+msgid ""
+"your bid must be at least $%(min)d per day and no more than to $%(max)d in total."
+msgstr ""
+
+#: r2/controllers/errors.py:55
+msgid "that link has already been submitted"
+msgstr "acest link a fost trimis deja"
+
+#: r2/controllers/errors.py:56
+msgid "that reddit already exists"
+msgstr "acest proddit există deja"
+
+#: r2/controllers/errors.py:57
+msgid "that reddit doesn't exist"
+msgstr "acest proddit nu există"
+
+#: r2/controllers/errors.py:58
+msgid "you aren't allowed to post there."
+msgstr "nu ai voie să afişezi aici"
+
+#: r2/controllers/errors.py:59
+msgid "you must specify a reddit"
+msgstr "trebuie să specifici un proddit"
+
+#: r2/controllers/errors.py:60
+msgid "that name isn't going to work"
+msgstr "acel nume nu are cum să meargă"
+
+#: r2/controllers/errors.py:61
+#, python-format
+msgid "you are doing that too much. try again in %(time)s."
+msgstr "faci asta prea mult. încearcă iar în %(time)s"
+
+#: r2/controllers/errors.py:62
+msgid "your session has expired"
+msgstr "sesiunea a expirat"
+
+#: r2/controllers/errors.py:63
+msgid "you must accept the terms first"
+msgstr "trebuie să accepţi termenii întâi"
+
+#: r2/controllers/errors.py:67
+msgid "that option is not valid"
+msgstr "acea opţiune nu este valabilă"
+
+#: r2/controllers/errors.py:69
+#, python-format
+msgid "the following emails are invalid: %(emails)s"
+msgstr "urmatoarele adrese de email sunt invalide: %(emails)s"
+
+#: r2/controllers/errors.py:70
+msgid "please enter at least one email address"
+msgstr "te rugam sa introduci cel puţin o adresa de email"
+
+#: r2/controllers/errors.py:71
+#, python-format
+msgid "please only share to %(num)s emails at a time."
+msgstr ""
+"te rog share-uieşte doar la câte %(num)s adrese de email deodată"
+
+#: r2/controllers/errors.py:72
+#, python-format
+msgid ""
+"that reddit has already been oversold on %(start)s to %(end)s. Please pick another reddit or date."
+msgstr ""
+
+#: r2/controllers/errors.py:73
+msgid "please provide a date of the form mm/dd/yyyy"
+msgstr "te rog să introduci o dată de forma ll/zz/aaa"
+
+#: r2/controllers/errors.py:74
+msgid "the dates need to be in order and not identical"
+msgstr "datele trebuie să fie în ordine şi nu identice"
+
+#: r2/controllers/errors.py:75
+#, python-format
+msgid "please enter a date at least %(day)s days in the future"
+msgstr ""
+"te rog să introduci o dată cu cel puţin %(day)s în viitor"
+
+#: r2/controllers/errors.py:76
+#, python-format
+msgid "please enter a date at least %(day)s days in the past"
+msgstr ""
+"te rog să introduci o dată cu cel puţin %(day)s în trecut"
+
+#: r2/controllers/errors.py:77
+#, python-format
+msgid "address problem: %(message)s"
+msgstr "problemă de adresă: %(message)s"
+
+#: r2/controllers/errors.py:78
+#, python-format
+msgid "card problem: %(message)s"
+msgstr "problemă de card %(message)s"
+
+#: r2/controllers/errors.py:79
+#, python-format
+msgid "this is too long (max: %(max_length)s)"
+msgstr "e prea lung (maxim: %(max_length)s )"
+
+#: r2/controllers/errors.py:80
+msgid "we need something here"
+msgstr "avem nevoie de ceva aici"
+
+#: r2/controllers/errors.py:81
+msgid "we've never seen that code before"
+msgstr "n-am mai văzut codul ăsta până acum"
+
+#: r2/controllers/errors.py:82
+msgid "that code has already been claimed -- perhaps by you?"
+msgstr ""
+
+#: r2/controllers/errors.py:83
+#, fuzzy
+msgid "that reddit doesn't allow text posts"
+msgstr "acest proddit nu există"
+
+#: r2/controllers/errors.py:84
+#, fuzzy
+msgid "that reddit only allows text posts"
+msgstr "acest proddit există deja"
+
+#: r2/controllers/errors.py:85
+msgid "that's a piece of history now; it's too late to reply to it"
+msgstr "e deja la arhivă; prea târziu să-ţi dai cu părerea"
+
+#: r2/controllers/errors.py:86
+#, fuzzy
+msgid "invalid css name"
+msgstr "nume utilizator necorespunzător"
+
+#: r2/controllers/errors.py:87
+msgid "too many flair css classes"
+msgstr "prea multe clase css"
+
+#: r2/controllers/feedback.py:36 r2/templates/feedbackblurb.html:67
+msgid "send reddit feedback"
+msgstr "trimite feedback către proddit"
+
+#: r2/controllers/feedback.py:40
+msgid "help translate reddit into your language"
+msgstr "ajută să traduci proddit"
+
+#: r2/controllers/feedback.py:41 r2/lib/menus.py:142
+msgid "help translate"
+msgstr "ajută la traducere"
+
+#: r2/controllers/front.py:121
+msgid "self service help"
+msgstr ""
+
+#: r2/controllers/front.py:304
+#, fuzzy
+msgid "no comments (yet)"
+msgstr "comentarii "
+
+#: r2/controllers/front.py:306
+#, fuzzy, python-format
+msgid "all %d comments"
+msgstr "toate %d comentariile"
+
+#: r2/controllers/front.py:308
+#, fuzzy, python-format
+msgid "top %d comments"
+msgstr "top %d comentarii"
+
+#: r2/controllers/front.py:331
+#, fuzzy, python-format
+msgid "show all %d"
+msgstr "arată toate %d"
+
+#: r2/controllers/front.py:333
+#, fuzzy, python-format
+msgid "show %d"
+msgstr "arată %d"
+
+#: r2/controllers/front.py:349
+msgid "create a reddit"
+msgstr "creează un proddit"
+
+#: r2/controllers/front.py:351 r2/templates/createsubreddit.html:49
+#, fuzzy
+msgid "create a community"
+msgstr "crează un proddit"
+
+#: r2/controllers/front.py:529 r2/lib/menus.py:144
+msgid "awards"
+msgstr "premii"
+
+#: r2/controllers/front.py:559 r2/lib/menus.py:120
+msgid "related"
+msgstr "înrudite"
+
+#: r2/controllers/front.py:577
+msgid "other discussions"
+msgstr "alte discuţii"
+
+#: r2/controllers/front.py:596 r2/controllers/front.py:646
+msgid "search results"
+msgstr "rezultate căutare"
+
+#: r2/controllers/front.py:697
+msgid "seen it"
+msgstr "văzut"
+
+#: r2/controllers/front.py:799 r2/templates/login.html:90
+#: r2/templates/register.html:90
+msgid "password"
+msgstr "parolă"
+
+#: r2/controllers/front.py:819 r2/controllers/front.py:835
+msgid "verify email"
+msgstr "verifică email"
+
+#: r2/controllers/front.py:865
+msgid "reset password"
+msgstr "resetează parola"
+
+#: r2/controllers/front.py:1013 r2/controllers/post.py:159
+msgid "opt out"
+msgstr "exclude"
+
+#: r2/controllers/front.py:1013 r2/controllers/post.py:169
+msgid "welcome back"
+msgstr "bine ai revenit"
+
+#: r2/controllers/front.py:1043
+msgid "thanks"
+msgstr "mersi"
+
+#: r2/controllers/front.py:1076 r2/controllers/front.py:1098
+#: r2/lib/menus.py:104 r2/templates/gold.html:83
+#, fuzzy
+msgid "reddit gold"
+msgstr "tool-uri"
+
+#: r2/controllers/ipn.py:228
+msgid "nice try."
+msgstr "bună încercare"
+
+#: r2/controllers/ipn.py:276
+#, fuzzy
+msgid "the gold has been delivered!"
+msgstr "acel comentariu a fost şters"
+
+#: r2/controllers/ipn.py:449
+msgid "thanks for buying reddit gold!"
+msgstr ""
+
+#: r2/controllers/ipn.py:459 r2/templates/thanks.html:32
+msgid "thanks for buying creddits!"
+msgstr ""
+
+#: r2/controllers/ipn.py:460
+msgid ""
+"To spend them, visit [/gold](/gold) or your favorite person's userpage."
+msgstr ""
+
+#: r2/controllers/ipn.py:473
+msgid "thanks for giving reddit gold!"
+msgstr ""
+
+#: r2/controllers/ipn.py:474
+#, fuzzy, python-format
+msgid "Your gift to %s has been delivered."
+msgstr "mesajul tău la %s a fost trimis"
+
+#: r2/controllers/listingcontroller.py:348
+msgid "newest submissions"
+msgstr "cele mai noi linkuri"
+
+#: r2/controllers/listingcontroller.py:429
+msgid "top scoring links"
+msgstr "linkuri cu top scor"
+
+#: r2/controllers/listingcontroller.py:431
+msgid "most controversial links"
+msgstr "cele mai controversate linkuri"
+
+#: r2/controllers/listingcontroller.py:438
+msgid "you're really bored now, eh?"
+msgstr "eşti plictisit, aşa-i?"
+
+#: r2/controllers/listingcontroller.py:502
+#, python-format
+msgid "overview for %(user)s"
+msgstr "privire ansamblu asupra lui %(user)s"
+
+#: r2/controllers/listingcontroller.py:503
+#, python-format
+msgid "comments by %(user)s"
+msgstr "comentariile lui %(user)s"
+
+#: r2/controllers/listingcontroller.py:504
+#, python-format
+msgid "submitted by %(user)s"
+msgstr "trimise de %(user)s"
+
+#: r2/controllers/listingcontroller.py:505
+#, python-format
+msgid "liked by %(user)s"
+msgstr "plăcute de %(user)s"
+
+#: r2/controllers/listingcontroller.py:506
+#, python-format
+msgid "disliked by %(user)s"
+msgstr "displăcute de %(user)s"
+
+#: r2/controllers/listingcontroller.py:507
+#, python-format
+msgid "hidden by %(user)s"
+msgstr "ascunse de %(user)s"
+
+#: r2/controllers/listingcontroller.py:508
+#, python-format
+msgid "profile for %(user)s"
+msgstr "profilul pentru %(user)s"
+
+#: r2/controllers/listingcontroller.py:621
+#: r2/controllers/listingcontroller.py:630 r2/lib/menus.py:486
+msgid "all"
+msgstr "toate"
+
+#: r2/controllers/listingcontroller.py:622
+#: r2/controllers/listingcontroller.py:631
+#: r2/templates/printablebuttons.html:314
+msgid "unread"
+msgstr "necitite"
+
+#: r2/controllers/listingcontroller.py:624
+msgid "comment replies"
+msgstr "răspunsuri la comentarii"
+
+#: r2/controllers/listingcontroller.py:625
+msgid "post replies"
+msgstr "răspunsuri la link"
+
+#: r2/controllers/listingcontroller.py:638 r2/templates/redditheader.html:85
+msgid "messages"
+msgstr "mesaje"
+
+#: r2/controllers/listingcontroller.py:785 r2/templates/pagenamenav.html:33
+msgid "reddits"
+msgstr "proddituri"
+
+#: r2/controllers/listingcontroller.py:835
+msgid "reddits: "
+msgstr "proddituri:"
+
+#: r2/controllers/listingcontroller.py:871
+msgid "comments"
+msgstr "comentarii"
+
+#: r2/controllers/post.py:133
+msgid "over 18?"
+msgstr "peste 18?"
+
+#: r2/controllers/promotecontroller.py:48
+msgid "promoted by you"
+msgstr "promovate de tine"
+
+#: r2/controllers/promotecontroller.py:443
+msgid "failed to authenticate card.  sorry."
+msgstr "eroare autentificare card. "
+
+#: r2/controllers/reddit_base.py:826
+msgid "search failed"
+msgstr "căutarea nu a reuşit      "
+
+#: r2/controllers/validator/validator.py:1440
+msgid "please provide a first name"
+msgstr "trebuie să introduci un prenume"
+
+#: r2/controllers/validator/validator.py:1442
+msgid "please provide a last name"
+msgstr "trebuie să introduci un nume"
+
+#: r2/controllers/validator/validator.py:1444
+msgid "please provide an address"
+msgstr "trebuie să introduci o adresă"
+
+#: r2/controllers/validator/validator.py:1446
+msgid "please provide your city"
+msgstr "trebuie să introduci oraşul "
+
+#: r2/controllers/validator/validator.py:1448
+msgid "please provide your state"
+msgstr "trebuie să introduci judeţul"
+
+#: r2/controllers/validator/validator.py:1450
+msgid "please provide your zip or post code"
+msgstr "trebuie să introduci un cod poştal"
+
+#: r2/controllers/validator/validator.py:1452
+msgid "please pick a country"
+msgstr "alege o ţară"
+
+#: r2/controllers/validator/validator.py:1456
+msgid "Our ToS don't cover your country (yet). Sorry."
+msgstr ""
+
+#: r2/controllers/validator/validator.py:1475
+msgid "credit card numbers should be 13 to 16 digits"
+msgstr "numerele cărţilor de credit au între 13 şi 16 cifre"
+
+#: r2/controllers/validator/validator.py:1478
+msgid "dates should be YYYY-MM"
+msgstr "datele trebuie să fie sub forma AAAA-LL"
+
+#: r2/controllers/validator/validator.py:1480
+msgid "card verification codes should be 3 or 4 digits"
+msgstr "codurile de verificare au 3 sau 4 cifre"
+
+#: r2/lib/cssfilter.py:297
+msgid "if you need backslashes, you're doing it wrong"
+msgstr "dacă ai nevoie de backslashuri, n-o faci bine"
+
+#: r2/lib/jsontemplates.py:299 r2/templates/usertext.html:55
+#, fuzzy
+msgid "[removed]"
+msgstr "şters"
+
+#: r2/lib/menus.py:46
+msgid "what's hot"
+msgstr "ce e fierbinte"
+
+#: r2/lib/menus.py:47
+msgid "what's new"
+msgstr "ce e nou"
+
+#: r2/lib/menus.py:48
+msgid "top scoring"
+msgstr "top scor"
+
+#: r2/lib/menus.py:49
+msgid "most controversial"
+msgstr "cele mai controversate"
+
+#: r2/lib/menus.py:51 r2/lib/menus.py:67
+msgid "recommended"
+msgstr "recomandate"
+
+#: r2/lib/menus.py:52
+msgid "promote"
+msgstr "promovează"
+
+#: r2/lib/menus.py:56
+msgid "hot"
+msgstr "fierbinţi"
+
+#: r2/lib/menus.py:57
+msgid "new"
+msgstr "noi"
+
+#: r2/lib/menus.py:58
+msgid "old"
+msgstr "vechi"
+
+#: r2/lib/menus.py:59
+msgid "ups"
+msgstr "sus"
+
+#: r2/lib/menus.py:60
+msgid "downs"
+msgstr "jos"
+
+#: r2/lib/menus.py:61 r2/templates/widgetdemopanel.html:173
+msgid "top"
+msgstr "top"
+
+#: r2/lib/menus.py:62
+msgid "more"
+msgstr "mai multe"
+
+#: r2/lib/menus.py:63
+msgid "relevance"
+msgstr "relevanţă"
+
+#: r2/lib/menus.py:64 r2/templates/buttontypes.html:191
+msgid "controversial"
+msgstr "controversate"
+
+#: r2/lib/menus.py:65
+msgid "best"
+msgstr "cele mai bune"
+
+#: r2/lib/menus.py:66
+msgid "saved {toolbar}"
+msgstr "salvate"
+
+#: r2/lib/menus.py:68
+msgid "rising"
+msgstr "în creştere"
+
+#: r2/lib/menus.py:69
+msgid "admin"
+msgstr "admin"
+
+#: r2/lib/menus.py:72 r2/templates/widgetdemopanel.html:121
+msgid "this hour"
+msgstr "această oră"
+
+#: r2/lib/menus.py:73 r2/templates/widgetdemopanel.html:122
+msgid "today"
+msgstr "ziua de azi"
+
+#: r2/lib/menus.py:74 r2/templates/widgetdemopanel.html:123
+msgid "this week"
+msgstr "această săptămână"
+
+#: r2/lib/menus.py:75 r2/templates/widgetdemopanel.html:124
+msgid "this month"
+msgstr "această lună"
+
+#: r2/lib/menus.py:76
+msgid "this year"
+msgstr "acest an"
+
+#: r2/lib/menus.py:77
+msgid "all time"
+msgstr "toate timpurile"
+
+#: r2/lib/menus.py:80
+msgid "spam"
+msgstr "spam"
+
+#: r2/lib/menus.py:81
+msgid "autobanned"
+msgstr "autobanat"
+
+#: r2/lib/menus.py:84
+msgid "turn admin on"
+msgstr "deschide admin"
+
+#: r2/lib/menus.py:85
+msgid "turn admin off"
+msgstr "închide admin"
+
+#: r2/lib/menus.py:86 r2/lib/pages/pages.py:570 r2/lib/pages/pages.py:585
+msgid "preferences"
+msgstr "preferinţe"
+
+#: r2/lib/menus.py:89
+msgid "the reddit blog"
+msgstr "blogul proddit"
+
+#: r2/lib/menus.py:90 r2/templates/utils.html:439
+msgid "logout"
+msgstr "logout"
+
+#: r2/lib/menus.py:93
+msgid "feedback"
+msgstr "feedback"
+
+#: r2/lib/menus.py:95
+msgid "socialite firefox extension"
+msgstr "socialite firefox extension"
+
+#: r2/lib/menus.py:96
+msgid "buttons"
+msgstr "butoane"
+
+#: r2/lib/menus.py:97
+msgid "widget"
+msgstr "widget"
+
+#: r2/lib/menus.py:98
+msgid "source code"
+msgstr "cod sursă"
+
+#: r2/lib/menus.py:99
+msgid "mobile"
+msgstr "mobile"
+
+#: r2/lib/menus.py:100
+msgid "store"
+msgstr "magazin"
+
+#: r2/lib/menus.py:101
+msgid "inquire about advertising"
+msgstr "intreaba despre publicitate pe proddit"
+
+#: r2/lib/menus.py:102
+msgid "random"
+msgstr "la întâmplare"
+
+#: r2/lib/menus.py:103
+msgid "iPhone app"
+msgstr "iPhone app"
+
+#: r2/lib/menus.py:107
+msgid "options"
+msgstr "opţiuni"
+
+#: r2/lib/menus.py:108
+msgid "RSS feeds"
+msgstr "feed RSS"
+
+#: r2/lib/menus.py:109
+msgid "friends"
+msgstr "prieteni"
+
+#: r2/lib/menus.py:110
+msgid "password/email"
+msgstr "parolă/email"
+
+#: r2/lib/menus.py:111 r2/templates/createsubreddit.html:279
+#: r2/templates/prefdelete.html:57 r2/templates/printablebuttons.html:33
+msgid "delete"
+msgstr "şterge"
+
+#: r2/lib/menus.py:114
+msgid "compose"
+msgstr "compune"
+
+#: r2/lib/menus.py:115
+msgid "inbox"
+msgstr "căsuţă"
+
+#: r2/lib/menus.py:116
+msgid "sent"
+msgstr "trimise"
+
+#: r2/lib/menus.py:119
+msgid "comments {toolbar}"
+msgstr "comentarii"
+
+#: r2/lib/menus.py:121 r2/templates/prefoptions.html:270
+#: r2/templates/prefoptions.html:279 r2/templates/prefoptions.html:288
+msgid "details"
+msgstr "detalii"
+
+#: r2/lib/menus.py:122
+#, python-format
+msgid "other discussions (%(num)s)"
+msgstr "alte discuţii (%(num)s)"
+
+#: r2/lib/menus.py:123
+msgid "shirt"
+msgstr "tricou"
+
+#: r2/lib/menus.py:124
+msgid "traffic stats"
+msgstr "traffic stats"
+
+#: r2/lib/menus.py:127
+msgid "home"
+msgstr "acasă"
+
+#: r2/lib/menus.py:128
+msgid "about"
+msgstr "despre"
+
+#: r2/lib/menus.py:129
+#, fuzzy
+msgid "edit subscriptions"
+msgstr "editează subscripţii"
+
+#: r2/lib/menus.py:130 r2/lib/pages/pages.py:1028
+#: r2/templates/createsubreddit.html:39
+#, fuzzy
+msgid "community settings"
+msgstr "setările comunităţii"
+
+#: r2/lib/menus.py:131
+msgid "edit moderators"
+msgstr "editează moderatorii"
+
+#: r2/lib/menus.py:132
+#, fuzzy
+msgid "moderator mail"
+msgstr "căsuţă moderator      "
+
+#: r2/lib/menus.py:133
+msgid "edit approved submitters"
+msgstr "modifică contribuitorii aprobaţi"
+
+#: r2/lib/menus.py:134 r2/lib/menus.py:135 r2/lib/pages/pages.py:2618
+msgid "ban users"
+msgstr "ban utilizatori"
+
+#: r2/lib/menus.py:136
+#, fuzzy
+msgid "edit user flair"
+msgstr "editează flerul utilizatorilor"
+
+#: r2/lib/menus.py:138
+msgid "popular"
+msgstr "populare"
+
+#: r2/lib/menus.py:139 r2/templates/admintranslations.html:33
+#: r2/templates/createsubreddit.html:302
+msgid "create"
+msgstr "creează"
+
+#: r2/lib/menus.py:140 r2/lib/pages/pages.py:1315
+msgid "my reddits"
+msgstr "prodditurile mele"
+
+#: r2/lib/menus.py:143 r2/templates/subredditstylesheet.html:88
+msgid "errors"
+msgstr "erori"
+
+#: r2/lib/menus.py:145
+#, fuzzy
+msgid "ads"
+msgstr "reclame"
+
+#: r2/lib/menus.py:146
+#, fuzzy
+msgid "usage"
+msgstr "folosire"
+
+#: r2/lib/menus.py:147
+msgid "promoted"
+msgstr "promovate"
+
+#: r2/lib/menus.py:148
+msgid "reporters"
+msgstr "raportori"
+
+#: r2/lib/menus.py:149
+msgid "reported links"
+msgstr "linkuri raportate"
+
+#: r2/lib/menus.py:150
+msgid "reported authors"
+msgstr "autori raportaţi"
+
+#: r2/lib/menus.py:151
+msgid "info"
+msgstr "info"
+
+#: r2/lib/menus.py:152 r2/templates/printablebuttons.html:153
+#: r2/templates/sharelink.html:94
+msgid "share"
+msgstr "share"
+
+#: r2/lib/menus.py:154
+msgid "overview"
+msgstr "privire de ansamblu"
+
+#: r2/lib/menus.py:155
+msgid "submitted"
+msgstr "trimise"
+
+#: r2/lib/menus.py:156
+msgid "liked"
+msgstr "plăcute"
+
+#: r2/lib/menus.py:157
+msgid "disliked"
+msgstr "neplăcute"
+
+#: r2/lib/menus.py:158
+msgid "hidden {toolbar}"
+msgstr "ascunse"
+
+#: r2/lib/menus.py:160 r2/templates/printablebuttons.html:58
+msgid "reported"
+msgstr "raportate"
+
+#: r2/lib/menus.py:162
+msgid "self-serve advertising"
+msgstr "auto-servire"
+
+#: r2/lib/menus.py:163
+msgid "create promotion"
+msgstr "creează promoţie"
+
+#: r2/lib/menus.py:164
+msgid "my promoted links"
+msgstr "linkurile mele promovate"
+
+#: r2/lib/menus.py:165
+msgid "all promoted links"
+msgstr "toate linkurile promovate"
+
+#: r2/lib/menus.py:166
+#, fuzzy
+msgid "unseen"
+msgstr "nevazut"
+
+#: r2/lib/menus.py:167
+msgid "roadblock"
+msgstr "blocat"
+
+#: r2/lib/menus.py:168
+msgid "analytics"
+msgstr "analytics"
+
+#: r2/lib/menus.py:169
+msgid "live"
+msgstr "în direct"
+
+#: r2/lib/menus.py:170
+msgid "unpaid"
+msgstr "neplătit"
+
+#: r2/lib/menus.py:171
+msgid "pending"
+msgstr "în aşteptare"
+
+#: r2/lib/menus.py:172
+msgid "rejected"
+msgstr "respinge"
+
+#: r2/lib/menus.py:174
+msgid "whitelist"
+msgstr "whitelist"
+
+#: r2/lib/menus.py:415
+msgid "sorted by"
+msgstr "sortate după"
+
+#: r2/lib/menus.py:481
+msgid "kind"
+msgstr "fel"
+
+#: r2/lib/menus.py:496
+msgid "links from"
+msgstr "linkuri din"
+
+#: r2/lib/promote.py:221 r2/lib/strings.py:241
+msgid "day"
+msgid_plural "days"
+msgstr[0] "zi"
+msgstr[1] "zile"
+
+#: r2/lib/strings.py:49
+#, python-format
+msgid "%(num)d %(thing)s"
+msgstr ""
+
+#: r2/lib/strings.py:52
+#, python-format
+msgid "%(num)d %(point)s"
+msgstr ""
+
+#: r2/lib/strings.py:55
+#, python-format
+msgid "%(num)d %(time)s"
+msgstr ""
+
+#: r2/lib/strings.py:58
+#, python-format
+msgid "%(num)5.3f %(thing)s"
+msgstr ""
+
+#: r2/lib/strings.py:61
+#, python-format
+msgid "%(num)s %(persons)s"
+msgstr ""
+
+#: r2/lib/strings.py:63
+msgid ""
+"proddit e o sursa cu ce e nou online pentru vorbitorii de limba romana"
+msgstr ""
+
+#: r2/lib/strings.py:65
+#, python-format
+msgid ""
+"that link has already been submitted, but you can try to [submit it again](%s)."
+msgstr ""
+"acel link a fost postat deja, dar poţi încerca să-l [postezi din nou]( %s )."
+
+#: r2/lib/strings.py:67
+#, python-format
+msgid ""
+"that link has been submitted to multiple reddits. you can try to [submit it again](%s)."
+msgstr ""
+"acel link a fost postat deja pe mai multe proddituri. poţi încerca însă să îl [postezi din nou]( %s )."
+
+#: r2/lib/strings.py:69
+msgid ""
+"your account has been deleted, but we won't judge you for it."
+msgstr ""
+"contul tău a fost şters, dar cine suntem noi să te judecăm pentru asta"
+
+#: r2/lib/strings.py:71 r2/templates/frametoolbar.html:148
+msgid "you'll need to login or register to do that"
+msgstr "trebuie sa te loghezi sau să te înregistrezi sa faci asta"
+
+#: r2/lib/strings.py:72
+msgid "(don't worry, it only takes a few seconds)"
+msgstr "(nu-ţi fă griji, durează doar câteva secunde)"
+
+#: r2/lib/strings.py:74
+#, python-format
+msgid ""
+"I understand and agree that registration on or use of this site constitutes agreement to its %(user_agreement)s and %(privacy_policy)s."
+msgstr "(c) 2011 proddit.com"
+
+#: r2/lib/strings.py:76
+#, python-format
+msgid ""
+"to view reddit with only submissions from your friends, use [reddit.com/r/friends](%s)"
+msgstr ""
+"pentru a vizualiza proddit.com cu linkuri trimise doar de prietenii tăi, foloseşte [proddit.com/r/friends]( %s )"
+
+#: r2/lib/strings.py:78
+msgid "your reddit has been created"
+msgstr "prodditul tău a fost creat"
+
+#: r2/lib/strings.py:80
+msgid ""
+"we haven't yet decided whether these things are spam, so you have a chance to change your vote:"
+msgstr "nu ne-am hotărât dacă e spam, deci ai şansa să votezi:"
+
+#: r2/lib/strings.py:81
+msgid ""
+"it's too late to change your vote on these things (the verdict has been issued):"
+msgstr "prea târziu să votezi (verdictul a fost dat)"
+
+#: r2/lib/strings.py:82
+#, python-format
+msgid "visit [%(link)s](%(link)s) for more information"
+msgstr "vizitează [%(link)s](%(link)s) pentru mai multe informaţii"
+
+#: r2/lib/strings.py:86
+#, python-format
+msgid "you have been added as a moderator to [%(title)s](%(url)s)."
+msgstr "ai fost adăugat ca moderator la [ %(title)s ]( %(url)s )."
+
+#: r2/lib/strings.py:87
+#, fuzzy, python-format
+msgid ""
+"you have been added as an approved submitter to [%(title)s](%(url)s)."
+msgstr "ai fost adăugat ca moderator la [ %(title)s ]( %(url)s )."
+
+#: r2/lib/strings.py:88
+#, python-format
+msgid "you have been banned from posting to [%(title)s](%(url)s)."
+msgstr ""
+"ţi-a fost interzis să contribui pe [ %(title)s ]( %(url)s )."
+
+#: r2/lib/strings.py:89
+#, python-format
+msgid ""
+"you have been added to the list of users able to see [traffic for the sponsored link \"%(title)s\"](%(traffic_url)s)."
+msgstr ""
+"aici poţi vedea [nişte statistici \"%(title)s\"](%(traffic_url)s)"
+
+#: r2/lib/strings.py:94
+msgid "you are a moderator"
+msgstr "eşti moderator"
+
+#: r2/lib/strings.py:95
+msgid "you are an approved submitter"
+msgstr "eşti un contribuitor aprobat"
+
+#: r2/lib/strings.py:96
+msgid "you've been banned"
+msgstr "ai fost banat"
+
+#: r2/lib/strings.py:97
+msgid "you can view traffic on a promoted link"
+msgstr "poţi vedea traficul la un link promovat"
+
+#: r2/lib/strings.py:101
+msgid "you have not subscribed to any reddits."
+msgstr "nu te-ai abonat la nici un proddit."
+
+#: r2/lib/strings.py:102
+msgid "below are the reddits you have subscribed to"
+msgstr "mai jos sunt prodditurile la care te-ai abonat"
+
+#: r2/lib/strings.py:103
+#, fuzzy
+msgid "below are the reddits that you are an approved submitter on."
+msgstr "mai jos sunt prodditurile la care te-ai abonat"
+
+#: r2/lib/strings.py:104
+msgid "below are the reddits that you have moderator access to."
+msgstr "mai jost sunt prodditurile la care ai acces de moderator"
+
+#: r2/lib/strings.py:107
+msgid ""
+"click the `+frontpage` or `-frontpage` buttons to choose which reddits appear on your front page."
+msgstr ""
+"apasă pe \"+primapagină\" sau pe \"-primapagină\" pentru a alege ce proddituri să apară pe prima ta pagină"
+
+#: r2/lib/strings.py:109
+#, python-format
+msgid ""
+"you're searching within the [%(reddit_name)s](%(reddit_link)s) reddit. you can also search within [all reddits](%(all_reddits_link)s)"
+msgstr "cauţi în prodditul [%(reddit_name)s](%(reddit_link)s)."
+
+#: r2/lib/strings.py:113
+#, python-format
+msgid "\"%(brokenurl)s\" is not a valid URL"
+msgstr "\" %(brokenurl)s \" nu e un link valid"
+
+#: r2/lib/strings.py:114
+#, python-format
+msgid "\"%(cssprop)s\" is not a valid CSS property"
+msgstr "\" %(cssprop)s \" nu e o proprietate CSS validă"
+
+#: r2/lib/strings.py:115
+#, python-format
+msgid ""
+"\"%(cssvalue)s\" is not a valid value for CSS property \"%(cssprop)s\""
+msgstr ""
+"\" %(cssvalue)s \" nu e o valoare validă pentru \" %(cssprop)s \""
+
+#: r2/lib/strings.py:116
+#, python-format
+msgid "too big. keep it under %(max_size)dkb"
+msgstr "prea mare. trebuie să fie sub %(max_size)dkb"
+
+#: r2/lib/strings.py:117
+#, python-format
+msgid "syntax error: \"%(syntaxerror)s\""
+msgstr "syntax error: \"%(syntaxerror)s\""
+
+#: r2/lib/strings.py:118
+msgid "@imports are not allowed"
+msgstr "@imports-urile nu sunt permise"
+
+#: r2/lib/strings.py:119
+#, python-format
+msgid "invalid CSS property list \"%(proplist)s\""
+msgstr "lista \"%(proplist)s\" este invalidă"
+
+#: r2/lib/strings.py:120
+#, python-format
+msgid "unknown CSS rule type \"%(ruletype)s\""
+msgstr "rule type \"%(ruletype)s\" necunoscut"
+
+#: r2/lib/strings.py:122
+msgid ""
+"to anything interesting: news article, blog entry, video, picture..."
+msgstr ""
+"cu orice interesant: articol de ştiri, blog entry, video, poză..."
+
+#: r2/lib/strings.py:123
+#, python-format
+msgid "%(author)s comments on %(title)s"
+msgstr "comentariile lui %(author)s la %(title)s"
+
+#: r2/lib/strings.py:124
+#, python-format
+msgid "%(title)s : %(site)s"
+msgstr ""
+
+#: r2/lib/strings.py:125
+#, fuzzy, python-format
+msgid ""
+"**this reddit has been banned**\n"
+"most likely this was done automatically by our spam filtering program. the program is still learning, and may even have some bugs, so if you feel the ban was a mistake, please submit a link to our [request a reddit listing](%(link)s) and be sure to include the **exact name of the reddit**.\n"
+msgstr "acest proddit a fost interzis"
+
+#: r2/lib/strings.py:126
+#, python-format
+msgid ""
+"The following is a sample of what Reddit users had to say about this page. The full discussion is available [here](%(fd_link)s); you can also get there by clicking the link's title (in the middle of the toolbar, to the right of the comments button)."
+msgstr ""
+"Ce urmează sunt unele comentarii ale unor utilizatori proddit despre acest link.\n"
+"Discuţia completă se află [aici](%(fd_link)s); mai poţi ajunge acolo dând click \n"
+"pe titlul linkului (în mijlocul toolbarului).\n"
+
+#: r2/lib/strings.py:128
+msgid ""
+"You are submitting a link. The key to a successful submission is interesting content and a descriptive title."
+msgstr ""
+"Trimiţi un link. Cheia succesului este conţinutul interesant şi titlul descriptiv."
+
+#: r2/lib/strings.py:129
+msgid ""
+"You are submitting a text-based post. Speak your mind. A title is required, but expanding further in the text field is not. Beginning your title with \"vote up if\" is violation of intergalactic law."
+msgstr ""
+"Trimiţi un link tip text. Un titlu este necesar, textul propriu zis, nu."
+
+#: r2/lib/strings.py:130
+#, fuzzy
+msgid ""
+"You should consider using [reddit's mobile interface](http://i.reddit.com/)."
+msgstr ""
+"încearcă pe [interfaţa pentru mobile](http://i.proddit.com)"
+
+#: r2/lib/strings.py:131
+msgid ""
+"we're going to need to verify your email address for you to proceed."
+msgstr "trebuie să-ţi verificăm adresa de email pentru a continua"
+
+#: r2/lib/strings.py:132
+msgid ""
+"you'll be able to submit more frequently once you verify your email address"
+msgstr "vei putea trimite mai des dacă îţi verifici adresa"
+
+#: r2/lib/strings.py:133
+msgid "your email address has been verfied"
+msgstr "adresa de email a fost verificată"
+
+#: r2/lib/strings.py:134
+msgid "Verification failed.  Please try that again"
+msgstr "verificarea nu a reuşit, te rugăm să reîncerci"
+
+#: r2/lib/strings.py:135
+#, python-format
+msgid ""
+"Our search machines are under too much load to handle your request right now. :( Sorry for the inconvenience. [Try again](%(link)s) in a little bit -- but please don't mash reload; that only makes the problem worse."
+msgstr ""
+"Căutarea nu a funcţionat. Poţi încerca [iar]( %(link)s ), dar nu prea curând."
+
+#: r2/lib/strings.py:136
+#, python-format
+msgid ""
+"I couldn't understand your query, so I simplified it and searched for \"%(clean_query)s\" instead."
+msgstr ""
+
+#: r2/lib/strings.py:137
+msgid "I couldn't understand your search query. Please try again."
+msgstr ""
+
+#: r2/lib/strings.py:138
+msgid ""
+"You've submitted too many links recently. Please try again in an hour."
+msgstr ""
+
+#: r2/lib/strings.py:139
+#, python-format
+msgid ""
+"You've submitted several links recently that haven't been doing very well. You'll have to wait a while before you can submit again, or [write to the moderators of this reddit](%(link)s) and ask for an exemption."
+msgstr ""
+
+#: r2/lib/strings.py:140
+#, python-format
+msgid ""
+"You haven't [verified your email address](%(link1)s); until you do, your submitting privileges will be severely limited. Please try again in an hour or verify your email address. If you'd like an exemption from this rule, please [write to the moderators of this reddit](%(link2)s)."
+msgstr ""
+
+#: r2/lib/strings.py:141
+msgid ""
+"reddit is in \"emergency read-only mode\" right now. :( you won't be able to log in. we're sorry, and are working frantically to fix the problem."
+msgstr ""
+
+#: r2/lib/strings.py:142
+msgid ""
+"reddit is under heavy load right now. :( we're sorry, and are working frantically to fix the problem. in the mean time, here's a read-only cached version of the page you were trying to access."
+msgstr ""
+
+#: r2/lib/strings.py:143
+#, python-format
+msgid "Please grab a drink and join us in [the lounge](%(link)s)."
+msgstr ""
+
+#: r2/lib/strings.py:144
+msgid ""
+"You sent us a postcard! (Or something similar.) When we run out of room on our refrigerator, we might one day auction off the stuff that people sent in. Is it okay if we include your thing?"
+msgstr ""
+
+#: r2/lib/strings.py:145
+#, python-format
+msgid ""
+"Sorry, the maximum number of comments is %(max)d. (However, if you subscribe to reddit gold, it goes up to %(goldmax)d.)"
+msgstr ""
+
+#: r2/lib/strings.py:146
+#, python-format
+msgid "Sorry, the maximum number of comments is %d."
+msgstr ""
+
+#: r2/lib/strings.py:147
+#, python-format
+msgid ""
+"%(sender)s just sent you %(amount)s of reddit gold! Wasn't that nice?"
+msgstr ""
+
+#: r2/lib/strings.py:148
+msgid "Here's a note that was included:\n\n----\n\n"
+msgstr ""
+
+#: r2/lib/strings.py:149
+#, python-format
+msgid ""
+"You're about to set up an ongoing, autorenewing subscription to reddit gold for yourself (%(user)s)."
+msgstr ""
+
+#: r2/lib/strings.py:150
+#, python-format
+msgid ""
+"You're about to make a one-time purchase of %(amount)s of reddit gold for yourself (%(user)s)."
+msgstr ""
+
+#: r2/lib/strings.py:151
+#, python-format
+msgid ""
+"You're about to purchase %(amount)s of reddit gold creddits. They work like gift certificates: each creddit you have will allow you to give one month of reddit gold to someone else."
+msgstr ""
+
+#: r2/lib/strings.py:152
+#, python-format
+msgid ""
+"You're about to give %(amount)s of reddit gold to %(recipient)s, who will be told that it came from you."
+msgstr ""
+
+#: r2/lib/strings.py:153
+#, python-format
+msgid ""
+"You're about to give %(amount)s of reddit gold to %(recipient)s. It will be an anonymous gift."
+msgstr ""
+
+#: r2/lib/strings.py:154
+msgid "sorry, this has been archived and can no longer be voted on"
+msgstr ""
+
+#: r2/lib/strings.py:220 r2/lib/strings.py:225 r2/lib/template_helpers.py:153
+#: r2/templates/subredditstylesheet.html:272
+msgid "comment"
+msgid_plural "comments"
+msgstr[0] "comentariu"
+msgstr[1] "comentarii"
+
+#: r2/lib/strings.py:221 r2/templates/comment.htmllite:55
+#: r2/templates/linkinfobar.html:40
+msgid "point"
+msgid_plural "points"
+msgstr[0] "punct"
+msgstr[1] "puncte"
+
+#: r2/lib/strings.py:224
+msgid "link"
+msgid_plural "links"
+msgstr[0] "link"
+msgstr[1] "linkuri"
+
+#: r2/lib/strings.py:226 r2/lib/pages/pages.py:645
+msgid "message"
+msgid_plural "messages"
+msgstr[0] "mesaj"
+msgstr[1] "mesaje"
+
+#: r2/lib/strings.py:227
+msgid "subreddit"
+msgid_plural "subreddits"
+msgstr[0] "proddit"
+msgstr[1] "proddituri"
+
+#: r2/lib/strings.py:228
+#, fuzzy
+msgid "creddit"
+msgid_plural "creddits"
+msgstr[0] "proddituri"
+msgstr[1] ""
+
+#: r2/lib/strings.py:231
+msgid "reader"
+msgid_plural "readers"
+msgstr[0] "utilizator"
+msgstr[1] "utilizatori"
+
+#: r2/lib/strings.py:232
+msgid "subscriber"
+msgid_plural "subscribers"
+msgstr[0] "abonat"
+msgstr[1] "abonaţi"
+
+#: r2/lib/strings.py:233 r2/templates/subreddit.html:80
+#: r2/templates/subreddit.html:81
+#, fuzzy
+msgid "approved submitter"
+msgid_plural "approved submitters"
+msgstr[0] "expeditor"
+msgstr[1] ""
+
+#: r2/lib/strings.py:234 r2/templates/subreddit.html:74
+msgid "moderator"
+msgid_plural "moderators"
+msgstr[0] "moderator"
+msgstr[1] "moderatori"
+
+#: r2/lib/strings.py:237
+msgid "milliseconds"
+msgid_plural "milliseconds"
+msgstr[0] "milisecundă"
+msgstr[1] "milisecunde"
+
+#: r2/lib/strings.py:238 r2/templates/searchbar.html:44
+msgid "second"
+msgid_plural "seconds"
+msgstr[0] "secundă"
+msgstr[1] "secunde"
+
+#: r2/lib/strings.py:239
+msgid "minute"
+msgid_plural "minutes"
+msgstr[0] "minut"
+msgstr[1] "minute"
+
+#: r2/lib/strings.py:240
+msgid "hour"
+msgid_plural "hours"
+msgstr[0] "oră"
+msgstr[1] "ore"
+
+#: r2/lib/strings.py:242
+msgid "month"
+msgid_plural "months"
+msgstr[0] "lună"
+msgstr[1] "luni"
+
+#: r2/lib/strings.py:243
+msgid "year"
+msgid_plural "years"
+msgstr[0] "an"
+msgstr[1] "ani"
+
+#: r2/lib/template_helpers.py:149
+msgid "comment {verb}"
+msgstr "comentează"
+
+#: r2/lib/template_helpers.py:360 r2/models/builder.py:142
+msgid "friend"
+msgstr "prieten"
+
+#: r2/lib/template_helpers.py:367
+msgid "submitter"
+msgstr "expeditor"
+
+#: r2/lib/template_helpers.py:381
+msgid "reddit admin, speaking officially"
+msgstr "admin proddit, vorbind oficial"
+
+#: r2/lib/pages/pages.py:62
+#, python-format
+msgid "%d %b %Y"
+msgstr "%d %b %Y"
+
+#: r2/lib/pages/pages.py:222
+#, fuzzy
+msgid "these reddits"
+msgstr "cauta proddituri"
+
+#: r2/lib/pages/pages.py:232
+msgid "Submit a link"
+msgstr "Trimite un link"
+
+#: r2/lib/pages/pages.py:242
+#, fuzzy
+msgid "Create your own community"
+msgstr "Creează o comunitate"
+
+#: r2/lib/pages/pages.py:248
+msgid "reddit gold creddits: now for sale!"
+msgstr ""
+
+#: r2/lib/pages/pages.py:266
+msgid "moderators"
+msgstr "moderatori"
+
+#: r2/lib/pages/pages.py:273
+msgid "admin box"
+msgstr "căsuţa adminului"
+
+#: r2/lib/pages/pages.py:284
+msgid "Recently viewed links"
+msgstr "Linkuri recent vizualizate"
+
+#: r2/lib/pages/pages.py:392
+msgid "site links"
+msgstr "linkuri"
+
+#: r2/lib/pages/pages.py:396
+msgid "FAQ"
+msgstr "FAQ (engleză)"
+
+#: r2/lib/pages/pages.py:411
+msgid "reddit tools"
+msgstr "tool-uri"
+
+#: r2/lib/pages/pages.py:446
+msgid "brothers"
+msgstr "prieteni"
+
+#: r2/lib/pages/pages.py:642
+#, python-format
+msgid "%(site)s mail"
+msgstr "%(site)s mail"
+
+#: r2/lib/pages/pages.py:704
+msgid "login or register"
+msgstr "loghează-te sau înregistrează-te"
+
+#: r2/lib/pages/pages.py:754
+msgid "bummer"
+msgstr "ghinion"
+
+#: r2/lib/pages/pages.py:766
+msgid "this page is no longer available due to a copyright claim."
+msgstr "pagina asta nu mai este disponibilă din motive de copyright"
+
+#: r2/lib/pages/pages.py:1029
+#, python-format
+msgid "about %(site)s"
+msgstr "despre %(site)s"
+
+#: r2/lib/pages/pages.py:1055
+msgid "search reddits"
+msgstr "cauta proddituri"
+
+#: r2/lib/pages/pages.py:1086
+#, fuzzy, python-format
+msgid "your front page reddits (%s)"
+msgstr "prodditurile tale de primă pagină (%s)"
+
+#: r2/lib/pages/pages.py:1146 r2/templates/createsubreddit.html:190
+#: r2/templates/spotlightlisting.html:56
+msgid "what's this?"
+msgstr "ce e asta?"
+
+#: r2/lib/pages/pages.py:1147
+msgid "trophy case"
+msgstr "trofee"
+
+#: r2/lib/pages/pages.py:1195
+msgid "an unknown amount"
+msgstr "o cantitate necunoscută"
+
+#: r2/lib/pages/pages.py:1203
+msgid "less than a day"
+msgstr "mai puţin de o zi"
+
+#: r2/lib/pages/pages.py:1212
+#, python-format
+msgid "buy %(user)s a month of reddit gold"
+msgstr ""
+
+#: r2/lib/pages/pages.py:1215
+#, fuzzy
+msgid "renew your reddit gold"
+msgstr ""
+
+#: r2/lib/pages/pages.py:1218
+#, fuzzy
+msgid "treat yourself to reddit gold"
+msgstr ""
+
+#: r2/lib/pages/pages.py:1247
+msgid "page not found"
+msgstr "pagina nu a fost găsită"
+
+#: r2/lib/pages/pages.py:1258
+msgid "you aren't allowed to do that."
+msgstr "nu ai voie să faci asta"
+
+#: r2/lib/pages/pages.py:1387
+#, fuzzy, python-format
+msgid "raise it to %s"
+msgstr "creste-l la %s"
+
+#: r2/lib/pages/pages.py:1389 r2/lib/pages/pages.py:1398
+#, python-format
+msgid "%s visible"
+msgstr "%s vizibil"
+
+#: r2/lib/pages/pages.py:1396
+#, python-format
+msgid "%(bonus)s bonus reddits"
+msgstr ""
+
+#: r2/lib/pages/pages.py:1584
+msgid "try entering those letters again"
+msgstr "încearcă să introduci literele încă o dată"
+
+#: r2/lib/pages/pages.py:1644
+msgid "previous search"
+msgstr "căutarea precedentă"
+
+#: r2/lib/pages/pages.py:1677
+#, python-format
+msgid "%(site_title)s via %(domain)s"
+msgstr ""
+
+#: r2/lib/pages/pages.py:2278
+msgid "This feature is currently unavailable. Sorry"
+msgstr ""
+"Această funcţionalitate este momentan indisponibilă. Ne pare rău."
+
+#: r2/lib/pages/pages.py:2521
+#, fuzzy
+msgid "user"
+msgstr "utilizator"
+
+#: r2/lib/pages/pages.py:2521
+#, fuzzy
+msgid "note"
+msgstr "nu"
+
+#: r2/lib/pages/pages.py:2521
+#, fuzzy
+msgid "friendship"
+msgstr "prieteni"
+
+#: r2/lib/pages/pages.py:2527
+msgid "add a friend"
+msgstr "adaugă un prieten"
+
+#: r2/lib/pages/pages.py:2531
+msgid "your friends"
+msgstr "prietenii tăi"
+
+#: r2/lib/pages/pages.py:2559
+#, fuzzy
+msgid "blocked users"
+msgstr "utilizatori banaţi"
+
+#: r2/lib/pages/pages.py:2575
+msgid "add approved submitter"
+msgstr "adaugă un contribuitor aprobat"
+
+#: r2/lib/pages/pages.py:2579
+#, fuzzy, python-format
+msgid "approved submitters for %(reddit)s"
+msgstr "contribuitori aprobaţi pentru %(reddit)s      "
+
+#: r2/lib/pages/pages.py:2595
+msgid "add moderator"
+msgstr "adaugă moderatori"
+
+#: r2/lib/pages/pages.py:2599
+#, fuzzy, python-format
+msgid "moderators of %(reddit)s"
+msgstr "moderatori la %(reddit)s"
+
+#: r2/lib/pages/pages.py:2622
+msgid "banned users"
+msgstr "utilizatori banaţi"
+
+#: r2/lib/pages/pages.py:2639
+msgid "share traffic"
+msgstr "shareuieşte trafic"
+
+#: r2/lib/pages/pages.py:2643
+msgid "current viewers"
+msgstr "vizitatorii curenţi"
+
+#: r2/models/builder.py:103
+#, python-format
+msgid "moderator of /r/%(reddit)s, speaking officially"
+msgstr "moderator al /r/%(reddit)s, vorbind oficial"
+
+#: r2/models/builder.py:162
+msgid "label_template"
+msgstr ""
+
+#: r2/models/link.py:516
+#, fuzzy, python-format
+msgid "approved by %s"
+msgstr "aprobat de %s"
+
+#: r2/models/link.py:518
+#, fuzzy
+msgid "approved by a moderator"
+msgstr "aprobat de un moderator"
+
+#: r2/models/link.py:789
+msgid "comment score below threshold"
+msgstr "scorul comentariului sub prag"
+
+#: r2/models/link.py:794
+#, fuzzy
+msgid "blocked user"
+msgstr "utilizator banat      "
+
+#: r2/models/link.py:1108
+msgid "comment reply"
+msgstr "răspunde"
+
+#: r2/models/link.py:1114
+msgid "post reply"
+msgstr "răspunde"
+
+#: r2/models/link.py:1133
+msgid "[message from blocked user]"
+msgstr "[mesaj de la user blocat]"
+
+#: r2/models/link.py:1134
+msgid "[unblock user to see this message]"
+msgstr "[deblochează utilizatorul să vezi mesajul]"
+
+#: r2/models/mail_queue.py:308
+#, python-format
+msgid "[reddit] %(user)s has shared a link with you"
+msgstr "[proddit] %(user)s a share-uit un link cu tine"
+
+#: r2/models/mail_queue.py:309
+#, python-format
+msgid "[feedback] feedback from '%(user)s'"
+msgstr "[feedback] feedback de la '%(user)s'"
+
+#: r2/models/mail_queue.py:310
+#, python-format
+msgid "[ad_inq] feedback from '%(user)s'"
+msgstr "[ad_inq] feedback de la '%(user)s'"
+
+#: r2/models/mail_queue.py:311
+msgid "[reddit] email removal notice"
+msgstr "[proddit] notificare scoatere email din lista proddit"
+
+#: r2/models/mail_queue.py:312
+msgid "[reddit] email addition notice"
+msgstr "[proddit] notificare adăugare email"
+
+#: r2/models/mail_queue.py:313
+msgid "[reddit] reset your password"
+msgstr "[proddit] resetează-ţi parola"
+
+#: r2/models/mail_queue.py:314
+msgid "[reddit] verify your email address"
+msgstr "[proddit] verifică-ţi adresa de email"
+
+#: r2/models/mail_queue.py:315
+msgid "[reddit] your bid has been accepted"
+msgstr "[proddit] licitaţia ţi-a fost acceptată"
+
+#: r2/models/mail_queue.py:316
+msgid "[reddit] your promotion has been accepted"
+msgstr "[proddit] promoţia ţi-a fost acceptată"
+
+#: r2/models/mail_queue.py:317
+msgid "[reddit] your promotion has been rejected"
+msgstr "[proddit] promoţia ţi-a fost respinsă"
+
+#: r2/models/mail_queue.py:318
+#, fuzzy
+msgid "[reddit] your promotion has been charged"
+msgstr "[proddit] promoţia a fost creată"
+
+#: r2/models/mail_queue.py:319
+msgid "[reddit] your promotion is now live"
+msgstr "[proddit] promoţia ta este live"
+
+#: r2/models/mail_queue.py:320
+msgid "[reddit] your promotion has finished"
+msgstr "[proddit] promoţia ta a luat sfârşit"
+
+#: r2/models/mail_queue.py:321
+msgid "[reddit] your promotion has been created"
+msgstr "[proddit] promoţia a fost creată"
+
+#: r2/models/mail_queue.py:322
+#, python-format
+msgid "[i18n] translation offer from '%(user)s'"
+msgstr "[i18n] '%(user)s'\t vrea să traducă"
+
+#: r2/models/mail_queue.py:323
+#, fuzzy
+msgid "[reddit] hey, nerd!"
+msgstr "nerd!"
+
+#: r2/models/mail_queue.py:324
+msgid "[reddit] reddit gold activation link"
+msgstr ""
+
+#: r2/models/subreddit.py:968
+msgid "on reddit.com"
+msgstr "pe proddit.com"
+
+#: r2/templates/admintranslations.html:62
+msgid "disable"
+msgstr "dezactivează"
+
+#: r2/templates/admintranslations.html:63
+msgid "disabled"
+msgstr "dezactivat"
+
+#: r2/templates/admintranslations.html:66
+msgid "enable"
+msgstr "activează"
+
+#: r2/templates/admintranslations.html:67
+msgid "enabled"
+msgstr "activat"
+
+#: r2/templates/admintranslations.html:100
+msgid "add authors"
+msgstr "adaugă autori"
+
+#: r2/templates/base.html:57
+msgid ""
+"/* Custom css: use this block to insert special translation-dependent css in the page header */"
+msgstr ""
+"/* css personalizat: foloseşte acest bloc pentru a insera css dependent de traduceri în headerul paginii */"
+
+#: r2/templates/base.htmllite:88
+#, python-format
+msgid "links from %(site)s"
+msgstr "linkuri de la %(site)s"
+
+#: r2/templates/bookmarklets.html:30
+#, python-format
+msgid "install the %(site)s bookmarklet set"
+msgstr "instalează setul de bookmarklet-uri %(site)s"
+
+#: r2/templates/bookmarklets.html:32
+msgid ""
+"once added to your bookmark bar, you can click these buttons from any site to get quick access to reddit functionality."
+msgstr ""
+"odată adăugate pe bara de bookmarkuri, poţi da click pe butoane de pe orice site având acces la funcţionalitatea proddit."
+
+#: r2/templates/bookmarklets.html:33
+msgid "in Firefox"
+msgstr "în Firefox"
+
+#: r2/templates/bookmarklets.html:35 r2/templates/bookmarklets.html:64
+msgid "click and drag"
+msgstr "click şi trage"
+
+#: r2/templates/bookmarklets.html:41 r2/templates/bookmarklets.html:70
+msgid "to your bookmark bar."
+msgstr "pe bara de bookmarkuri."
+
+#: r2/templates/bookmarklets.html:49
+msgid "in Internet Explorer"
+msgstr "în Internet Explorer"
+
+#: r2/templates/bookmarklets.html:51
+msgid "right-click on"
+msgstr "click-dreapta"
+
+#: r2/templates/bookmarklets.html:57
+msgid ""
+"then choose \"Add to Favorites\" and add to the \"Links\" folder."
+msgstr ""
+"apoi alege \"Add to Favorites\" şi trage pe directorul \"Links\""
+
+#: r2/templates/bookmarklets.html:62
+msgid "in Safari"
+msgstr "în Opera"
+
+#: r2/templates/bookmarklets.html:76
+#, python-format
+msgid ""
+"voila! now you have all the functionality of %(site)s in your toolbar."
+msgstr "acum ai toate funcţionalităţile %(site)s pe toolbar"
+
+#: r2/templates/buttondemopanel.html:29
+#, python-format
+msgid "put %(site)s buttons on your site"
+msgstr "pune butoane %(site)s pe site-ul tău"
+
+#: r2/templates/buttondemopanel.html:30
+msgid ""
+"the reddit button is the smart way to get your content submitted to      and discussed on reddit.  pick the button you like from below, and then      copy/paste the code into your HTML editor."
+msgstr ""
+"butonul proddit e o cale uşoară de a-ţi trimite linkurile spre proddit. alege unul din butoanele de mai jos şi dă copy-paste la cod în editorul tău de HTML. "
+
+#: r2/templates/buttondemopanel.html:34
+msgid "commonly used buttons"
+msgstr "butone uzuale"
+
+#: r2/templates/buttondemopanel.html:35
+msgid ""
+"use one of these buttons to quickly add reddit links to your site, or       see below for more options."
+msgstr ""
+"foloseşte unul dintre butoane pentru a adăuga linkuri proddit spre site-ul tău. uită-te mai jos pentru alte opţiuni."
+
+#: r2/templates/buttondemopanel.html:54
+msgid "buttons with points"
+msgstr "butoane cu puncte"
+
+#: r2/templates/buttondemopanel.html:60
+msgid "customizing the look of your buttons"
+msgstr "personalizează felul cum arată butoanele"
+
+#: r2/templates/buttondemopanel.html:61
+msgid "the buttons with points have three additional options."
+msgstr "butoanele cu puncte au 3 opţiuni adiţionale"
+
+#: r2/templates/buttondemopanel.html:64
+msgid "no styles will be added, so you can style it yourself"
+msgstr "nu sunt adăugate stiluri ca să le poţi aranja cum vrei"
+
+#: r2/templates/buttondemopanel.html:66
+msgid "specify a url to use instead of the current url"
+msgstr "specifică alt url decât cel de aici"
+
+#: r2/templates/buttondemopanel.html:68
+msgid "opens links in a new window"
+msgstr "deschide linkurile într-o pagină nouă"
+
+#: r2/templates/buttondemopanel.html:70 r2/templates/buttondemopanel.html:122
+#: r2/templates/upgradebuttons.html:80
+msgid "Example:"
+msgstr "Exemplu:"
+
+#: r2/templates/buttondemopanel.html:76 r2/templates/upgradebuttons.html:34
+msgid "simple interactive button"
+msgstr "buton simplu interactiv"
+
+#: r2/templates/buttondemopanel.html:77 r2/templates/upgradebuttons.html:35
+msgid "put this code on your page:"
+msgstr "pune codul acesta pe pagina ta"
+
+#: r2/templates/buttondemopanel.html:81 r2/templates/upgradebuttons.html:39
+msgid "and you'll get something like this:"
+msgstr "şi vei obţine ceva de genul acesta:"
+
+#: r2/templates/buttondemopanel.html:86 r2/templates/upgradebuttons.html:44
+msgid "more interactive buttons"
+msgstr "mai multe butoane interactive"
+
+#: r2/templates/buttondemopanel.html:93 r2/templates/upgradebuttons.html:51
+msgid "interactive button advanced settings"
+msgstr "setări avansate pentru butoane"
+
+#: r2/templates/buttondemopanel.html:97 r2/templates/upgradebuttons.html:55
+msgid "specify a url"
+msgstr "specifică un url"
+
+#: r2/templates/buttondemopanel.html:98 r2/templates/upgradebuttons.html:56
+msgid ""
+"useful in places like blogs, where you want to link to the post's permalink"
+msgstr ""
+"folositor de exemplu pe bloguri, unde vrei să legi către linkul articolului"
+
+#: r2/templates/buttondemopanel.html:102 r2/templates/upgradebuttons.html:60
+msgid "specify a community to target"
+msgstr "specifică o comunitate"
+
+#: r2/templates/buttondemopanel.html:106 r2/templates/upgradebuttons.html:64
+msgid "specify a title"
+msgstr "specifică un titlu"
+
+#: r2/templates/buttondemopanel.html:110 r2/templates/prefoptions.html:109
+#: r2/templates/upgradebuttons.html:68
+msgid "open links in a new window"
+msgstr "deschide linkurile într-o nouă fereastră"
+
+#: r2/templates/buttondemopanel.html:114 r2/templates/upgradebuttons.html:72
+msgid "specify the color"
+msgstr "specifică o culoare"
+
+#: r2/templates/buttondemopanel.html:118 r2/templates/upgradebuttons.html:76
+msgid "specify a border color"
+msgstr "specifică o culoare a marginilor"
+
+#: r2/templates/buttondemopanel.html:123 r2/templates/upgradebuttons.html:81
+msgid "to make this button:"
+msgstr "pentru a face butonul acesta:"
+
+#: r2/templates/buttondemopanel.html:125 r2/templates/upgradebuttons.html:83
+msgid "use this code:"
+msgstr "foloseşte codul acesta:"
+
+#: r2/templates/buttondemopanel.html:159 r2/templates/upgradebuttons.html:108
+msgid "view code"
+msgstr "vezi codul"
+
+#: r2/templates/buttondemopanel.html:160 r2/templates/upgradebuttons.html:109
+msgid "hide code"
+msgstr "ascunde codul"
+
+#: r2/templates/buttontypes.html:189
+#, fuzzy
+msgid "quite controversial"
+msgstr "controversate"
+
+#: r2/templates/buttontypes.html:193
+#, fuzzy
+msgid "uncontroversial"
+msgstr "controversate"
+
+#: r2/templates/buttontypes.html:195
+#, fuzzy
+msgid "quite uncontroversial"
+msgstr "cele mai controversate"
+
+#: r2/templates/buttontypes.html:212
+msgid "Vote on this article"
+msgstr "Votează acest articol"
+
+#: r2/templates/buttontypes.html:217
+#, fuzzy, python-format
+msgid "Discuss at the %(name)s reddit"
+msgstr "discută la %(name)s"
+
+#: r2/templates/buttontypes.html:219
+#, fuzzy, python-format
+msgid "Submit to the %(name)s reddit"
+msgstr "trimite la %(name)s"
+
+#: r2/templates/captcha.html:49
+#, fuzzy
+msgid "(sorry)"
+msgstr "eroare (ne pare rău)"
+
+#: r2/templates/captcha.html:49
+#, fuzzy
+msgid "are you human?"
+msgstr "eşti om?"
+
+#: r2/templates/captcha.html:75
+msgid "human?"
+msgstr "om?"
+
+#: r2/templates/captcha.html:84
+msgid "type the letters from the image above"
+msgstr "introdu literele"
+
+#: r2/templates/clickgadget.html:30
+msgid "clear"
+msgstr "şterge"
+
+#: r2/templates/comment.html:58
+msgid "by"
+msgstr "de"
+
+#: r2/templates/comment.html:61
+#, fuzzy
+msgid "in"
+msgstr "în"
+
+#: r2/templates/comment.html:86 r2/templates/message.html:50
+msgid "+"
+msgstr ""
+
+#: r2/templates/comment.html:86
+msgid "&ndash;"
+msgstr ""
+
+#: r2/templates/comment.html:92
+msgid "deleted comment from"
+msgstr "comentariu şters de la "
+
+#: r2/templates/comment.html:98 r2/templates/comment.htmllite:46
+#: r2/templates/comment.xml:31 r2/templates/comment.xml:32
+msgid "[deleted]"
+msgstr "[şters]"
+
+#: r2/templates/comment.html:107 r2/templates/comment.htmllite:46
+#: r2/templates/commentvisitsbox.html:38
+msgid "ago"
+msgstr "în urmă"
+
+#: r2/templates/comment.html:116
+msgid "child"
+msgid_plural "children"
+msgstr[0] "copil"
+msgstr[1] "copii"
+
+#: r2/templates/comment.xml:42
+msgid "on"
+msgstr "pe"
+
+#: r2/templates/commentspanel.html:38
+msgid ""
+"This sidebar will automatically appear when there are comments."
+msgstr ""
+"Aceasta bară va fi afişată automat când există comentarii."
+
+#: r2/templates/commentspanel.html:40
+msgid "This sidebar will not be shown automatically."
+msgstr "Această bară nu va fi afişată automat."
+
+#: r2/templates/commentvisitsbox.html:25
+msgid ""
+"You've been here before. To highlight comments that were posted since one of your visits, select it below:"
+msgstr ""
+"Ai mai fost aici. Pentru a marca comentariile care au fost postate de la una din vizitele tale, selectează de jos:"
+
+#: r2/templates/commentvisitsbox.html:48
+msgid "no highlighting"
+msgstr "nu marca"
+
+#: r2/templates/createsubreddit.html:47
+msgid "that subreddit doesn't exist, but you can create it here."
+msgstr "acel proddit nu există, dar poţi să-l creezi aici."
+
+#: r2/templates/createsubreddit.html:55
+msgid "no spaces, e.g., slashdot"
+msgstr "fără spaţii, de ex. bererece"
+
+#: r2/templates/createsubreddit.html:55
+#, fuzzy
+msgid "name"
+msgstr "utilizator"
+
+#: r2/templates/createsubreddit.html:69
+msgid "e.g., slashdot: news for nerds, stuff that matters"
+msgstr "de ex. bererece: berea bună-i berea rece"
+
+#: r2/templates/createsubreddit.html:69 r2/templates/newlink.html:59
+#, fuzzy
+msgid "title"
+msgstr "titlu"
+
+#: r2/templates/createsubreddit.html:81
+msgid "500 characters max.  Make them count."
+msgstr "maxim 500 caractere "
+
+#: r2/templates/createsubreddit.html:81
+#, fuzzy
+msgid "description"
+msgstr "descriere"
+
+#: r2/templates/createsubreddit.html:90
+#, fuzzy
+msgid "language"
+msgstr "limbă"
+
+#: r2/templates/createsubreddit.html:101
+#, fuzzy
+msgid "type"
+msgstr "stil"
+
+#: r2/templates/createsubreddit.html:104
+msgid "public"
+msgstr "public"
+
+#: r2/templates/createsubreddit.html:105
+msgid "anyone can view and submit"
+msgstr "oricine poate vizualiza şi trimite"
+
+#: r2/templates/createsubreddit.html:107
+#, fuzzy
+msgid "restricted"
+msgstr "restricţionat"
+
+#: r2/templates/createsubreddit.html:108
+msgid "anyone can view, but only some are approved to submit links"
+msgstr ""
+"oricine poate vedea, dar numai unii ai voie să posta linkuri"
+
+#: r2/templates/createsubreddit.html:110 r2/templates/subreddit.html:92
+msgid "private"
+msgstr "privat"
+
+#: r2/templates/createsubreddit.html:111
+msgid "only approved members can view and submit"
+msgstr "doar membrii aprobaţi pot vedea şi posta"
+
+#: r2/templates/createsubreddit.html:117 r2/templates/prefoptions.html:241
+msgid "content options"
+msgstr "opţiuni pentru conţinut"
+
+#: r2/templates/createsubreddit.html:120
+#, fuzzy
+msgid "any"
+msgstr "oricare"
+
+#: r2/templates/createsubreddit.html:121
+msgid "any link type is allowed"
+msgstr "orice tip de link e aprobat"
+
+#: r2/templates/createsubreddit.html:123
+#, fuzzy
+msgid "links only"
+msgstr "doar linkuri"
+
+#: r2/templates/createsubreddit.html:124
+msgid "only links to external sites are allowed"
+msgstr "doar linkuri către alte situri sunt aprobate"
+
+#: r2/templates/createsubreddit.html:126
+msgid "text posts only"
+msgstr "doar linkuri de tip text"
+
+#: r2/templates/createsubreddit.html:127
+msgid "only text/self posts are allowed"
+msgstr "doar linkuri de tip text sunt permise"
+
+#: r2/templates/createsubreddit.html:133
+#, fuzzy
+msgid "other options"
+msgstr "alte opţiuni"
+
+#: r2/templates/createsubreddit.html:140
+msgid "viewers must be over eighteen years old"
+msgstr "vizitatorii trebuie să aibă peste 18 ani"
+
+#: r2/templates/createsubreddit.html:148
+#, fuzzy
+msgid "allow this reddit to be shown in the default set"
+msgstr "permite să fie arătat pe prima pagină"
+
+#: r2/templates/createsubreddit.html:156
+#, fuzzy
+msgid "show thumbnail images of content"
+msgstr "arată imagini thumbnail"
+
+#: r2/templates/createsubreddit.html:164
+msgid "domain"
+msgstr "domeniu"
+
+#: r2/templates/createsubreddit.html:171
+msgid ""
+"make custom CSS styles apply only when accessed from the cname."
+msgstr ""
+
+#: r2/templates/createsubreddit.html:178
+msgid "show sidebar when accessed from the cname."
+msgstr ""
+
+#: r2/templates/createsubreddit.html:190 r2/templates/usertext.html:72
+msgid "hide help"
+msgstr "ascunde ajutor"
+
+#: r2/templates/createsubreddit.html:194
+msgid ""
+"Own a domain?  Enter it here and then go to your DNS provider and add a CNAME record aliasing your domain to rhs.reddit.com. You will be able to access your reddit through your domain."
+msgstr ""
+
+#: r2/templates/createsubreddit.html:202
+msgid "look and feel"
+msgstr ""
+
+#: r2/templates/createsubreddit.html:205
+#, fuzzy
+msgid "edit the stylesheet"
+msgstr "editează stylesheetul"
+
+#: r2/templates/createsubreddit.html:209
+#, fuzzy
+msgid "leaves this page"
+msgstr "editează pagina asta"
+
+#: r2/templates/createsubreddit.html:218
+msgid "upload header image"
+msgstr "încarcă imagine header"
+
+#: r2/templates/createsubreddit.html:226
+#, fuzzy
+msgid "restore default header"
+msgstr "restaurează header implicit"
+
+#: r2/templates/createsubreddit.html:244
+#, fuzzy
+msgid "sponsorship"
+msgstr "link sponsorizat "
+
+#: r2/templates/createsubreddit.html:256
+msgid "name this campaign (for traffic)"
+msgstr ""
+
+#: r2/templates/createsubreddit.html:265
+msgid "enter link url here"
+msgstr "bagă url aici"
+
+#: r2/templates/createsubreddit.html:270
+msgid "upload sponsorship image"
+msgstr ""
+
+#: r2/templates/createsubreddit.html:299 r2/templates/flairpane.html:51
+#: r2/templates/prefoptions.html:319
+msgid "save options"
+msgstr "salvează opţiuni"
+
+#: r2/templates/dart_ad.html:67 r2/templates/housead.html:32
+msgid "reddit this ad"
+msgstr "comentează acest ad "
+
+#: r2/templates/feedback.html:46 r2/templates/sharelink.html:33
+msgid "your name"
+msgstr "numele tău"
+
+#: r2/templates/feedback.html:53
+#, fuzzy
+msgid "(only used to reply)"
+msgstr "răspunde"
+
+#: r2/templates/feedback.html:53 r2/templates/login.html:80
+#: r2/templates/prefupdate.html:72 r2/templates/register.html:80
+msgid "email"
+msgstr "email"
+
+#: r2/templates/feedback.html:70 r2/templates/messagecompose.html:91
+msgid "send"
+msgstr "trimite"
+
+#: r2/templates/flairlist.html:28
+msgid "jump to user (or add):"
+msgstr "sari la user (sau adaugă)"
+
+#: r2/templates/flairlist.html:33
+#, fuzzy
+msgid "go"
+msgstr "modifică"
+
+#: r2/templates/flairlist.html:37
+msgid "back to full list"
+msgstr "înapoi la toată lista"
+
+#: r2/templates/flairlist.html:40
+msgid "back to the beginning"
+msgstr "înapo la început"
+
+#: r2/templates/flairlist.html:48
+msgid "flair text"
+msgstr "text fler"
+
+#: r2/templates/flairlist.html:49
+msgid "css class"
+msgstr "clasa css"
+
+#: r2/templates/flairnextlink.html:25 r2/templates/listing.html:40
+msgid "prev"
+msgstr "înapoi"
+
+#: r2/templates/flairnextlink.html:25 r2/templates/listing.html:46
+msgid "next"
+msgstr "înainte"
+
+#: r2/templates/flairpane.html:25
+msgid "flair settings"
+msgstr "setări fler"
+
+#: r2/templates/flairpane.html:30
+#, fuzzy
+msgid "flair options"
+msgstr "opţiuni fler"
+
+#: r2/templates/flairpane.html:38
+#, fuzzy
+msgid "enable user flair in this subreddit"
+msgstr "permite fler pe acest proddit"
+
+#: r2/templates/flairpane.html:40
+#, fuzzy
+msgid "flair position"
+msgstr "poziţia flerului"
+
+#: r2/templates/flairpane.html:42
+#, fuzzy
+msgid "left"
+msgstr "stângă"
+
+#: r2/templates/flairpane.html:43
+msgid "position flair to the left of the username"
+msgstr "poziţionează fler la stânga numelui"
+
+#: r2/templates/flairpane.html:45
+msgid "right"
+msgstr "dreapta"
+
+#: r2/templates/flairpane.html:46
+msgid "position flair to the right of the username"
+msgstr "poziţionează fler la dreapta numelui"
+
+#: r2/templates/frametoolbar.html:66
+msgid "show url"
+msgstr "arată url"
+
+#: r2/templates/frametoolbar.html:69
+msgid "hide url"
+msgstr "ascunde url"
+
+#: r2/templates/frametoolbar.html:73
+msgid "load a random link"
+msgstr "încarcă un link la întâmplare"
+
+#: r2/templates/frametoolbar.html:80
+msgid "serendipity"
+msgstr "la întâmplare"
+
+#: r2/templates/frametoolbar.html:88
+msgid "visit your userpage"
+msgstr "vizitează pagina utilizatorului"
+
+#: r2/templates/frametoolbar.html:92
+msgid "login / register"
+msgstr "login / înregistrează-te"
+
+#: r2/templates/frametoolbar.html:100
+msgid "new mail"
+msgstr "email"
+
+#: r2/templates/frametoolbar.html:113 r2/templates/frametoolbar.html:114
+msgid "visit this link without the toolbar"
+msgstr "vizitează acest link fără toolbar"
+
+#: r2/templates/frametoolbar.html:121
+msgid "click to visit the main page for this submission"
+msgstr "click pentru a vizita pagina principală a acestui link"
+
+#: r2/templates/frametoolbar.html:133
+msgid "click to submit this link to reddit"
+msgstr "click pentru a trimite acest link pe proddit"
+
+#: r2/templates/frametoolbar.html:171
+#, python-format
+msgid "vote %(direction)s"
+msgstr "votează %(direction)s"
+
+#: r2/templates/frametoolbar.html:186
+msgid "like"
+msgstr "place"
+
+#: r2/templates/frametoolbar.html:187
+msgid "dislike"
+msgstr "displace"
+
+#: r2/templates/frametoolbar.html:195 r2/templates/printablebuttons.html:160
+msgid "unsave"
+msgstr "nu salva"
+
+#: r2/templates/frametoolbar.html:196 r2/templates/printablebuttons.html:161
+msgid "unsaved"
+msgstr "nesalvat"
+
+#: r2/templates/frametoolbar.html:199 r2/templates/prefupdate.html:98
+#: r2/templates/printablebuttons.html:163
+#: r2/templates/subredditstylesheet.html:78
+msgid "save"
+msgstr "salvează"
+
+#: r2/templates/frametoolbar.html:205 r2/templates/printablebuttons.html:168
+msgid "unhide"
+msgstr "arată"
+
+#: r2/templates/frametoolbar.html:206 r2/templates/printablebuttons.html:169
+msgid "unhidden"
+msgstr "neascuns"
+
+#: r2/templates/frametoolbar.html:209 r2/templates/frametoolbar.html:210
+#: r2/templates/printablebuttons.html:171
+msgid "hide"
+msgstr "ascunde"
+
+#: r2/templates/frametoolbar.html:217
+msgid "toggle the comments panel"
+msgstr "comută panoul de comentarii"
+
+#: r2/templates/gold.html:88
+msgid "Buy for yourself, as an ongoing subscription"
+msgstr ""
+
+#: r2/templates/gold.html:90
+msgid "Buy for yourself, as a one-time purchase"
+msgstr ""
+
+#: r2/templates/gold.html:92
+msgid "Give reddit gold to someone else"
+msgstr ""
+
+#: r2/templates/gold.html:94
+msgid "Buy reddit gold \"creddits\""
+msgstr ""
+
+#: r2/templates/gold.html:102
+msgid "$3.99 / month"
+msgstr ""
+
+#: r2/templates/gold.html:103
+msgid "$29.99 / year (which works out to just $2.50 / month!)"
+msgstr ""
+
+#: r2/templates/gold.html:105
+#, fuzzy
+msgid "subscribe"
+msgstr "abonat"
+
+#: r2/templates/gold.html:111
+msgid "How many months?"
+msgstr ""
+
+#: r2/templates/gold.html:113 r2/templates/gold.html:174
+msgid "buy"
+msgstr ""
+
+#: r2/templates/gold.html:119
+msgid "How much gold do you wish to bestow?"
+msgstr ""
+
+#: r2/templates/gold.html:130
+#, python-format
+msgid ""
+"Note: If you want to give more than %(number)d, you'll need to buy more creddits."
+msgstr ""
+
+#: r2/templates/gold.html:137
+msgid "To whom are you giving said gold?"
+msgstr ""
+
+#: r2/templates/gold.html:148
+msgid "Do you want them to know it came from you?"
+msgstr ""
+
+#: r2/templates/gold.html:150
+#, fuzzy
+msgid "yes, include my username"
+msgstr "nume utilizator necorespunzător"
+
+#: r2/templates/gold.html:154
+msgid "no, make it anonymous"
+msgstr ""
+
+#: r2/templates/gold.html:160
+#, fuzzy
+msgid "Gift message (optional):"
+msgstr "opţiuni de sortare"
+
+#: r2/templates/gold.html:165 r2/templates/goldpayment.html:50
+#, fuzzy
+msgid "give"
+msgstr "în direct"
+
+#: r2/templates/gold.html:172
+msgid ""
+"How many creddits would you like to buy? (each will allow you to give one month of reddit gold)"
+msgstr ""
+
+#: r2/templates/goldpayment.html:37
+msgid "The following gift note will be attached:"
+msgstr ""
+
+#: r2/templates/goldpayment.html:54
+#, fuzzy
+msgid "Please select a payment method."
+msgstr "te rugăm selectează o imaginre"
+
+#: r2/templates/goldpayment.html:77
+msgid "Google Checkout"
+msgstr ""
+
+#: r2/templates/goldpayment.html:89
+msgid "PayPal"
+msgstr ""
+
+#: r2/templates/goldpayment.html:93
+msgid ""
+"Note: Google Checkout does not support ongoing subscriptions at this time."
+msgstr ""
+
+#: r2/templates/link.html:70
+msgid "Adult content: Not Safe For Work"
+msgstr "Conţinut pentru adulţi: Not Safe For Work"
+
+#: r2/templates/link.html:71
+msgid "NSFW"
+msgstr "NSFW"
+
+#: r2/templates/link.html:89
+msgid ""
+"(no need to click for this info; just hover over the checkmark next time)"
+msgstr ""
+"(nu e nevoie să dai click pentru informaţia asta; doar mişcă mouse-ul peste semn data viitoare)"
+
+#: r2/templates/link.html:204
+#, fuzzy, python-format
+msgid "%(score)s submitted %(when)s ago"
+msgstr "%(score)s trimis acum %(when)s"
+
+#: r2/templates/link.html:206
+#, fuzzy, python-format
+msgid "by %(author)s to %(reddit)s"
+msgstr "de %(author)s la %(reddit)s"
+
+#: r2/templates/link.html:208
+#, fuzzy, python-format
+msgid "by %(author)s"
+msgstr "de %(author)s"
+
+#: r2/templates/link.html:210
+#, python-format
+msgid "submitted %(when)s ago by %(author)s to %(reddit)s"
+msgstr "trimis acum %(when)s de %(author)s la %(reddit)s"
+
+#: r2/templates/link.html:212
+#, python-format
+msgid "submitted %(when)s ago by %(author)s"
+msgstr "trimis acum %(when)s de %(author)s"
+
+#: r2/templates/linkinfobar.html:34
+msgid "this post was submitted on"
+msgstr "acest link a fost trimis pe "
+
+#: r2/templates/linkinfobar.html:43
+msgid "like it"
+msgstr "plăcut"
+
+#: r2/templates/linkinfobar.html:48
+msgid "up vote"
+msgid_plural "up votes"
+msgstr[0] "vot în sus"
+msgstr[1] "voturi în sus"
+
+#: r2/templates/linkinfobar.html:54
+msgid "down vote"
+msgid_plural "down votes"
+msgstr[0] "vot în jos"
+msgstr[1] "voturi în jos"
+
+#: r2/templates/linkinfopage.htmllite:28
+#, fuzzy, python-format
+msgid "comments from %(site)s"
+msgstr "linkuri de la %(site)s"
+
+#: r2/templates/linkontrial.html:44
+msgid "reddit's spam filter needs your help!"
+msgstr "filtrul de spam are nevoie de ajutorul tău!"
+
+#: r2/templates/linkontrial.html:51
+msgid "how would you classify this link?"
+msgstr "cum ai clasifica acest link?"
+
+#: r2/templates/linkontrial.html:66
+msgid "off-topic / spam"
+msgstr "off-topic/spam"
+
+#: r2/templates/linkontrial.html:67
+#, fuzzy
+msgid "kosher"
+msgstr "e bun"
+
+#: r2/templates/linkontrial.html:70
+msgid "thanks for voting!"
+msgstr "mersi de vot"
+
+#: r2/templates/linkontrial.html:73 r2/templates/spotlightlisting.html:73
+msgid "Click here for more info."
+msgstr "Click aici pentru mai multe informaţii."
+
+#: r2/templates/linkontrial.html:77
+msgid ""
+"those arrows are only for show; they don't actually do anything."
+msgstr "săgeţile astea sunt doar de formă; nu fac nimic de fapt"
+
+#: r2/templates/listing.html:38
+msgid "view more:"
+msgstr "vezi mai multe:"
+
+#: r2/templates/listing.html:51
+msgid "there doesn't seem to be anything here"
+msgstr "se pare că nu e nimic aici"
+
+#: r2/templates/login.html:34 r2/templates/register.html:34
+msgid "you are logged in. go use the site!"
+msgstr "eşti logat!"
+
+#: r2/templates/login.html:68 r2/templates/password.html:38
+#: r2/templates/register.html:68
+msgid "username"
+msgstr "utilizator"
+
+#: r2/templates/login.html:80 r2/templates/register.html:80
+msgid "optional"
+msgstr "opţional"
+
+#: r2/templates/login.html:101 r2/templates/prefupdate.html:87
+#: r2/templates/register.html:101 r2/templates/resetpassword.html:45
+msgid "verify password"
+msgstr "verifică parola"
+
+#: r2/templates/login.html:118 r2/templates/loginformwide.html:55
+#: r2/templates/register.html:118
+msgid "remember me"
+msgstr "ţine-mă minte"
+
+#: r2/templates/login.html:124 r2/templates/loginformwide.html:56
+#: r2/templates/register.html:124
+msgid "recover password"
+msgstr "recuperează parola"
+
+#: r2/templates/login.html:131 r2/templates/register.html:131
+msgid "create account"
+msgstr "creează cont"
+
+#: r2/templates/login.html:131 r2/templates/login.html:154
+#: r2/templates/loginformwide.html:53 r2/templates/register.html:131
+#: r2/templates/register.html:154
+msgid "login"
+msgstr "login"
+
+#: r2/templates/login.html:142 r2/templates/register.html:142
+msgid "create a new account"
+msgstr "creează un nou cont"
+
+#: r2/templates/login.html:144 r2/templates/register.html:144
+msgid "all it takes is a username and password"
+msgstr "tot ce trebuie e un nume şi o parolă"
+
+#: r2/templates/login.html:149 r2/templates/register.html:149
+msgid "is it really that easy? only one way to find out..."
+msgstr "e aşa simplu? e un singur mod de a afla..."
+
+#: r2/templates/login.html:156 r2/templates/register.html:156
+msgid "already have an account and just want to login?"
+msgstr "ai deja un cont şi vrei să te loghezi?"
+
+#: r2/templates/message.html:50
+msgid "-"
+msgstr ""
+
+#: r2/templates/message.html:56 r2/templates/message.xml:38
+#, python-format
+msgid "from %(author)s sent %(when)s ago"
+msgstr "de %(author)s trimis acum %(when)s"
+
+#: r2/templates/message.html:58 r2/templates/message.xml:40
+#, python-format
+msgid "to %(dest)s sent %(when)s ago"
+msgstr "la %(dest)s trimis acum %(when)s"
+
+#: r2/templates/message.html:60 r2/templates/message.xml:42
+#, python-format
+msgid "to %(dest)s from %(author)s sent %(when)s ago"
+msgstr "la %(dest)s de la %(author)s trimis acum %(when)s"
+
+#: r2/templates/message.html:65 r2/templates/message.xml:47
+#, fuzzy, python-format
+msgid "%(author)s via %(subreddit)s"
+msgstr "%(author)s via %(subreddit)s"
+
+#: r2/templates/message.html:103
+msgid "expand all"
+msgstr "deschide toate"
+
+#: r2/templates/message.html:106
+msgid "collapse all"
+msgstr "închide toate"
+
+#: r2/templates/message.html:121
+msgid "show parent"
+msgstr "afişează părinte"
+
+#: r2/templates/messagecompose.html:31
+msgid "send a message"
+msgstr "trimite un mesaj"
+
+#: r2/templates/messagecompose.html:51
+#, fuzzy
+msgid "to"
+msgstr "la"
+
+#: r2/templates/messagecompose.html:63
+#, fuzzy
+msgid "subject"
+msgstr "subiect"
+
+#: r2/templates/messagecompose.html:70
+#, fuzzy
+msgid "mesaj"
+msgstr "mesaj"
+
+#: r2/templates/morechildren.html:38
+msgid "load more comments"
+msgstr "încarcă mai multe comentarii"
+
+#: r2/templates/morechildren.html:39
+msgid "reply"
+msgid_plural "replies"
+msgstr[0] "raspuns"
+msgstr[1] "răspunsuri"
+
+#: r2/templates/moremessages.html:38
+msgid "[+] load the full conversation."
+msgstr "[+] încarcă toată conversaţia"
+
+#: r2/templates/morerecursion.html:29
+msgid "continue this thread"
+msgstr "continuă acest thread"
+
+#: r2/templates/newlink.html:33
+msgid "submit to reddit"
+msgstr "trimite pe proddit"
+
+#: r2/templates/newlink.html:35
+#, fuzzy, python-format
+msgid "submit to %(sr)s"
+msgstr "trimite la %(sr)s"
+
+#: r2/templates/newlink.html:68
+msgid "url"
+msgstr "url"
+
+#: r2/templates/newlink.html:78
+msgid "suggest title"
+msgstr "sugerează titlu"
+
+#: r2/templates/newlink.html:87 r2/templates/paymentform.html:115
+#: r2/templates/paymentform.html:121 r2/templates/sharelink.html:36
+#: r2/templates/sharelink.html:54 r2/templates/sharelink.html:73
+msgid "(optional)"
+msgstr "opţional"
+
+#: r2/templates/newlink.html:87
+#, fuzzy
+msgid "text"
+msgstr "text"
+
+#: r2/templates/newlink.html:98
+#, fuzzy
+msgid "reddit"
+msgstr "proddit      "
+
+#: r2/templates/optout.html:26
+#, python-format
+msgid ""
+"The address '%(email)s' will no longer receive email from us."
+msgstr "Această adresă %(email)s nu va mai primi email de la noi."
+
+#: r2/templates/optout.html:29
+msgid ""
+"A confirmation email has been queued up and should be reaching you shortly.  It will be the last you hear of us."
+msgstr ""
+"Un email de confirmare va ajunge la tine în scurt timp. Va fi ultimul lucru ce-l auzi de la noi."
+
+#: r2/templates/optout.html:33
+#, python-format
+msgid ""
+"Would you like the address %(email)s to no longer receive email from us?"
+msgstr ""
+"Doreşti ca adresa %(email)s să nu mai primească email-uri de la noi?"
+
+#: r2/templates/optout.html:36 r2/templates/optout.html:52
+#: r2/templates/printablebuttons.html:384
+msgid "yes"
+msgstr "da"
+
+#: r2/templates/optout.html:39 r2/templates/optout.html:55
+#: r2/templates/printablebuttons.html:387
+msgid "no"
+msgstr "nu"
+
+#: r2/templates/optout.html:45
+#, python-format
+msgid "'%(email)s' has been removed from our block list."
+msgstr "Adresa %(email)s a fost reactivată pe lista noastră."
+
+#: r2/templates/optout.html:49
+#, python-format
+msgid "Allow '%(email)s' to receive email from us?"
+msgstr "Acceptă ca %(email)s să primească email de la noi?"
+
+#: r2/templates/over18.html:25
+msgid "you must be at least eighteen to view this reddit"
+msgstr "trebuie să ai cel puţin optsprezece ani ca să intri aici."
+
+#: r2/templates/over18.html:33
+msgid "are you over eighteen and willing to see adult content?"
+msgstr ""
+"ai peste optsprezece ani şi eşti dispus să vizualizezi conţinut pentru adulţi?"
+
+#: r2/templates/password.html:29
+msgid "what's my password?"
+msgstr "care mi-e parola?"
+
+#: r2/templates/password.html:30
+msgid "enter your user name below to receive your login information"
+msgstr ""
+"introdu numele de utilizator pentru a primi informaţiile de login"
+
+#: r2/templates/password.html:33
+msgid "password reset link expired. please try again"
+msgstr "linkul de resetare a expirat. încearcă te rog din nou"
+
+#: r2/templates/password.html:45
+msgid "email me"
+msgstr "trimite-mi email"
+
+#: r2/templates/paymentform.html:34
+msgid "set up payment for this link"
+msgstr ""
+
+#: r2/templates/paymentform.html:45
+#, python-format
+msgid "Your current bid is $%(bid)s"
+msgstr ""
+
+#: r2/templates/paymentform.html:48
+msgid "(total for the duration provided)"
+msgstr ""
+
+#: r2/templates/paymentform.html:53
+msgid "Please pick your credit card:"
+msgstr ""
+
+#: r2/templates/paymentform.html:55
+msgid "select..."
+msgstr ""
+
+#: r2/templates/paymentform.html:61
+msgid "create a new one..."
+msgstr ""
+
+#: r2/templates/paymentform.html:66
+msgid "please create a new payment profile"
+msgstr ""
+
+#: r2/templates/paymentform.html:70
+msgid ""
+"NOTE: your card will not be charged until the link has been queued for promotion."
+msgstr ""
+
+#: r2/templates/paymentform.html:113
+msgid "first name"
+msgstr ""
+
+#: r2/templates/paymentform.html:114
+msgid "last name"
+msgstr ""
+
+#: r2/templates/paymentform.html:115
+msgid "company"
+msgstr ""
+
+#: r2/templates/paymentform.html:116
+msgid "address"
+msgstr ""
+
+#: r2/templates/paymentform.html:117
+msgid "city"
+msgstr ""
+
+#: r2/templates/paymentform.html:118
+msgid "state"
+msgstr ""
+
+#: r2/templates/paymentform.html:119
+msgid "zip"
+msgstr ""
+
+#: r2/templates/paymentform.html:120
+#, fuzzy
+msgid "country"
+msgstr ""
+
+#: r2/templates/paymentform.html:121
+msgid "phone"
+msgstr ""
+
+#: r2/templates/paymentform.html:122
+msgid "card number"
+msgstr ""
+
+#: r2/templates/paymentform.html:122
+msgid "(14-17 digits)"
+msgstr ""
+
+#: r2/templates/paymentform.html:123
+msgid "expiration date"
+msgstr ""
+
+#: r2/templates/paymentform.html:124
+msgid "CCV"
+msgstr ""
+
+#: r2/templates/paymentform.html:124
+msgid "(3 or 4 digits)"
+msgstr ""
+
+#: r2/templates/paymentform.html:181
+msgid "authorize payment"
+msgstr ""
+
+#: r2/templates/paymentform.html:184 r2/templates/printablebuttons.html:148
+#: r2/templates/printablebuttons.html:182
+#: r2/templates/printablebuttons.html:271
+msgid "edit"
+msgstr "editează"
+
+#: r2/templates/permalinkmessage.html:24
+msgid "you are viewing a single comment's thread."
+msgstr "vizualizezi firul unui singur comentariu"
+
+#: r2/templates/permalinkmessage.html:26
+msgid "view the rest of the comments"
+msgstr "vizualizează restul comentariilor"
+
+#: r2/templates/prefdelete.html:34 r2/templates/printablebuttons.html:366
+msgid "are you sure?"
+msgstr "eşti sigur?"
+
+#: r2/templates/prefdelete.html:48
+msgid "delete your reddit account? hope you have a good reason."
+msgstr "ştergi contul tău de proddit? sper că ai un motiv bun."
+
+#: r2/templates/prefdelete.html:51
+msgid "deleting..."
+msgstr "ştergere..."
+
+#: r2/templates/preffeeds.html:29
+msgid "Private RSS feeds"
+msgstr "feed RSS privat"
+
+#: r2/templates/preffeeds.html:31
+msgid ""
+"On this page are links to private RSS feeds so that you can get listings of your content (personalized front page, message panel, saved listing, etc.) without having to deal with cookies or other auth."
+msgstr ""
+"Pe pagina aceasta sunt link-uri către feed-uri RSS private, (ce îţi permit accesarea paginii principale personalizate, panoul de mesaje, linkurile salvate, etc.) fără să mai trebuiască să-ţi baţi capul cu cookies sau alt fel autentificare"
+
+#: r2/templates/preffeeds.html:32
+msgid ""
+"Keep in mind that these urls are intended to be private, so **share at your own risk.**"
+msgstr ""
+"Ţine minte că aceste url-uri sunt private, deci *împărtăşeşte-le pe risc propriu*"
+
+#: r2/templates/preffeeds.html:33
+msgid ""
+"All feeds are invalidated if you change your password, however."
+msgstr "Toate feed-urile sunt invalidate la schimbarea parolei."
+
+#: r2/templates/preffeeds.html:54
+msgid "your front page"
+msgstr "prima pagină a ta"
+
+#: r2/templates/preffeeds.html:57
+msgid "your saved links"
+msgstr "linkurile tale salvate"
+
+#: r2/templates/preffeeds.html:64
+msgid "links you've liked"
+msgstr "link-uri plăcute"
+
+#: r2/templates/preffeeds.html:67
+msgid "links you've disliked"
+msgstr "link-uri displăcute"
+
+#: r2/templates/preffeeds.html:70
+msgid "links you've hidden"
+msgstr "link-uri ascunse"
+
+#: r2/templates/preffeeds.html:77 r2/templates/preffeeds.html:97
+msgid "everything"
+msgstr "tot"
+
+#: r2/templates/preffeeds.html:80 r2/templates/preffeeds.html:100
+msgid "unread messages"
+msgstr "mesaje necitite"
+
+#: r2/templates/preffeeds.html:83
+msgid "messages only"
+msgstr "doar mesaje"
+
+#: r2/templates/preffeeds.html:86
+msgid "comment replies only"
+msgstr "răspunsuri la comentarii"
+
+#: r2/templates/preffeeds.html:89
+msgid "self-post replies only"
+msgstr "doar răspunsuri din postări *self*"
+
+#: r2/templates/prefoptions.html:71
+msgid "your preferences have been updated"
+msgstr "preferinţele tale au fost actualizate"
+
+#: r2/templates/prefoptions.html:89
+msgid "interface language"
+msgstr "limba interfeţei"
+
+#: r2/templates/prefoptions.html:93
+msgid "incomplete"
+msgstr "incomplet"
+
+#: r2/templates/prefoptions.html:94
+msgid "volunteer to translate"
+msgstr "ajută la traducere"
+
+#: r2/templates/prefoptions.html:98
+msgid "content language"
+msgstr "limba conţinutului"
+
+#: r2/templates/prefoptions.html:105
+msgid "clicking options"
+msgstr "opţiuni"
+
+#: r2/templates/prefoptions.html:107
+msgid "display links with a reddit toolbar"
+msgstr "afişează linkurile cu un toolbar"
+
+#: r2/templates/prefoptions.html:113
+msgid "media"
+msgstr "media"
+
+#: r2/templates/prefoptions.html:116
+msgid "show thumbnails next to links"
+msgstr "arată imagini thumbnail"
+
+#: r2/templates/prefoptions.html:117
+msgid "don't show thumbnails next to links"
+msgstr "nu arata imagini thumbnail"
+
+#: r2/templates/prefoptions.html:118
+msgid "show thumbnails based on that reddit's media preferences"
+msgstr ""
+"arată imagini thumbnail în funcţie de setările acelui proddit"
+
+#: r2/templates/prefoptions.html:119
+#, fuzzy
+msgid "make safe(r) for work "
+msgstr "fă mai *sigur* pentru lucru"
+
+#: r2/templates/prefoptions.html:122
+#, fuzzy
+msgid "(Don't show thumbnails next to anything labeled NSFW)"
+msgstr "nu arata imagini thumbnail"
+
+#: r2/templates/prefoptions.html:125
+msgid "to enable thumbnails, disable compressed link display"
+msgstr ""
+"pentru a activa imaginile thumbnail, dezactiveaza linkurile comprimate"
+
+#: r2/templates/prefoptions.html:132
+msgid "link options"
+msgstr "opţiuni pentru linkuri"
+
+#: r2/templates/prefoptions.html:136
+#, fuzzy
+msgid "show the spotlight box on the front page"
+msgstr "arată linkuri noi pe prima pagină"
+
+#: r2/templates/prefoptions.html:139
+msgid ""
+"(it shows new and promoted links, and gives you a say in what's spam and what isn't.)"
+msgstr "(te putem întreba şi dacă vreun link e spam sau nu)"
+
+#: r2/templates/prefoptions.html:143
+msgid "show me new links on the front page"
+msgstr "arată linkuri noi pe prima pagină"
+
+#: r2/templates/prefoptions.html:146
+msgid "show me links I've recently viewed"
+msgstr "arată-mi linkuri ce le-am văzut de curând"
+
+#: r2/templates/prefoptions.html:147
+msgid "compress the link display"
+msgstr "comprima afisarea linkurilor"
+
+#: r2/templates/prefoptions.html:148
+msgid "don't show links after i've liked them"
+msgstr "ascunde linkurile dupa ce le-am plăcut"
+
+#: r2/templates/prefoptions.html:150 r2/templates/prefoptions.html:154
+msgid "(except my own)"
+msgstr "(în afară de al meu)"
+
+#: r2/templates/prefoptions.html:152
+msgid "don't show links after i've disliked them"
+msgstr "ascunde linkurile după ce mi-au displăcut"
+
+#: r2/templates/prefoptions.html:158
+msgid "display"
+msgstr "afisează"
+
+#: r2/templates/prefoptions.html:159
+msgid "links at once"
+msgstr "linkuri deodată"
+
+#: r2/templates/prefoptions.html:160
+msgid "don't show me sites with a score less than"
+msgstr "nu-mi arata linkuri cu un scor mai mic decât"
+
+#: r2/templates/prefoptions.html:161
+msgid "don't show me comments with a score less than"
+msgstr "nu-mi arata comentarii cu un scor mai mic decât"
+
+#: r2/templates/prefoptions.html:162
+msgid "comments by default"
+msgstr "comentarii "
+
+#: r2/templates/prefoptions.html:165
+#, python-format
+msgid "display %(num)s links at once"
+msgstr "arată %(num)s linkuri deodată"
+
+#: r2/templates/prefoptions.html:173
+#, python-format
+msgid "don't show me sites with a score less than %(num)s"
+msgstr "nu-mi arata linkuri cu un scor mai mic decât %(num)s"
+
+#: r2/templates/prefoptions.html:174 r2/templates/prefoptions.html:187
+msgid "(blank for none)"
+msgstr "(lasă gol pentru niciunul)"
+
+#: r2/templates/prefoptions.html:179
+msgid "comment options"
+msgstr "opţiuni pentru comentarii"
+
+#: r2/templates/prefoptions.html:186
+#, python-format
+msgid "don't show me comments with a score less than %(num)s"
+msgstr "nu-mi arata comentarii cu un scor mai mic decât %(num)s"
+
+#: r2/templates/prefoptions.html:195
+#, python-format
+msgid "display %(num)s comments by default"
+msgstr "arată %(num)s comentarii implicit"
+
+#: r2/templates/prefoptions.html:201
+msgid ""
+"the smaller the number, the faster your comments pages will load"
+msgstr ""
+"cu cât mai mic numărul, cu atât mai rapid se încarcă pagina"
+
+#: r2/templates/prefoptions.html:206
+msgid "messaging options"
+msgstr "opţiuni de mesaje"
+
+#: r2/templates/prefoptions.html:208
+msgid "show message conversations in the inbox"
+msgstr "arată conversaţiile în inbox"
+
+#: r2/templates/prefoptions.html:211
+msgid "(only applies when you go to the 'messages' panel)"
+msgstr "(se aplică doar când te duci în panoul de mesaje)"
+
+#: r2/templates/prefoptions.html:215
+msgid "collapse messages after I've read them"
+msgstr "ascunde linkurile dupa ce le-am citit"
+
+#: r2/templates/prefoptions.html:218
+msgid "(otherwise, you'll have to collapse them yourself)"
+msgstr "(altfel va trebui să le ascunzi singur)"
+
+#: r2/templates/prefoptions.html:222
+msgid "mark messages as read when I open my inbox"
+msgstr "marchează mesajele ca şi citite când deschid inbox-ul"
+
+#: r2/templates/prefoptions.html:225
+msgid "(otherwise, they will be marked as read when you click them)"
+msgstr "(altfel vor fi marcate când dai click pe ele)"
+
+#: r2/templates/prefoptions.html:230 r2/templates/widgetdemopanel.html:193
+msgid "display options"
+msgstr "optiuni de afişare"
+
+#: r2/templates/prefoptions.html:232
+msgid "allow reddits to show me custom styles"
+msgstr "permite prodditurilor să-mi arate stiluri personalizate"
+
+#: r2/templates/prefoptions.html:235
+msgid "show promote tab on front page"
+msgstr "arată tabul de promoţii pe prima pagină"
+
+#: r2/templates/prefoptions.html:243
+msgid ""
+"i am over eighteen years old and willing to view adult content"
+msgstr ""
+"am peste optsprezece ani şi sunt de acord să vizualizez conţinut pentru adulţi"
+
+#: r2/templates/prefoptions.html:244
+msgid "required to view some reddits"
+msgstr "necesar pentru unele proddituri"
+
+#: r2/templates/prefoptions.html:246
+msgid "label posts that are not safe for work (NSFW)"
+msgstr "marchează linkurile care nu sunt sigure pentru lucru (nsfw)"
+
+#: r2/templates/prefoptions.html:248
+msgid "enable private RSS feeds"
+msgstr "activează feed-urile RSS private"
+
+#: r2/templates/prefoptions.html:250
+msgid "(available from the 'RSS feed' tab in prefs)"
+msgstr "(disponibile din tabul 'feed RSS' din preferinţe)"
+
+#: r2/templates/prefoptions.html:253
+msgid "privacy options"
+msgstr "opţiuni de intimitate"
+
+#: r2/templates/prefoptions.html:255
+msgid "make my votes public"
+msgstr "fă-mi voturile publice"
+
+#: r2/templates/prefoptions.html:262
+#, python-format
+msgid "let everyone see %(link1)s and %(link2)s"
+msgstr "permite tuturor să vadă %(link1)s şi %(link2)s 		 "
+
+#: r2/templates/prefoptions.html:265
+msgid "allow my data to be used for research purposes"
+msgstr "permite ca datele să fie folosite în statistici"
+
+#: r2/templates/prefoptions.html:275
+msgid "don't allow search engines to index my user profile"
+msgstr "nu permite motoarelor de căutare să-mi indexe profilul"
+
+#: r2/templates/prefoptions.html:283
+msgid "load core JS libraries from reddit servers"
+msgstr "încarcă librăriile JS de pe serverul proddit"
+
+#: r2/templates/prefoptions.html:297
+#, fuzzy
+msgid "gold options"
+msgstr "opţiuni pentru cont premium"
+
+#: r2/templates/prefoptions.html:299
+msgid "show the right sidebar ad box"
+msgstr ""
+
+#: r2/templates/prefoptions.html:300
+msgid ""
+"the attractive 300x250 one that usually only has reddit t-shirts in it"
+msgstr ""
+
+#: r2/templates/prefoptions.html:302
+#, fuzzy
+msgid "show sponsored links"
+msgstr "arată linkuri sponsorizate"
+
+#: r2/templates/prefoptions.html:303
+msgid ""
+"the blue advertisements that sometimes appear on the top of the page"
+msgstr ""
+
+#: r2/templates/prefoptions.html:305
+msgid "show sponsorships"
+msgstr ""
+
+#: r2/templates/prefoptions.html:306
+msgid ""
+"the 300x100 'sponsored by...' images that sometimes appear in sidebars"
+msgstr ""
+
+#: r2/templates/prefoptions.html:309
+#, fuzzy
+msgid "highlight new comments"
+msgstr "încarcă mai multe comentarii"
+
+#: r2/templates/prefoptions.html:311
+msgid ""
+"we'll remember your visits for 48 hours and show you which comments you haven't seen yet"
+msgstr ""
+
+#: r2/templates/prefupdate.html:28
+msgid "update your email or password"
+msgstr "actualizează-ţi adresa de email sau parola"
+
+#: r2/templates/prefupdate.html:31
+msgid "verify your email"
+msgstr "verifică-ţi adresa de email"
+
+#: r2/templates/prefupdate.html:33
+msgid "update your email"
+msgstr "actualizează-ţi adresa de email"
+
+#: r2/templates/prefupdate.html:36
+msgid "update your password"
+msgstr "actualizează-ţi parola"
+
+#: r2/templates/prefupdate.html:45
+msgid "not set"
+msgstr "nesetată"
+
+#: r2/templates/prefupdate.html:48
+msgid "verified"
+msgstr "verificată"
+
+#: r2/templates/prefupdate.html:51
+msgid "verification pending"
+msgstr "verificare în curs de procesare"
+
+#: r2/templates/prefupdate.html:52
+msgid "click to resend"
+msgstr "click pentru a retrimite"
+
+#: r2/templates/prefupdate.html:54
+msgid "unverified"
+msgstr "neverificată"
+
+#: r2/templates/prefupdate.html:55
+msgid "click to verify"
+msgstr "click pentru a verifica"
+
+#: r2/templates/prefupdate.html:65
+msgid "(required)"
+msgstr "(necesar)"
+
+#: r2/templates/prefupdate.html:65
+#, fuzzy
+msgid "current password"
+msgstr "parola curentă"
+
+#: r2/templates/prefupdate.html:80 r2/templates/resetpassword.html:38
+#, fuzzy
+msgid "new password"
+msgstr "parola nouă"
+
+#: r2/templates/prefupdate.html:96
+msgid "send verification email"
+msgstr "trimite email de verificare"
+
+#: r2/templates/printablebuttons.html:38
+#, fuzzy
+msgid "indict"
+msgstr "acuză"
+
+#: r2/templates/printablebuttons.html:38
+msgid "indicted"
+msgstr "acuzat"
+
+#: r2/templates/printablebuttons.html:45 r2/templates/trophycase.html:47
+#: r2/templates/trophycase.html:67 r2/templates/usertableitem.html:55
+msgid "remove"
+msgstr "şterge [M]"
+
+#: r2/templates/printablebuttons.html:45 r2/templates/printablebuttons.html:129
+#: r2/templates/trophycase.html:47 r2/templates/trophycase.html:67
+msgid "removed"
+msgstr "şters"
+
+#: r2/templates/printablebuttons.html:51
+#, fuzzy
+msgid "approve"
+msgstr "aprobă"
+
+#: r2/templates/printablebuttons.html:52 r2/templates/printablebuttons.html:132
+#: r2/templates/subredditinfobar.html:97
+#, fuzzy
+msgid "approved"
+msgstr "aprobat"
+
+#: r2/templates/printablebuttons.html:58
+msgid "report"
+msgstr "raportează"
+
+#: r2/templates/printablebuttons.html:62
+msgid "nsfw"
+msgstr "nsfw"
+
+#: r2/templates/printablebuttons.html:62
+#, fuzzy
+msgid "marked"
+msgstr "marcat"
+
+#: r2/templates/printablebuttons.html:65
+msgid "un-nsfw"
+msgstr "un-nsfw"
+
+#: r2/templates/printablebuttons.html:65
+#, fuzzy
+msgid "unmarked"
+msgstr "nemarcat"
+
+#: r2/templates/printablebuttons.html:78
+msgid "distinguishing..."
+msgstr "marcare..."
+
+#: r2/templates/printablebuttons.html:80
+msgid "distinguish"
+msgstr "marchează"
+
+#: r2/templates/printablebuttons.html:82
+msgid "distinguish this?"
+msgstr "marchează asta?"
+
+#: r2/templates/printablebuttons.html:112
+#, python-format
+msgid "confirm %(obj)s removal"
+msgstr "confirmă ştergerea %(obj)s"
+
+#: r2/templates/printablebuttons.html:115
+#, fuzzy, python-format
+msgid "remove %(obj)s"
+msgstr "şterge %(obj)s"
+
+#: r2/templates/printablebuttons.html:120
+#, python-format
+msgid "reapprove %(obj)s"
+msgstr "reaprobă %(obj)s"
+
+#: r2/templates/printablebuttons.html:123
+#, python-format
+msgid "approve %(obj)s"
+msgstr "aprobă %(obj)s"
+
+#: r2/templates/printablebuttons.html:153
+#: r2/templates/printablebuttons.html:201 r2/templates/sharelink.html:98
+msgid "cancel"
+msgstr "anulează"
+
+#: r2/templates/printablebuttons.html:172
+msgid "hidden"
+msgstr "ascunse"
+
+#: r2/templates/printablebuttons.html:201
+msgid "reject"
+msgstr "respinge"
+
+#: r2/templates/printablebuttons.html:206
+msgid "accept"
+msgstr "acceptă"
+
+#: r2/templates/printablebuttons.html:206
+msgid "accepted"
+msgstr "acceptat"
+
+#: r2/templates/printablebuttons.html:212
+msgid "traffic"
+msgstr "trafic"
+
+#: r2/templates/printablebuttons.html:219
+msgid "questionable submission; you should remove it or approve it"
+msgstr "link dubios; fie îl ştergi, fie îl aprobi"
+
+#: r2/templates/printablebuttons.html:221
+#, fuzzy
+msgid "deputy opinion:"
+msgstr "opiniile ajutoarelor"
+
+#: r2/templates/printablebuttons.html:224
+#, fuzzy, python-format
+msgid "%d spam"
+msgstr "%d spam"
+
+#: r2/templates/printablebuttons.html:230
+#, fuzzy, python-format
+msgid "%d kosher"
+msgstr "%d ok"
+
+#: r2/templates/printablebuttons.html:249
+#: r2/templates/printablebuttons.html:301
+msgid "permalink"
+msgstr "permalink"
+
+#: r2/templates/printablebuttons.html:253
+#: r2/templates/printablebuttons.html:297 r2/templates/starkcomment.html:33
+msgid "context"
+msgstr "context"
+
+#: r2/templates/printablebuttons.html:259
+#: r2/templates/printablebuttons.html:266
+msgid "parent"
+msgstr "părinte"
+
+#: r2/templates/printablebuttons.html:279
+#: r2/templates/printablebuttons.html:318
+msgid "reply {verb}"
+msgstr "răspunde"
+
+#: r2/templates/printablebuttons.html:308
+#, fuzzy
+msgid "block user"
+msgstr "ban utilizator      "
+
+#: r2/templates/printablebuttons.html:308
+#, fuzzy
+msgid "blocked"
+msgstr "blocat"
+
+#: r2/templates/printablebuttons.html:312
+msgid "mark unread"
+msgstr "marchează ca necitit"
+
+#: r2/templates/printablebuttons.html:463
+msgid "toggle"
+msgstr "comută"
+
+#: r2/templates/profilebar.html:44
+msgid "unban"
+msgstr "debanează"
+
+#: r2/templates/profilebar.html:45
+msgid "unbanned"
+msgstr "debanat"
+
+#: r2/templates/profilebar.html:49
+msgid "ban"
+msgstr "ban"
+
+#: r2/templates/profilebar.html:50 r2/templates/subredditinfobar.html:105
+#: r2/templates/subscriptionbox.html:57
+msgid "banned"
+msgstr "banat"
+
+#: r2/templates/profilebar.html:60
+msgid "+ friends"
+msgstr "+prieteni"
+
+#: r2/templates/profilebar.html:60
+msgid "- friends"
+msgstr "-prieteni"
+
+#: r2/templates/profilebar.html:98
+msgid "link karma"
+msgstr "karma linkuri"
+
+#: r2/templates/profilebar.html:103
+msgid "comment karma"
+msgstr "karma comentarii"
+
+#: r2/templates/profilebar.html:117
+msgid "of reddit gold remaining"
+msgstr ""
+
+#: r2/templates/profilebar.html:127 r2/templates/usertableitem.html:50
+msgid "send message"
+msgstr "trimite mesaj"
+
+#: r2/templates/profilebar.html:131
+#, fuzzy, python-format
+msgid "redditor for"
+msgstr "      prodditor de      "
+
+#: r2/templates/promote_graph.html:171
+msgid "total promotion traffic"
+msgstr "trafic total promoţie"
+
+#: r2/templates/promote_graph.html:185
+msgid "historical site performance"
+msgstr "istoric performanţă site"
+
+#: r2/templates/promote_graph.html:201
+msgid "top promoters this month"
+msgstr "top promoteri luna aceasta"
+
+#: r2/templates/promote_graph.html:242
+msgid "promotions this month"
+msgstr "promoţii de luna asta"
+
+#: r2/templates/promotedtraffic.html:48
+msgid "Promotion Traffic"
+msgstr "trafic de promoţie"
+
+#: r2/templates/promotedtraffic.html:50
+msgid "(download as .csv)"
+msgstr "(download ca .csv)"
+
+#: r2/templates/reddit.html:154 r2/templates/reddit.html:166
+msgid "close this window"
+msgstr "închide fereastra"
+
+#: r2/templates/redditfooter.html:40
+#, python-format
+msgid "(c) %(year)d Conde Nast Digital. All rights reserved."
+msgstr "(c) 2011 proddit.com"
+
+#: r2/templates/redditheader.html:32
+msgid "jump to content"
+msgstr "sari la conţinut"
+
+#: r2/templates/redditheader.html:58
+#, python-format
+msgid "want to join? %(register)s in seconds"
+msgstr "vrei să ni te alături? %(register)s pe loc"
+
+#: r2/templates/redditheader.html:59
+msgid "register"
+msgstr "înregistrează-te"
+
+#: r2/templates/redditheader.html:104
+#, fuzzy
+msgid "mod messages"
+msgstr "mesaje moderator"
+
+#: r2/templates/reddittraffic.html:48 r2/templates/reddittraffic.html:55
+#: r2/templates/reddittraffic.html:86 r2/templates/reddittraffic.html:185
+#: r2/templates/reddittraffic.html:204
+msgid "date"
+msgstr "data"
+
+#: r2/templates/reddittraffic.html:49 r2/templates/reddittraffic.html:51
+#: r2/templates/reddittraffic.html:56 r2/templates/reddittraffic.html:87
+#: r2/templates/reddittraffic.html:186 r2/templates/reddittraffic.html:205
+#: r2/templates/reddittraffic.html:207
+msgid "uniques"
+msgstr "unice"
+
+#: r2/templates/reddittraffic.html:50 r2/templates/reddittraffic.html:52
+#: r2/templates/reddittraffic.html:57 r2/templates/reddittraffic.html:88
+#: r2/templates/reddittraffic.html:187 r2/templates/reddittraffic.html:206
+#: r2/templates/reddittraffic.html:208
+msgid "impressions"
+msgstr "impresii"
+
+#: r2/templates/reddittraffic.html:53 r2/templates/reddittraffic.html:59
+msgid "subscriptions"
+msgstr "editează lista"
+
+#: r2/templates/reddittraffic.html:103
+msgid "Daily Mean"
+msgstr "media zilnică"
+
+#: r2/templates/reddittraffic.html:132
+msgid ""
+"There doesn't seem to be any traffic data at the moment.  Please check back later."
+msgstr ""
+"nu pare a fi trafic în momentul de faţă. încearcă mai târziu"
+
+#: r2/templates/reddittraffic.html:201
+msgid "cnamed"
+msgstr ""
+
+#: r2/templates/reddittraffic.html:209
+msgid "cname"
+msgstr ""
+
+#: r2/templates/searchbar.html:41
+#, fuzzy, python-format
+msgid "about %(num)d results in %(second)s"
+msgstr "aproximativ %(num)d rezultate pe %(second)s."
+
+#: r2/templates/searchbar.html:51
+msgid "satisfied?"
+msgstr "satisfăcut?"
+
+#: r2/templates/searchbar.html:55
+msgid "thanks for your feedback!"
+msgstr "mersi de feedback"
+
+#: r2/templates/searchform.html:34
+msgid "find things posted in {name} only"
+msgstr "găseşte linkuri doar în (name)"
+
+#: r2/templates/searchform.html:36
+msgid "return things submitted by {username} only"
+msgstr "întoarce linkuri trimise doar de  (username) "
+
+#: r2/templates/searchform.html:38
+msgid "get links to pages on {domain} only"
+msgstr "doar de pe (domain)"
+
+#: r2/templates/searchform.html:40
+msgid "search for {text} in url"
+msgstr "caută după (text) în url"
+
+#: r2/templates/searchform.html:42
+msgid "search for {text} in self post contents"
+msgstr "caută după (text) în linkuri de tip text"
+
+#: r2/templates/searchform.html:44
+msgid "include or exclude self posts"
+msgstr "include sau exclude linkuri de tip text"
+
+#: r2/templates/searchform.html:46
+msgid "include or exclude results from nsfw reddits"
+msgstr "include linkuri din comunităţi NSFW"
+
+#: r2/templates/searchform.html:50
+msgid "see the search faq for details."
+msgstr "vezi faq pentru detalii (pe reddit)"
+
+#: r2/templates/searchform.html:53
+msgid "advanced search: by author, community..."
+msgstr "căutare avansată: după autor, comunitate"
+
+#: r2/templates/searchform.html:61
+msgid "search reddit"
+msgstr "caută pe proddit"
+
+#: r2/templates/searchform.html:67 r2/templates/searchform.html:79
+#, python-format
+msgid "limit my search to %(path)s"
+msgstr "limitează căutarea la %(path)s"
+
+#: r2/templates/share.email:32
+#, python-format
+msgid ""
+"There is currently %(num_comments)s on this link.  You can view it here:"
+msgid_plural ""
+"There are currently %(num_comments)s on this link.  You can view them here:"
+msgstr[0] ""
+"Există momentan %(num_comments)s pentru acest link. Îl poţi vizualiza aici:"
+msgstr[1] ""
+"Există momentan %(num_comments)s pentru acest link. Le poţi vizualiza aici:"
+
+#: r2/templates/sharelink.html:15
+msgid "send this link to"
+msgstr "trimite link la"
+
+#: r2/templates/sharelink.html:51
+msgid "your email"
+msgstr "adresa ta de email"
+
+#: r2/templates/sharelink.html:70
+msgid "message {share form}"
+msgstr "mesaj"
+
+#: r2/templates/sharelink.html:79
+#, python-format
+msgid "%(user)s from http://%(site)s/ has shared a link with you."
+msgstr "%(user)s de la http://%(site)s/ ţi-a trimis un link."
+
+#: r2/templates/shirtpane.html:5
+msgid "sorry.  That title is too long to fit on a t-shirt."
+msgstr "prea lung pentru a încăpea pe tricou"
+
+#: r2/templates/shirtpane.html:37
+msgid "Your reddit headline shirt"
+msgstr "Tricoul cu titlul proddit "
+
+#: r2/templates/shirtpane.html:52
+msgid "Color"
+msgstr "culoare"
+
+#: r2/templates/shirtpane.html:59
+msgid "Size"
+msgstr "mărime"
+
+#: r2/templates/shirtpane.html:67
+msgid "Style"
+msgstr "stil"
+
+#: r2/templates/shirtpane.html:74
+msgid "Qty:"
+msgstr "cantitate:"
+
+#: r2/templates/spotlightlisting.html:61
+#, python-format
+msgid "Click %(here)s to close help."
+msgstr "Click %(here)s să închizi help-ul."
+
+#: r2/templates/spotlightlisting.html:62 r2/templates/spotlightlisting.html:76
+#: r2/templates/spotlightlisting.html:103
+msgid "here"
+msgstr "aici"
+
+#: r2/templates/spotlightlisting.html:70
+msgid ""
+"Sometimes reddit needs to ask the community to help fight spam. This is your chance to take part in that."
+msgstr "ia parte la lupta împotriva spamului"
+
+#: r2/templates/spotlightlisting.html:76 r2/templates/spotlightlisting.html:103
+msgid "This element has been disabled."
+msgstr "Acest element a fost dezactivat."
+
+#: r2/templates/spotlightlisting.html:78 r2/templates/spotlightlisting.html:105
+#, python-format
+msgid "Click %(here)s to disable this feature."
+msgstr "Click %(here)s pentru a dezactiva funcţionalitatea asta."
+
+#: r2/templates/spotlightlisting.html:98
+msgid ""
+"This area shows new and upcoming links. Vote on links here to help them become popular, and click the forwards and backwards buttons to view more. "
+msgstr ""
+"Aici apar noile linkuri. Voteaza linkurile aici sa devina populare. Click inainte si inapoi pentru a vedea mai multe."
+
+#: r2/templates/spotlightlisting.html:120
+msgid ""
+"The new link area will no longer appear for you. To re-enable it, visit your preferences."
+msgstr ""
+"Noile linkuri nu-ţi vor mai apărea. Pentru a reactiva funcţionalitatea intră la preferinţe."
+
+#: r2/templates/subreddit.html:59
+#, python-format
+msgid "a community for %(time)s"
+msgstr "o comunitate de %(time)s"
+
+#: r2/templates/subreddit.html:64
+msgid "+ frontpage"
+msgstr "+primapagină"
+
+#: r2/templates/subreddit.html:64
+msgid "- frontpage"
+msgstr "-primapagină"
+
+#: r2/templates/subreddit.html:84 r2/templates/subreddit.html:85
+#, fuzzy
+msgid "not approved"
+msgstr "neaprobat"
+
+#: r2/templates/subreddit.html:96
+msgid "over18"
+msgstr "peste18"
+
+#: r2/templates/subredditinfobar.html:34
+msgid "leave"
+msgstr "renunţă"
+
+#: r2/templates/subredditinfobar.html:47
+msgid "Show my flair on this reddit. It looks like:"
+msgstr "Arată flerul meu pe prodditul ăsta. Arată aşa:"
+
+#: r2/templates/subredditinfobar.html:65
+#, python-format
+msgid "you are a moderator of this reddit. (%(leave)s)"
+msgstr "eşti un moderator al acestui proddit. (%(leave)s)"
+
+#: r2/templates/subredditinfobar.html:66
+msgid "stop being a moderator?"
+msgstr "renunţi a fi moderator?"
+
+#: r2/templates/subredditinfobar.html:67
+msgid "you are no longer a moderator"
+msgstr "nu mai eşti moderator"
+
+#: r2/templates/subredditinfobar.html:73
+#, fuzzy, python-format
+msgid "you are an approved submitter on this reddit. (%(leave)s)"
+msgstr "eşti un moderator al acestui proddit. (%(leave)s)"
+
+#: r2/templates/subredditinfobar.html:74
+#, fuzzy
+msgid "stop being an approved submitter?"
+msgstr "renunţi a fi un contribuitor?"
+
+#: r2/templates/subredditinfobar.html:75
+#, fuzzy
+msgid "you are no longer an approved submitter"
+msgstr "nu mai eşti un contribuitor aprobat      "
+
+#: r2/templates/subredditinfobar.html:86
+#, fuzzy, python-format
+msgid "created by %(user)s"
+msgstr "creat de %(user)s"
+
+#: r2/templates/subredditinfobar.html:90
+#, fuzzy, python-format
+msgid "a community for"
+msgstr "o comunitate de"
+
+#: r2/templates/subredditinfobar.html:96
+#, fuzzy
+msgid "approve this reddit"
+msgstr "aprobă acest proddit"
+
+#: r2/templates/subredditinfobar.html:104
+msgid "ban this reddit"
+msgstr "banează acest proddit"
+
+#: r2/templates/subredditstylesheet.html:42
+msgid "stylesheet"
+msgstr "stylesheet"
+
+#: r2/templates/subredditstylesheet.html:71
+msgid "show the default stylesheet"
+msgstr "arată stylesheet-ul implicit"
+
+#: r2/templates/subredditstylesheet.html:72
+msgid "hide the default stylesheet"
+msgstr "ascunde stylesheet-ul implicit"
+
+#: r2/templates/subredditstylesheet.html:82
+#: r2/templates/subredditstylesheet.html:257
+msgid "preview"
+msgstr "previzualizează"
+
+#: r2/templates/subredditstylesheet.html:97
+msgid "images"
+msgstr "imagini"
+
+#: r2/templates/subredditstylesheet.html:101
+msgid "image file"
+msgstr "fişier imagine"
+
+#: r2/templates/subredditstylesheet.html:104
+msgid "new image name:"
+msgstr "nume nou imagine:"
+
+#: r2/templates/subredditstylesheet.html:109
+msgid ""
+"(image names should consist of alphanumeric characters and '-' only)"
+msgstr ""
+"(numele imaginilor trebuie să conţina doar caractere alfanumerice şi '-')"
+
+#: r2/templates/subredditstylesheet.html:113
+msgid ""
+"Note: any changes to images here will be reflected immediately on reload and cannot be undone."
+msgstr ""
+"Notă: orice schimbări ale imaginilor se vor reflecta imediat la reîncărcare şi nu pot fi reschimbate."
+
+#: r2/templates/subredditstylesheet.html:206
+msgid "please select an image"
+msgstr "te rugăm selectează o imaginre"
+
+#: r2/templates/subredditstylesheet.html:235
+msgid "paste into stylesheet"
+msgstr "paste în stylesheet"
+
+#: r2/templates/subredditstylesheet.html:238
+msgid "delete this image"
+msgstr "şterge imaginea aceasta"
+
+#: r2/templates/subredditstylesheet.html:260
+msgid "normal link"
+msgstr "link normal"
+
+#: r2/templates/subredditstylesheet.html:264
+msgid "compressed link"
+msgstr "link comprimat"
+
+#: r2/templates/subredditstylesheet.html:268
+msgid "link with thumbnail"
+msgstr "link cu imagine"
+
+#: r2/templates/thanks.html:34
+msgid "thanks for subscribing!"
+msgstr "mersi pentru înscriere"
+
+#: r2/templates/thanks.html:39
+#, fuzzy
+msgid ""
+"enter your confirmation code below to claim your gift creddits"
+msgstr ""
+"introdu numele de utilizator pentru a primi informaţiile de login"
+
+#: r2/templates/thanks.html:41
+msgid "enter your confirmation code below to activate reddit gold"
+msgstr ""
+
+#: r2/templates/thanks.html:44
+msgid ""
+"You claimed a reddit gold subscription in the last few minutes."
+msgstr ""
+
+#: r2/templates/thanks.html:46
+msgid "You're already a reddit gold subscriber."
+msgstr ""
+
+#: r2/templates/thanks.html:49
+msgid ""
+"But if you just gave us even more money, enter the new confirmation code below and we'll add the extra credit to your account."
+msgstr ""
+
+#: r2/templates/thanks.html:62
+#, fuzzy
+msgid "claim"
+msgstr ""
+
+#: r2/templates/trophycase.html:74
+msgid "dust"
+msgstr "praf"
+
+#: r2/templates/trophycase.html:107
+#, python-format
+msgid "%d more"
+msgstr "%d mai multe"
+
+#: r2/templates/unfoundpage.html:25
+msgid "the page you requested does not exist"
+msgstr "pagina cerută nu există"
+
+#: r2/templates/userawards.html:39
+msgid "Ongoing awards, and their most recent winners:"
+msgstr ""
+"Premiere în desfăşurare şi cei mai recenţi câştigători:"
+
+#: r2/templates/userawards.html:54
+msgid "won by"
+msgstr "câştigat de "
+
+#: r2/templates/userawards.html:57
+msgid "recently won by"
+msgstr "câştigat recent de "
+
+#: r2/templates/userawards.html:85
+msgid "for this"
+msgstr "pentru "
+
+#: r2/templates/userawards.html:95
+msgid "Special awards:"
+msgstr "premii speciale"
+
+#: r2/templates/userlist.html:37
+msgid "add"
+msgstr "adaugă"
+
+#: r2/templates/usertableitem.html:61
+#, fuzzy
+msgid "can't remove"
+msgstr "nu se poate şterge"
+
+#: r2/templates/usertext.html:72
+msgid "formatting help"
+msgstr "ajutor la formatare"
+
+#: r2/templates/usertext.html:95
+msgid "you type:"
+msgstr "scrii:"
+
+#: r2/templates/usertext.html:96
+msgid "you see:"
+msgstr "vezi:"
+
+#: r2/templates/usertext.html:99 r2/templates/usertext.html:100
+msgid "italics"
+msgstr "italic"
+
+#: r2/templates/usertext.html:103 r2/templates/usertext.html:104
+msgid "bold"
+msgstr "bold"
+
+#: r2/templates/usertext.html:112 r2/templates/usertext.html:113
+#: r2/templates/usertext.html:114 r2/templates/usertext.html:118
+#: r2/templates/usertext.html:119 r2/templates/usertext.html:120
+msgid "item"
+msgstr "item"
+
+#: r2/templates/usertext.html:125 r2/templates/usertext.html:126
+msgid "quoted text"
+msgstr "citat"
+
+#: r2/templates/utils.html:220
+msgid "all languages"
+msgstr "toate limbile"
+
+#: r2/templates/utils.html:224
+msgid "some languages"
+msgstr "câteva limbi"
+
+#: r2/templates/utils.html:289
+msgid "uploading"
+msgstr "încărcare"
+
+#: r2/templates/utils.html:291
+msgid "upload"
+msgstr "încarcă"
+
+#: r2/templates/utils.html:390
+msgid "fetching title..."
+msgstr "căutare titlu..."
+
+#: r2/templates/utils.html:391
+msgid "submitting..."
+msgstr "trimitere..."
+
+#: r2/templates/utils.html:392
+msgid "loading..."
+msgstr "încărcare..."
+
+#: r2/templates/utils.html:531
+#, fuzzy
+msgid "popular choices"
+msgstr "populare"
+
+#: r2/templates/widgetdemopanel.html:111
+#, python-format
+msgid "get live %(site)s headlines on your site"
+msgstr "arată titluri din %(site)s pe site-ul tău"
+
+#: r2/templates/widgetdemopanel.html:113
+#, python-format
+msgid ""
+"just cut and paste the generated code into your site and your specified %(site)s feed will be displayed and updated as new stories bubble up"
+msgstr ""
+"doar copy si paste codul generat pe site-ul tau si widgetul %(site)s va afisa si actualiza linkuri"
+
+#: r2/templates/widgetdemopanel.html:115
+msgid "which links do you want to display?"
+msgstr "ce linkuri ai dori sa fie afisate?"
+
+#: r2/templates/widgetdemopanel.html:125
+msgid "all-time"
+msgstr "din toate timpurile"
+
+#: r2/templates/widgetdemopanel.html:131
+msgid "submitted by"
+msgstr "trimise de "
+
+#: r2/templates/widgetdemopanel.html:132
+msgid "saved by"
+msgstr "salvate de "
+
+#: r2/templates/widgetdemopanel.html:133
+msgid "liked by"
+msgstr "plăcute"
+
+#: r2/templates/widgetdemopanel.html:134
+msgid "disliked by"
+msgstr "displăcute de"
+
+#: r2/templates/widgetdemopanel.html:145
+msgid "listing options"
+msgstr "opţiuni de afişare"
+
+#: r2/templates/widgetdemopanel.html:151
+#, python-format
+msgid "links from %(domain)s"
+msgstr "linkuri de la %(domain)s"
+
+#: r2/templates/widgetdemopanel.html:155
+#, python-format
+msgid "links %(submitted_by)s the user %(who)s"
+msgstr "linkuri %(submitted_by)s de %(who)s"
+
+#: r2/templates/widgetdemopanel.html:159
+#, python-format
+msgid "links from the domain %(domain)s"
+msgstr "linkuri de pe domeniul %(domain)s"
+
+#: r2/templates/widgetdemopanel.html:165
+msgid "sorting options"
+msgstr "opţiuni de sortare"
+
+#: r2/templates/widgetdemopanel.html:171
+msgid "hottest"
+msgstr "cele mai fierbinţi"
+
+#: r2/templates/widgetdemopanel.html:172
+msgid "newest"
+msgstr "cele mai noi"
+
+#: r2/templates/widgetdemopanel.html:176
+#, python-format
+msgid "sort links by %(what)s"
+msgstr "sortează după %(what)s"
+
+#: r2/templates/widgetdemopanel.html:179
+#, python-format
+msgid "date range includes %(when)s"
+msgstr "perioada include %(when)s"
+
+#: r2/templates/widgetdemopanel.html:182
+msgid "number of links to show"
+msgstr "numărul de linkuri afişate"
+
+#: r2/templates/widgetdemopanel.html:200
+msgid "remove css styling"
+msgstr "nu folosi css styling"
+
+#: r2/templates/widgetdemopanel.html:202
+msgid "(the widget will inherit all styles from the page)"
+msgstr "(widgetul va moşteni toate stilurile de pe pagină)"
+
+#: r2/templates/widgetdemopanel.html:210
+msgid "enable in-widget voting"
+msgstr "permite voturile în widget"
+
+#: r2/templates/widgetdemopanel.html:212
+msgid "(will slow down the rendering)"
+msgstr "(va încetini afişarea)"
+
+#: r2/templates/widgetdemopanel.html:221
+msgid "two columns"
+msgstr "două coloane"
+
+#: r2/templates/widgetdemopanel.html:228
+msgid "background color"
+msgstr "culoare de fundal"
+
+#: r2/templates/widgetdemopanel.html:232
+msgid "(e.g., FF0000 = red)"
+msgstr "(de exemplu, FF0000 = roşu)"
+
+#: r2/templates/widgetdemopanel.html:239
+msgid "border color"
+msgstr "culoarea marginii"
+
+#: r2/templates/widgetdemopanel.html:249
+msgid "the code"
+msgstr "codul"
+
+#: r2/templates/widgetdemopanel.html:251
+#, python-format
+msgid ""
+"add this into your HTML where you want the %(site)s links displayed"
+msgstr ""
+"adaugă asta în HTML-ul tău unde vrei să apară linkurile %(site)s"
+
+#: randomstring:sadmessages
+msgid "Funny 500 page message 1"
+msgstr "M-ai bulit..."
+
+#: randomstring:sadmessages
+msgid "Funny 500 page message 2"
+msgstr "M-ai nenorocit..."
+
+#: randomstring:sadmessages
+msgid "Funny 500 page message 3"
+msgstr "M-ai stricat..."
+
+#: randomstring:sadmessages
+msgid "Funny 500 page message 4"
+msgstr "Evil monkey got me!"
+
+#: randomstring:sadmessages
+msgid "Funny 500 page message 5"
+msgstr "Whoooooooops!"
+
+#: randomstring:sadmessages
+msgid "Funny 500 page message 6"
+msgstr "M-a prins flama violet!"
+
+#: randomstring:sadmessages
+msgid "Funny 500 page message 7"
+msgstr "BUM!"
+
+#: randomstring:sadmessages
+msgid "Funny 500 page message 8"
+msgstr "Ce ai facut că nu mai merge?!"
+
+#: randomstring:sadmessages
+msgid "Funny 500 page message 9"
+msgstr "M-ai aranjat bine!"
+
+#: randomstring:sadmessages
+msgid "Funny 500 page message 10"
+msgstr "Kaputt!"
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 1"
+msgstr "...pentru ca informaţia să curgă mai eficient în birou."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 2"
+msgstr "...pentru că n-ai cu cine."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 3"
+msgstr "...pentru că poţi."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 4"
+msgstr "..pentru cei care n-au votat."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 5"
+msgstr "...pentru trupa ta."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 6"
+msgstr "...pentru guilda ta de wow."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 7"
+msgstr "...pentru hobby-ul tău."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 8"
+msgstr "...pentru pisica ta."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 9"
+msgstr "...pentru câinele tău."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 10"
+msgstr "...pentru că urăşti libertatea."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 11"
+msgstr "...pentru limbajul de programare preferat."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 12"
+msgstr "...pentru subiectul tău favorit."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 13"
+msgstr "...pentru echipa ta favorită."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 14"
+msgstr "...pentru că ai prea mult timp."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 15"
+msgstr "...pentru că eşti plin de câştig."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 16"
+msgstr "...sudo creează propriul tău proddit."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 17"
+msgstr "...pentru prietenii tăi."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 18"
+msgstr "...pentru maşina ta favorită."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 19"
+msgstr "...pentru că vrei să vezi câţi dau join."
+
+#: randomstring:create_reddit
+msgid "Reason to create a reddit 20"
+msgstr "...pentru melci."
+

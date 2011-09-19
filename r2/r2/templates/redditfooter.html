@@ -21,6 +21,7 @@
 ################################################################################
 
 <%!
+   from r2.lib.template_helpers import s3_https_if_secure
    from r2.lib.strings import strings
    import datetime
 %>
@@ -33,14 +34,14 @@
         ${toolbar}
       </div>
       %endfor
-  <div>
+    <div>
     <p class="bottommenu">
 
       ${_("(c) %(year)d Conde Nast Digital. All rights reserved.") % \
       dict(year=datetime.datetime.now().timetuple()[0])}
     </p>
 		<br>
- 		 <p><a href="http://code.reddit.com"><img src="/static/reddit_logo.png" alt="powered by reddit" /></a></p>
+ 		 <p><a href="http://github.com/reddit/reddit"><img src="/static/reddit_logo.png" alt="powered by reddit" /></a></p>
   </div>
 </div>
 </div>

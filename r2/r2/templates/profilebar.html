@@ -24,10 +24,9 @@
    import locale
    from r2.lib.filters import edit_comment_filter, unsafe, safemarkdown
    from r2.lib.template_helpers import static
-   from r2.lib.utils import timesince
  %>
-<%namespace file="utils.html" import="submit_form, plain_link"/>
-<%namespace file="printablebuttons.html" import="toggle_button, state_button"/>
+<%namespace file="utils.html" import="submit_form, plain_link, timestamp"/>
+<%namespace file="printablebuttons.html" import="toggle_button,state_button"/>
 
 <div class="titlebox">
   <h1>
@@ -90,7 +89,7 @@
     %if i >= 5:
       <a href="javascript:void(0)"
          onclick="$('.more-karmas').show();$(this).hide();return false">
-         karma pentru toate ${len(karmas)} de proddituri
+         karma pentru toate ${len(karmas)} proddituri
       </a>
     %endif
   %else:
@@ -129,7 +128,7 @@
     %endif
 
     <span class="age">
-      ${_("redditor for %(time)s") % dict(time=timesince(thing.user._date))}
+      ${_("redditor for")}&#32;${timestamp(thing.user)}
     </span>
   </div>
 

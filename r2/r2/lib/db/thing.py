@@ -270,15 +270,28 @@ class DataThing(object):
             self._cache_myself()
 
     @classmethod
-    def _load_multi(cls, need):
+    def _load_multi(cls, need, check_essentials=True):
         need = tup(need)
         need_ids = [n._id for n in need]
         datas = cls._get_data(cls._type_id, need_ids)
         to_save = {}
+        try:
+            essentials = object.__getattribute__(cls, "_essentials")
+        except AttributeError:
+            essentials = ()
+
         for i in need:
             #if there wasn't any data, keep the empty dict
             i._t.update(datas.get(i._id, i._t))
             i._loaded = True
+
+            for essential in essentials:
+                if essential not in i._t:
+                    if check_essentials:
+                        raise AttributeError("Refusing to cache %s; it's missing %s"
+                                             % (i._fullname, essential))
+                    else:
+                        print "Warning: %s is missing %s" % (i._fullname, essential)
             i._asked_for_data = True
             to_save[i._id] = i
 
@@ -287,8 +300,8 @@ class DataThing(object):
         #write the data to the cache
         cache.set_multi(to_save, prefix=prefix)
 
-    def _load(self):
-        self._load_multi(self)
+    def _load(self, check_essentials=True):
+        self._load_multi(self, check_essentials)
 
     def _safe_load(self):
         if not self._loaded:
@@ -338,7 +351,8 @@ class DataThing(object):
 
     #TODO error when something isn't found?
     @classmethod
-    def _byID(cls, ids, data=False, return_dict=True, extra_props=None, stale=False):
+    def _byID(cls, ids, data=False, return_dict=True, extra_props=None,
+              stale=False, check_essentials=True):
         ids, single = tup(ids, True)
         prefix = thing_prefix(cls.__name__)
 
@@ -373,7 +387,7 @@ class DataThing(object):
                 if not v._loaded:
                     need.append(v)
             if need:
-                cls._load_multi(need)
+                cls._load_multi(need, check_essentials)
 ### The following is really handy for debugging who's forgetting data=True:
 #       else:
 #           for v in bases.itervalues():
@@ -571,20 +585,28 @@ class Thing(DataThing):
                    bases.deleted, bases.spam, id)
 
     @classmethod
-    def _query(cls, *rules, **kw):
+    def _query(cls, *all_rules, **kw):
         need_deleted = True
         need_spam = True
         #add default spam/deleted
-        for r in rules:
+        rules = []
+        optimize_rules = kw.pop('optimize_rules', False)
+        for r in all_rules:
             if not isinstance(r, operators.op):
                 continue
             if r.lval_name == '_deleted':
                 need_deleted = False
+                # if the caller is explicitly unfiltering based on this column,
+                # we don't need this rule at all. taking this out can save us a
+                # join that is very expensive on pg9.
+                if optimize_rules and r.rval == (True, False):
+                    continue
             elif r.lval_name == '_spam':
                 need_spam = False
-
-        if need_deleted or need_spam:
-            rules = list(rules)
+                # see above for explanation
+                if optimize_rules and r.rval == (True, False):
+                    continue
+            rules.append(r)
 
         if need_deleted:
             rules.append(cls.c._deleted == False)
@@ -872,6 +894,7 @@ class Query(object):
         self._limit = kw.get('limit')
         self._data = kw.get('data')
         self._sort = kw.get('sort', ())
+        self._filter_primary_sort_only = kw.get('filter_primary_sort_only', False)
 
         self._filter(*rules)
     
@@ -912,8 +935,16 @@ class Query(object):
 
     def _dir(self, thing, reverse):
         ors = []
+
+        # this fun hack lets us simplify the query on /r/all 
+        # for postgres-9 compatibility. please remove it when
+        # /r/all is precomputed.
+        sorts = range(len(self._sort))
+        if self._filter_primary_sort_only:
+            sorts = [0]
+
         #for each sort add and a comparison operator
-        for i in range(len(self._sort)):
+        for i in sorts:
             s = self._sort[i]
 
             if isinstance(s, operators.asc):

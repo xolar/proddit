@@ -19,14 +19,14 @@
 ## All portions of the code written by CondeNet are Copyright (c) 2006-2010
 ## CondeNet, Inc. All Rights Reserved.
 ################################################################################
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%!
 
    from r2.lib.template_helpers import static
    from r2.models import Link, Comment, Subreddit
    from r2.lib.tracking import UserInfo
 %>
-<%namespace file="utils.html" import="js_preamble"/>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%namespace file="utils.html" import="js_preamble, googleanalytics"/>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="${c.lang}" 
       xml:lang="${c.lang}" ${c.lang_rtl and unsafe('dir="rtl"') or ''}>
   <head>
@@ -34,7 +34,9 @@
     
     <meta name="keywords" content="${self.keywords()}" />
     <meta name="title" content="${self.Title()}" />
+    <meta name="description" content="${getattr(thing, 'short_description', None) or g.short_description}" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=800, initial-scale=1" />
     ${self.robots()}
     
     ##these are globals, so they should be run first
@@ -44,8 +46,8 @@
       ${js_preamble()}
     </script> 
     
-    ${self.javascript()}
     ${self.stylesheet()}
+    ${self.javascript()}
     
     ##things here may depend on globals, or included js, so we run them last
     <script type="text/javascript">
@@ -90,23 +92,19 @@ proddit, proddit.com, voteaza, comenteaza, trimite, posteaza
 </%def>
 
 <%def name="head()">
-%if g.googleanalytics and thing.site_tracking:
+%if g.tracker_url and thing.site_tracking and not c.secure:
 <script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', '${g.googleanalytics}']);
-  _gaq.push(['_setCustomVar', 1, 'site', '${UserInfo.get_site()}', 3]);
-  _gaq.push(['_setCustomVar', 2, 'srpath', '${UserInfo.get_srpath()}', 3]);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
+    (function() {
+        var url = '${UserInfo.gen_url()}';
+        var cachebuster = Math.round(Math.random() * 2147483647);
+        var cachebusted_url = url + "&r=" + cachebuster;
+        var img = new Image();
+        img.src = cachebusted_url;
+    })();
 </script>
 %endif
+
+${googleanalytics('web')}
 </%def>
 
 

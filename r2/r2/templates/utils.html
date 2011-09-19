@@ -23,7 +23,8 @@
 <%!
    from r2.lib.filters import spaceCompress, unsafe
    from r2.lib.template_helpers import add_sr
-   from r2.lib.utils import cols
+   from r2.lib.utils import cols, long_datetime, timesince
+   from r2.lib.tracking import UserInfo
 %>
 <%def name="tags(**kw)">
 %for k, v in kw.iteritems():
@@ -42,7 +43,6 @@
 <%def name="_a_buffered(body, **kw)" buffered="True">
 <a ${tags(**kw)}>${body}</a>
 </%def>
-
 
 
 ## thing should be global
@@ -137,6 +137,28 @@ ${first_defined(kw[1:])}
   ${unsafe((fmt % link) if fmt else link)}
 </%def>
 
+<%def name="post_link(link_text, post_path, redir_path, params, _sr_path=True,
+                      nocname=False, fmt='', target='', **kw)">
+  <%
+    action = add_sr(post_path, sr_path=_sr_path, nocname=nocname)
+    href = add_sr(redir_path, sr_path=_sr_path, nocname=nocname)
+    if (not target or target == '_parent') and c.cname:
+        target = '_top'
+    if c.cname and redir_path.startswith('http://'):
+        target = '_top'
+    if target:
+        kw['target'] = target
+    onclick = "$(this).parent().submit(); return false;"
+    link = _a_buffered(link_text, href=href, onclick=onclick, **kw)
+  %>
+  <form method="POST" action="${action}">
+    %for k, v in params.iteritems():
+      <input type="hidden" name="${k}" value="${v}">
+    %endfor
+    ${unsafe((fmt % link) if fmt else link)}
+  </form>
+</%def>
+
 
 <%def name="text_with_links(txt, _sr_path = False, nocname=False, **kw)">
 <%
@@ -179,7 +201,7 @@ ${unsafe(txt)}
   </option>
   %endif
   %for x in langs:
-  <option ${x == default_lang  and "selected='selected'" or ""}>
+  <option ${x == default_lang  and "selected='selected'" or ""} value="${x}">
     ${g.lang_name[x]} [${x}]
   </option>
   %endfor
@@ -374,6 +396,29 @@ ${unsafe(txt)}
    };
 </%def>
 
+<%def name="googleanalytics(uitype)">
+  %if g.googleanalytics and thing.site_tracking:
+  <script type="text/javascript">
+
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', '${g.googleanalytics}']);
+    _gaq.push(['_setCustomVar', 1, 'site', '${UserInfo.get_site()}', 3]);
+    _gaq.push(['_setCustomVar', 2, 'srpath', '${UserInfo.get_srpath()}', 3]);
+    _gaq.push(['_setCustomVar', 3, 'usertype', '${UserInfo.get_usertype()}', 2]);
+    _gaq.push(['_setCustomVar', 4, 'uitype', '${uitype}', 3]);
+    _gaq.push(['_trackPageview']);
+    _gaq.push(['_trackPageLoadTime']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+  </script>
+  %endif
+</%def>
+
 <%def name="logout(top=False,dest=None,a_class='')">
   <form method="post" action="/logout" class="logout hover"
     %if top:
@@ -442,6 +487,24 @@ ${unsafe(txt)}
   </%call>
 </%def>
 
+<%def name="radio_type(field_name, val_name, title, text=None, checked=False)">
+  <% full_name = field_name + "_" + val_name %>
+  <tr>
+    <td class="nowrap nopadding">
+      <input name="${field_name}" type="radio" id="${full_name}"
+             value="${val_name}" class="nomargin"
+             %if checked:
+               checked="checked"
+             %endif
+             />
+      <label for="${full_name}">${title}</label>
+    </td>
+    %if text:
+      <td class="leftpad"><span class="gray">${text}</span></td>
+    %endif
+  </tr>
+</%def>
+
 <%def name="reddit_selector(default_sr, sr_searches, subreddits)">
     <div id="sr-autocomplete-area">
       <input id="sr-autocomplete" name="sr" type="text"
@@ -474,6 +537,14 @@ ${unsafe(txt)}
         %endfor
       </ul>
     </div>
+</%def>
+
+<%def name="timestamp(thing, since=None)">
+  ## todo: use pubdate attribute once things are <article> tags.
+  ## note: comment and link templates will pass a CachedVariable stub as since.
+  <time title="${long_datetime(thing._date)}" datetime="${thing._date.isoformat()}">
+    ${unsafe(since or timesince(thing._date))}
+  </time>
 </%def>
 
 <%def name="percentage(slice, total)">

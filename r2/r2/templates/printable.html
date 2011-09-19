@@ -45,9 +45,7 @@ ${self.RenderPrintable()}
   %endif
 </%def>
 
-<%def name="thing_css_class(what)">
-thing id-${what._fullname}
-</%def>
+<%def name="thing_css_class(what)">thing id-${what._fullname}</%def>
 
 <%def name="RenderPrintable()">
 <% cls = thing.lookups[0].__class__.__name__.lower() %>
@@ -58,6 +56,11 @@ thing id-${what._fullname}
       cls = thing.render_class.__name__.lower()
    else:
       cls = thing.lookups[0].__class__.__name__.lower()
+   
+   if getattr(thing, "is_self", False):
+      selflink = "self"
+   else:
+      selflink = ""
 
    if thing.show_spam:
      rowclass = thing.rowstyle + " spam"
@@ -72,7 +75,7 @@ thing id-${what._fullname}
    if hasattr(thing, "hidden") and thing.hidden:
      rowclass += " hidden"
  %>
-<div class="${self.thing_css_class(thing)} ${rowclass} ${unsafe(cls)}"
+<div class="${self.thing_css_class(thing)} ${rowclass} ${unsafe(cls)} ${selflink}"
      ${thing.display} onclick="click_thing(this)">
   <p class="parent">
     ${self.ParentDiv()}
@@ -120,8 +123,12 @@ thing id-${what._fullname}
    _class = _type + ("mod" if mod else "")
    fullname = this._fullname
 %>
-  <div class="arrow ${_class}" 
-       onclick="$(this).vote('${thing.votehash}', null, event)"
+  <div class="arrow ${_class}"
+       %if getattr(thing, "votable", True):
+         onclick="$(this).vote('${thing.votehash}', null, event)"
+       %else:
+         onclick="$(this).show_unvotable_message()"
+       %endif
        >
   </div>
 </%def>

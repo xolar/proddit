@@ -1,4 +1,6 @@
 $(function() {
+        proddit.external_frame = true;
+
         /* set default arrow behavior */
         var state = null;
         function color(x) {
@@ -23,6 +25,17 @@ $(function() {
                 $(".entry").removeClass("dislikes").removeClass("likes");
             }
         }
+        function submit_url(url, sr, title) {
+            var submit = "http://www.proddit.com";
+            if (sr) {
+                submit += "/r/" + sr;
+            }
+            submit += "/submit?url=" + encodeURIComponent(url);
+            if (title) {
+                submit += "&title=" + encodeURIComponent(title);
+            }
+            return submit;
+        }
         $(".arrow.up").click(function() {
                 state = $(this).hasClass("up") ? 1: 0;
                 set_score_class();
@@ -46,14 +59,7 @@ $(function() {
                 b = lst[1];
                 querydict[a] = b;
             }); 
-        var submit = "/submit?url=" + encodeURIComponent(querydict.url);
-        if (querydict.sr) {
-            submit = "/r/" + querydict.sr + submit;
-        }
-        if (querydict.title) {
-            submit += "&title=" + encodeURIComponent(querydict.title);
-        }
-        $("a").attr("href", submit);
+        $("a").attr("href", submit_url(querydict.url, querydict.sr, querydict.title));
         if(querydict.bgcolor) {
             $("body").css("background-color", color(querydict.bgcolor));
         }
@@ -64,17 +70,12 @@ $(function() {
         var target = (querydict.newwindow)?"_blank":"_top";
         $("a").attr("target", target);
 
-        var w = $("body").width();
-        var h = $("body").height();
-        $(".button").width(w ? (w + "px") : "100%");
-        $(".button").height(h ? (h + "px") : "100%");
-
         var update_button = function(res) {
 	    try {
             var modhash = res.data.modhash;
             if (modhash) {
-                reddit.logged = true;
-                reddit.modhash = modhash;
+                proddit.logged = true;
+                proddit.modhash = modhash;
             }
             var data = res.data.children[0].data;
             var realstate = 0; 
@@ -86,7 +87,7 @@ $(function() {
             };
             /* add the thing's id */
             $(".thing").addClass("id-" + data.name);
-            $(".bling a, a.bling").attr("href", data.permalink);
+            $(".bling a, a.bling").attr("href", "http://www.proddit.com"+data.permalink);
             if(data.likes) {
                 real_state = 1;
                 transition_score(function() {
@@ -113,7 +114,7 @@ $(function() {
             $(".arrow").unbind("click").click(function() {
                     $(this).vote('', set_score, true);
                 });
-            if(reddit.logged && state != real_state) {
+            if(proddit.logged && state != real_state) {
                 if(state != null) {
                     $.request("vote", {id: data.name, dir : state});
                 }
@@ -129,13 +130,7 @@ $(function() {
         };
 
         var make_submit = function() {
-            var submit = "/submit?url=" + encodeURIComponent(querydict.url);
-            if (querydict.sr) {
-                submit = "/r/" + querydict.sr + submit;
-            }
-            if (querydict.title) {
-                submit += "&title=" + encodeURIComponent(querydict.title);
-            }
+            var submit = submit_url(querydict.url, querydict.sr, querydict.title);
             $(".score:visible").fadeOut(function() {
                     $(".score").html('<a class="submit" target="' +
                                      target + '" href="' +
@@ -153,23 +148,36 @@ $(function() {
                 });
         }
 
-        var url = "/button_info.json";
+        var options = {
+            type: "GET", url: null,
+            data: {},
+            success : update_button,
+            error: make_submit
+        };
+
+        var target = "/button_info.json";
         if (querydict.sr) {
-            url = "/r/" + querydict.sr + url;
-        }
-        params = {};
-        if ($.defined(querydict.url)) {
-            params["url"] = querydict.url;
-        }
-        if ($.defined(querydict.id)) {
-            params["id"] = querydict.id;
+            target = "/r/" + querydict.sr + target;
         }
 
-        $.ajax({ type: "GET", url: url,
-                    data: params, 
-                    success : update_button,
-                    error: make_submit,
-                    dataType: "json"});
+        if ($.cookie_read("session", "proddit_").data) {
+            options.url = target;
+            options.dataType = "json";
+        } else {
+            options.url = "http://buttons.proddit.com" + target;
+            options.dataType = options.jsonp = "jsonp";
+            options.jsonpCallback = "buttonInfoCb";
+            options.cache = true;
+        }
+
+        if ($.defined(querydict.url)) {
+            options.data["url"] = querydict.url;
+        }
+        if ($.defined(querydict.id)) {
+            options.data["id"] = querydict.id;
+        }
+
+        $.ajax(options);
    }
   );
 

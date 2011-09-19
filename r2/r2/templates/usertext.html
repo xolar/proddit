@@ -48,8 +48,12 @@
 
   %if not thing.creating:
     <div class="usertext-body">
+      % if not thing.expunged:
       ${unsafe(safemarkdown(thing.text, nofollow = thing.nofollow,
                                         target = thing.target))}
+      % else:
+      <em>${_("[removed]")}</em>&#32;
+      % endif
     </div>
   %endif
 
@@ -75,10 +79,11 @@
         ${error_field("TOO_OLD", "parent", "span")}
         ${error_field("DELETED_COMMENT", "parent", "span")}
         ${error_field("DELETED_LINK", "parent", "span")}
+        ${error_field("USER_BLOCKED", "parent", "span")}
         <div class="usertext-buttons">
-          ${action_button("save", "submit", "",
+          ${action_button("salveaza", "submit", "",
                           thing.creating and thing.have_form)}
-          ${action_button("cancel", "button", "cancel_usertext(this)", False)}
+          ${action_button("anuleaza", "button", "cancel_usertext(this)", False)}
           %if thing.have_form:
             <span class="status"></span>
           %endif

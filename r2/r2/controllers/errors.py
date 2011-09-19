@@ -31,6 +31,8 @@ error_list = dict((
         ('BAD_CAPTCHA', _('care to try these again?')),
         ('BAD_USERNAME', _('invalid user name')),
         ('USERNAME_TAKEN', _('that username is already taken')),
+        ('USERNAME_TAKEN_DEL', _('that username is taken by a deleted account')),
+        ('USER_BLOCKED', _("you can't send to a user that you have blocked")),
         ('NO_THING_ID', _('id not specified')),
         ('NOT_AUTHOR', _("you can't do that")),
         ('DELETED_LINK', _('the link you are commenting on has been deleted')),
@@ -81,6 +83,8 @@ error_list = dict((
         ('NO_SELFS', _("that reddit doesn't allow text posts")),
         ('NO_LINKS', _("that reddit only allows text posts")),
         ('TOO_OLD', _("that's a piece of history now; it's too late to reply to it")),
+        ('BAD_CSS_NAME', _('invalid css name')),
+        ('TOO_MUCH_FLAIR_CSS', _('too many flair css classes')),
     ))
 errors = Storage([(e, e) for e in error_list.keys()])
 

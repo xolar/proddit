@@ -399,4 +399,7 @@ def give_awards():
         elif tsince.days >= 365*2:
             Award.take_away("1year", account)
             Award.give_if_needed("2years", account)
+        if account.email_verified
+            print "%s has %s",account._fullname, account._email
+            
             

@@ -145,8 +145,14 @@
 
       <p>${checkbox(_("show me links I've recently viewed"), "clickgadget")}</p>
       <p>${checkbox(_("compress the link display"), "compress")}</p>
-      <p>${checkbox(_("don't show links after i've liked them"), "hide_ups")}</p>
-      <p>${checkbox(_("don't show links after i've disliked them"), "hide_downs")}</p>
+      <p>${checkbox(_("don't show links after i've liked them"), "hide_ups")}
+         &#32;
+         <span class="little gray">${_("(except my own)")}</span>
+      </p>
+      <p>${checkbox(_("don't show links after i've disliked them"), "hide_downs")}
+         &#32;
+         <span class="little gray">${_("(except my own)")}</span>
+      </p>
       <%
          # stuff I can soon delete:
          _("display")
@@ -258,6 +264,31 @@
       <br/>
       ${checkbox(_("allow my data to be used for research purposes"), "research")}
       &#32;
+      <span class="little gray">
+       (
+         <a href="http://www.reddit.com/r/redditdev/comments/dtg4j/want_to_help_reddit_build_a_recommender_a_public/">
+           ${_("details")}
+         </a>
+       )
+      </span>
+      <br />
+      ${checkbox(_("don't allow search engines to index my user profile"), "hide_from_robots")}
+      &#32;
+      <span class="little gray">
+        (
+        <a href="http://www.reddit.com/help/noindex">${_("details")}</a>
+        )
+      </span>
+      <br />
+      ${checkbox(_("load core JS libraries from reddit servers"), "local_js")}
+      &#32;
+      <span class="little gray">
+       (
+         <a href="http://www.reddit.com/help/localjs">
+           ${_("details")}
+         </a>
+       )
+      </span>
     </td>
   </tr>
   %endif

@@ -47,10 +47,14 @@
   <input type="hidden" name="thing_id" value="${thing.fullname or ''}"/>
 
   %if not thing.creating:
+    % if not thing.expunged:
     <div class="usertext-body">
       ${unsafe(safemarkdown(thing.text, nofollow = thing.nofollow,
                                         target = thing.target))}
     </div>
+    % else:
+    <em>${_("[removed]")}</em>&#32;
+    % endif
   %endif
 
   %if thing.editable or thing.creating:
@@ -66,23 +70,25 @@
 
       <div class="bottom-area">
         <div class="usertext-buttons">
-          <button type="submit" class="save button">Save</button>
-          <button type="button" class="cancel button" style="display: none;"
+          <a href="#" class="help-toggle newbutton">help</a>
+          <button type="submit" class="save newbutton">Salveaza</button>
+          <button type="button" class="cancel newbutton" style="display: none;"
             onclick="return cancel_usertext(this)">
-            Cancel</button>
+            Anuleaza</button>
           %if thing.have_form:
             <span class="status"></span>
           %endif
+        <div style="clear: both"></div>
         </div>
         ${error_field("TOO_LONG", thing.name, "span")}
         ${error_field("RATELIMIT", "ratelimit", "span")}
         ${error_field("NO_TEXT", thing.name, "span")}
         ${error_field("DELETED_COMMENT", "parent", "span")}
         ${error_field("DELETED_LINK", "parent", "span")}
-        <a href="#" class="help-toggle button secondary_button">help</a>
+        ${error_field("USER_BLOCKED", "parent", "span")}
       </div>
       <div class="markhelp-parent">
-      <table class="markhelp md">
+      <table class="markhelp">
         <tr style="background-color: #ffff99; text-align: center">
           <td><em>${_( "you type:")}</em></td>
           <td><em>${_( "you see:")}</em></td>

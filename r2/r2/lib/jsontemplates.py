@@ -25,13 +25,14 @@ from mako.template import Template
 from r2.lib.filters import spaceCompress, safemarkdown
 import time, pytz
 from pylons import c, g
+from pylons.i18n import _
 
 def api_type(subtype = ''):
     return 'api-' + subtype if subtype else 'api'
 
 def is_api(subtype = ''):
     return c.render_style and c.render_style.startswith(api_type(subtype))
-    
+
 def get_api_subtype():
     if is_api() and c.render_style.startswith('api-'):
         return c.render_style[4:]
@@ -161,6 +162,20 @@ class ThingJsonTemplate(JsonTemplate):
         """
         if attr == "author":
             return thing.author.name
+        if attr == "author_flair_text":
+            if thing.author.flair_enabled_in_sr(thing.subreddit._id):
+                return getattr(thing.author,
+                               'flair_%s_text' % (thing.subreddit._id),
+                               None)
+            else:
+                return None
+        if attr == "author_flair_css_class":
+            if thing.author.flair_enabled_in_sr(thing.subreddit._id):
+                return getattr(thing.author,
+                               'flair_%s_css_class' % (thing.subreddit._id),
+                               None)
+            else:
+                return None
         elif attr == "created":
             return time.mktime(thing._date.timetuple())
         elif attr == "created_utc":
@@ -202,7 +217,8 @@ class AccountJsonTemplate(ThingJsonTemplate):
                                                 comment_karma = "comment_karma",
                                                 has_mail = "has_mail",
                                                 has_mod_mail = "has_mod_mail",
-                                                is_mod = "is_mod"
+                                                is_mod = "is_mod",
+                                                is_gold = "gold"
                                                 )
 
     def thing_attr(self, thing, attr):
@@ -219,6 +235,12 @@ class AccountJsonTemplate(ThingJsonTemplate):
             return bool(Subreddit.reverse_moderator_ids(thing))
         return ThingJsonTemplate.thing_attr(self, thing, attr)
 
+    def raw_data(self, thing):
+        data = ThingJsonTemplate.raw_data(self, thing)
+        if c.user_is_loggedin and thing._id == c.user._id:
+            data["modhash"] = c.modhash
+        return data
+
 class LinkJsonTemplate(ThingJsonTemplate):
     _data_attrs_ = ThingJsonTemplate.data_attrs(ups          = "upvotes",
                                                 downs        = "downvotes",
@@ -232,6 +254,10 @@ class LinkJsonTemplate(ThingJsonTemplate):
                                                 title        = "title",
                                                 url          = "url",
                                                 author       = "author",
+                                                author_flair_text =
+                                                    "author_flair_text",
+                                                author_flair_css_class =
+                                                    "author_flair_css_class",
                                                 thumbnail    = "thumbnail",
                                                 media        = "media_object",
                                                 media_embed  = "media_embed",
@@ -262,9 +288,15 @@ class LinkJsonTemplate(ThingJsonTemplate):
         elif attr == 'subreddit_id':
             return thing.subreddit._fullname
         elif attr == 'selftext':
-            return thing.selftext
+            if not thing.expunged:
+                return thing.selftext
+            else:
+                return ''
         elif attr == 'selftext_html':
-            return safemarkdown(thing.selftext)
+            if not thing.expunged:
+                return safemarkdown(thing.selftext)
+            else:
+                return safemarkdown(_("[removed]"))
         return ThingJsonTemplate.thing_attr(self, thing, attr)
 
     def rendered_data(self, thing):
@@ -285,6 +317,10 @@ class CommentJsonTemplate(ThingJsonTemplate):
                                                 body_html    = "body_html",
                                                 likes        = "likes",
                                                 author       = "author", 
+                                                author_flair_text =
+                                                    "author_flair_text",
+                                                author_flair_css_class =
+                                                    "author_flair_css_class",
                                                 link_id      = "link_id",
                                                 subreddit    = "subreddit",
                                                 subreddit_id = "subreddit_id",
@@ -441,3 +477,27 @@ class TrafficJsonTemplate(JsonTemplate):
                 res[ival] = [[time.mktime(date.timetuple())] + list(data)
                              for date, data in getattr(thing, ival+"_data")]
         return ObjectTemplate(res)
+
+class FlairListJsonTemplate(JsonTemplate):
+    def render(self, thing, *a, **kw):
+        def row_to_json(row):
+            if hasattr(row, 'user'):
+              return dict(user=row.user.name, flair_text=row.flair_text,
+                          flair_css_class=row.flair_css_class)
+            else:
+              # prev/next link
+              return dict(after=row.after, reverse=row.reverse)
+
+        json_rows = [row_to_json(row) for row in thing.flair]
+        result = dict(users=[row for row in json_rows if 'user' in row])
+        for row in json_rows:
+            if 'after' in row:
+                if row['reverse']:
+                    result['prev'] = row['after']
+                else:
+                    result['next'] = row['after']
+        return ObjectTemplate(result)
+
+class FlairCsvJsonTemplate(JsonTemplate):
+    def render(self, thing, *a, **kw):
+        return ObjectTemplate([l.__dict__ for l in thing.results_by_line])

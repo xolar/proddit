@@ -206,6 +206,12 @@ class Results():
         else:
             raise StopIteration
 
+def strip_www(domain):
+    if domain.count('.') >= 2 and domain.startswith("www."):
+        return domain[4:]
+    else:
+        return domain
+
 r_base_url = re.compile("(?i)(?:.+?://)?(?:www[\d]*\.)?([^#]*[^#/])/?")
 def base_url(url):
     res = r_base_url.findall(url)
@@ -233,7 +239,7 @@ def path_component(s):
 def get_title(url):
     """Fetches the contents of url and extracts (and utf-8 encodes)
        the contents of <title>"""
-    if not url or not url.startswith('http://'):
+    if not url or not (url.startswith('http://') or url.startswith('https://')):
         return None
 
     try:
@@ -246,12 +252,12 @@ def get_title(url):
         if not bs:
             return
 
-        title_bs = bs.first('title')
+        title_bs = bs.html.head.title
 
-        if not title_bs or title_bs.children:
+        if not title_bs or not title_bs.string:
             return
 
-        return title_bs.text.encode('utf-8')
+        return title_bs.string.encode('utf-8')
 
     except:
         return None
@@ -275,11 +281,14 @@ def sanitize_url(url, require_scheme = False):
     if url.lower() == 'self':
         return url
 
-    u = urlparse(url)
-    # first pass: make sure a scheme has been specified
-    if not require_scheme and not u.scheme:
-        url = 'http://' + url
+    try:
         u = urlparse(url)
+        # first pass: make sure a scheme has been specified
+        if not require_scheme and not u.scheme:
+            url = 'http://' + url
+            u = urlparse(url)
+    except ValueError:
+        return
 
     if u.scheme and u.scheme in valid_schemes:
         # if there is a scheme and no hostname, it is a bad url.
@@ -304,6 +313,9 @@ def sanitize_url(url, require_scheme = False):
                     return
         return url
 
+def trunc_string(text, length):
+    return text[0:length]+'...' if len(text)>length else text
+
 # Truncate a time to a certain number of minutes
 # e.g, trunc_time(5:52, 30) == 5:30
 def trunc_time(time, mins, hours=None):
@@ -319,6 +331,8 @@ def trunc_time(time, mins, hours=None):
                         second = 0,
                         microsecond = 0)
 
+def long_datetime(datetime):
+    return datetime.ctime() + " GMT"
 
 def median(l):
     if l:
@@ -603,9 +617,7 @@ class UrlParser(object):
         u = cls(url)
 
         # strip off any www and lowercase the hostname:
-        netloc = u.netloc.lower()
-        if len(netloc.split('.')) > 2 and netloc.startswith("www."):
-            netloc = netloc[4:]
+        netloc = strip_www(u.netloc.lower())
 
         # http://code.google.com/web/ajaxcrawling/docs/specification.html
         fragment = u.fragment if u.fragment.startswith("!") else ""
@@ -774,7 +786,7 @@ def fetch_things2(query, chunk_size = 100, batch_fn = None, chunks = False):
             query._after(after)
             items = list(query)
 
-def fix_if_broken(thing, delete = True):
+def fix_if_broken(thing, delete = True, fudge_links = False):
     from r2.models import Link, Comment, Subreddit, Message
 
     # the minimum set of attributes that are required
@@ -785,6 +797,7 @@ def fix_if_broken(thing, delete = True):
     if thing.__class__ not in attrs:
         raise TypeError
 
+    tried_loading = False
     for attr in attrs[thing.__class__]:
         try:
             # try to retrieve the attribute
@@ -792,21 +805,35 @@ def fix_if_broken(thing, delete = True):
         except AttributeError:
             # that failed; let's explicitly load it and try again
 
-            # we don't have g
-            print "You might want to try this:"
-            print "   g.memcache.delete('%s')" % thing._cache_key()
+            if not tried_loading:
+                tried_loading = True
+                thing._load(check_essentials=False)
 
-            thing._load()
             try:
                 getattr(thing, attr)
             except AttributeError:
                 if not delete:
                     raise
-                # it still broke. We should delete it
-                print "%s is missing %r, deleting" % (thing._fullname, attr)
-                thing._deleted = True
+                if isinstance(thing, Link) and fudge_links:
+                    if attr == "sr_id":
+                        thing.sr_id = 6
+                        print "Fudging %s.sr_id to %d" % (thing._fullname,
+                                                          thing.sr_id)
+                    elif attr == "author_id":
+                        thing.author_id = 8244672
+                        print "Fudging %s.author_id to %d" % (thing._fullname,
+                                                              thing.author_id)
+                    else:
+                        print "Got weird attr %s; can't fudge" % attr
+
+                if not thing._deleted:
+                    print "%s is missing %r, deleting" % (thing._fullname, attr)
+                    thing._deleted = True
+
                 thing._commit()
-                break
+
+                if not fudge_links:
+                    break
 
 
 def find_recent_broken_things(from_time = None, to_time = None,
@@ -1324,3 +1351,20 @@ def thread_dump(*a):
             sys.stderr.write('\t\t%(filename)s(%(lineno)d): %(fnname)s\n'
                              % dict(filename=filename, lineno=lineno, fnname=fnname))
             sys.stderr.write('\t\t\t%(line)s\n' % dict(line=line))
+
+
+def constant_time_compare(actual, expected):
+    """
+    Returns True if the two strings are equal, False otherwise
+    
+    The time taken is dependent on the number of charaters provided
+    instead of the number of characters that match.
+    """
+    actual_len   = len(actual)
+    expected_len = len(expected)
+    result = actual_len ^ expected_len
+    if expected_len > 0:
+        for i in xrange(actual_len):
+            result |= ord(actual[i]) ^ ord(expected[i % expected_len])
+    return result == 0
+

@@ -20,9 +20,10 @@
 # CondeNet, Inc. All Rights Reserved.
 ################################################################################
 from reddit_base import RedditController, MinimalController, set_user_cookie
+from reddit_base import paginated_listing
 
 from pylons.i18n import _
-from pylons import c, request
+from pylons import c, request, response
 
 from validator import *
 
@@ -31,9 +32,9 @@ from r2.models import *
 from r2.lib.utils import get_title, sanitize_url, timeuntil, set_last_modified
 from r2.lib.utils import query_string, timefromnow, randstr
 from r2.lib.utils import timeago, tup, filter_links, levenshtein
-from r2.lib.pages import FriendList, ContributorList, ModList, \
-    BannedList, BoringPage, FormPage, CssError, UploadedImage, \
-    ClickGadget, UrlParser
+from r2.lib.pages import EnemyList, FriendList, ContributorList, ModList, \
+    FlairList, FlairCsv, BannedList, BoringPage, FormPage, CssError, \
+    UploadedImage, ClickGadget, UrlParser, WrappedUser
 from r2.lib.utils.trial_utils import indict, end_trial, trial_info
 from r2.lib.pages.things import wrap_links, default_thing_wrapper
 
@@ -52,6 +53,7 @@ from r2.lib.subreddit_search import search_reddits
 from r2.lib.log import log_text
 from r2.lib.filters import safemarkdown
 
+import csv
 from datetime import datetime, timedelta
 from md5 import md5
 import urllib
@@ -137,6 +139,14 @@ class ApiController(RedditController):
         listing = wrap_links(filter(None, links or []), num = count)
         return BoringPage(_("API"), content = listing).render()
 
+
+    @json_validate()
+    def GET_me(self):
+        if c.user_is_loggedin:
+            return Wrapped(c.user).render()
+        else:
+            return {}
+
     @validatedForm(VCaptcha(),
                    name=VRequired('name', errors.NO_NAME),
                    email=ValidEmails('email', num = 1),
@@ -168,7 +178,7 @@ class ApiController(RedditController):
                    VUser(),
                    VModhash(),
                    ip = ValidIP(),
-                   to = VMessageRecipent('to'),
+                   to = VMessageRecipient('to'),
                    subject = VRequired('subject', errors.NO_SUBJECT),
                    body = VMarkdown(['text', 'message']))
     def POST_compose(self, form, jquery, to, subject, body, ip):
@@ -176,7 +186,8 @@ class ApiController(RedditController):
         handles message composition under /message/compose.
         """
         if not (form.has_errors("to",  errors.USER_DOESNT_EXIST,
-                                errors.NO_USER, errors.SUBREDDIT_NOEXIST) or
+                                errors.NO_USER, errors.SUBREDDIT_NOEXIST,
+                                errors.USER_BLOCKED) or
                 form.has_errors("subject", errors.NO_SUBJECT) or
                 form.has_errors("text", errors.NO_TEXT, errors.TOO_LONG) or
                 form.has_errors("captcha", errors.BAD_CAPTCHA)):
@@ -313,7 +324,6 @@ class ApiController(RedditController):
                 form.set_html(".status", md)
                 return
 
-
         # well, nothing left to do but submit it
         l = Link._submit(request.post.title, url if kind == 'link' else 'self',
                          c.user, sr, ip, spam=c.user._spam)
@@ -420,12 +430,13 @@ class ApiController(RedditController):
     def POST_register(self, form, jquery, name, email,
                       password, dest, rem, reason):
         if not (form.has_errors("user", errors.BAD_USERNAME,
+                                errors.USERNAME_TAKEN_DEL,
                                 errors.USERNAME_TAKEN) or
                 form.has_errors("email", errors.BAD_EMAILS) or
                 form.has_errors("passwd", errors.BAD_PASSWORD) or
                 form.has_errors("passwd2", errors.BAD_PASSWORD_MATCH) or
                 form.has_errors('ratelimit', errors.RATELIMIT) or
-                form.has_errors('captcha', errors.BAD_CAPTCHA)):
+                (not g.disable_captcha and form.has_errors('captcha', errors.BAD_CAPTCHA))):
 
             user = register(name, password)
             VRatelimit.ratelimit(rate_ip = True, prefix = "rate_register_")
@@ -484,7 +495,7 @@ class ApiController(RedditController):
                 nuser = VExistingUname('name'),
                 iuser = VByName('id'),
                 container = VByName('container'),
-                type = VOneOf('type', ('friend', 'moderator', 
+                type = VOneOf('type', ('friend', 'enemy', 'moderator', 
                                        'contributor', 'banned')))
     def POST_unfriend(self, nuser, iuser, container, type):
         """
@@ -509,7 +520,7 @@ class ApiController(RedditController):
             abort(403, 'forbidden')
         # if we are (strictly) unfriending, the container had better
         # be the current user.
-        if type == "friend" and container != c.user:
+        if type in ("friend", "enemy") and container != c.user:
             abort(403, 'forbidden')
         fn = getattr(container, 'remove_' + type)
         fn(victim)
@@ -519,8 +530,6 @@ class ApiController(RedditController):
 
         if type in ("moderator", "contributor"):
             Subreddit.special_reddits(victim, type, _update=True)
-
-
 
     @validatedForm(VUser(),
                    VModhash(),
@@ -545,8 +554,8 @@ class ApiController(RedditController):
                  and not c.site.is_moderator(c.user))):
             abort(403,'forbidden')
 
-        # if we are (strictly) friending, the container had better
-        # be the current user.
+        # if we are (strictly) friending, the container
+        # had better be the current user.
         if type == "friend" and container != c.user:
             abort(403,'forbidden')
 
@@ -671,6 +680,7 @@ class ApiController(RedditController):
     def POST_del(self, thing):
         if not thing: return
         '''for deleting all sorts of things'''
+        was_deleted = thing._deleted
         thing._deleted = True
         if (getattr(thing, "promoted", None) is not None and
             not promote.is_promoted(thing)):
@@ -699,14 +709,36 @@ class ApiController(RedditController):
                 if parent_link.is_self:
                     recipient = Account._byID(parent_link.author_id)
 
-            thing._delete()
-            delete_comment(thing)
+            if not was_deleted:
+                delete_comment(thing)
 
             if recipient:
                 inbox_class = Inbox.rel(Account, Comment)
                 d = inbox_class._fast_query(recipient, thing, ("inbox", "selfreply"))
                 rels = filter(None, d.values()) or None
                 queries.new_comment(thing, rels)
+
+    @noresponse(VUser(),
+                VModhash(),
+                VSrCanAlter('id'),
+                thing = VByName('id'))
+    def POST_marknsfw(self, thing):
+        thing.over_18 = True
+        thing._commit()
+
+        # flag search indexer that something has changed
+        changed(thing)
+
+    @noresponse(VUser(),
+                VModhash(),
+                VSrCanAlter('id'),
+                thing = VByName('id'))
+    def POST_unmarknsfw(self, thing):
+        thing.over_18 = False
+        thing._commit()
+
+        # flag search indexer that something has changed
+        changed(thing)
 
     @noresponse(VUser(), VModhash(),
                 thing = VByName('id'))
@@ -733,6 +765,36 @@ class ApiController(RedditController):
         if c.user._spam or c.user.ignorereports:
             return
         Report.new(c.user, thing)
+
+    @noresponse(VUser(), VModhash(),
+                thing=VByName('id'))
+    def POST_block(self, thing):
+        '''for blocking via inbox'''
+        if not thing:
+            return
+        # Users may only block someone who has
+        # actively harassed them (i.e., comment/link reply
+        # or PM). Check that 'thing' would have showed up in the
+        # user's inbox at some point
+        if isinstance(thing, Message):
+            if thing.to_id != c.user._id:
+                return
+        elif isinstance(thing, Comment):
+            parent_id = getattr(thing, 'parent_id', None)
+            link_id = thing.link_id
+            if parent_id:
+                parent_comment = Comment._byID(parent_id)
+                parent_author_id = parent_comment.author_id
+            else:
+                parent_link = Link._byID(link_id)
+                parent_author_id = parent_link.author_id
+            if parent_author_id != c.user._id:
+                return
+
+        block_acct = Account._byID(thing.author_id)
+        if block_acct.name in g.admins:
+            return
+        c.user.add_enemy(block_acct)
 
     @noresponse(VAdmin(), VModhash(),
                 thing = VByName('id'))
@@ -819,6 +881,7 @@ class ApiController(RedditController):
             parent_age = c.start_time - parent._date
             if parent_age.days > g.REPLY_AGE_LIMIT:
                 c.errors.add(errors.TOO_OLD, field = "parent")
+
         #remove the ratelimit error if the user's karma is high
         if not should_ratelimit:
             c.errors.remove((errors.RATELIMIT, 'ratelimit'))
@@ -831,7 +894,8 @@ class ApiController(RedditController):
             not commentform.has_errors("parent",
                                        errors.DELETED_COMMENT,
                                        errors.DELETED_LINK,
-                                       errors.TOO_OLD)):
+                                       errors.TOO_OLD,
+                                       errors.USER_BLOCKED)):
 
             if is_message:
                 to = Account._byID(parent.author_id)
@@ -854,7 +918,7 @@ class ApiController(RedditController):
 
             # clean up the submission form and remove it from the DOM (if reply)
             t = commentform.find("textarea")
-            t.attr('rows', 3).html("").attr("value", "")
+            t.attr('rows', 3).html("").val("")
             if isinstance(parent, (Comment, Message)):
                 commentform.remove()
                 jquery.things(parent._fullname).set_html(".reply-button:first",
@@ -975,8 +1039,6 @@ class ApiController(RedditController):
                 dir = VInt('dir', min=-1, max=1),
                 thing = VByName('id'))
     def POST_vote(self, dir, thing, ip, vote_type):
-        from r2.models.admintools import valid_vote
-
         ip = request.ip
         user = c.user
         store = True
@@ -988,7 +1050,9 @@ class ApiController(RedditController):
             reject_vote(thing)
             store = False
 
-        if not valid_vote(thing):
+        thing_age = c.start_time - thing._date
+        if thing_age.days > g.VOTE_AGE_LIMIT:
+            g.log.debug("ignoring vote on old thing %s" % thing._fullname)
             store = False
 
         if getattr(c.user, "suspicious", False):
@@ -1210,6 +1274,7 @@ class ApiController(RedditController):
                    over_18 = VBoolean('over_18'),
                    allow_top = VBoolean('allow_top'),
                    show_media = VBoolean('show_media'),
+                   show_cname_sidebar = VBoolean('show_cname_sidebar'),
                    type = VOneOf('type', ('public', 'private', 'restricted')),
                    link_type = VOneOf('link_type', ('any', 'link', 'self')),
                    ip = ValidIP(),
@@ -1219,14 +1284,14 @@ class ApiController(RedditController):
                    css_on_cname = VBoolean("css_on_cname"),
                    )
     def POST_site_admin(self, form, jquery, name, ip, sr,
-                        sponsor_text, sponsor_url, sponsor_name,  **kw):
+                        sponsor_text, sponsor_url, sponsor_name, **kw):
         # the status button is outside the form -- have to reset by hand
         form.parent().set_html('.status', "")
 
         redir = False
         kw = dict((k, v) for k, v in kw.iteritems()
                   if k in ('name', 'title', 'domain', 'description', 'over_18',
-                           'show_media', 'type', 'link_type', 'lang',
+                           'show_media', 'show_cname_sidebar', 'type', 'link_type', 'lang',
                            "css_on_cname", "header_title", 
                            'allow_top'))
 
@@ -1338,6 +1403,7 @@ class ApiController(RedditController):
                 thing = VByName('id'))
     def POST_approve(self, why, thing):
         if not thing: return
+        if thing._deleted: return
 
         end_trial(thing, why + "-approved")
         admintools.unspam(thing, c.user.name)
@@ -1643,17 +1709,19 @@ class ApiController(RedditController):
         elif form.has_errors('name', errors.NO_EMAIL_FOR_USER):
             return
         else:
-            emailer.password_email(user)
-            form.set_html(".status",
-                          _("an email will be sent to that account's address shortly"))
+            if emailer.password_email(user):
+                form.set_html(".status",
+                      _("an email will be sent to that account's address shortly"))
+            else:
+                form.set_html(".status", _("try again tomorrow"))
 
 
-    @validatedForm(cache_evt = VCacheKey('reset', ('key',)),
+    @validatedForm(cache_evt = VHardCacheKey('email-reset', ('key',)),
                    password  = VPassword(['passwd', 'passwd2']))
     def POST_resetpassword(self, form, jquery, cache_evt, password):
         if form.has_errors('name', errors.EXPIRED):
             cache_evt.clear()
-            form.redirect('/password')
+            form.redirect('/password?expired=true')
         elif form.has_errors('passwd',  errors.BAD_PASSWORD):
             pass
         elif form.has_errors('passwd2', errors.BAD_PASSWORD_MATCH):
@@ -1661,6 +1729,7 @@ class ApiController(RedditController):
         elif cache_evt.user:
             # successfully entered user name and valid new password
             change_password(cache_evt.user, password)
+            g.hardcache.delete("%s_%s" % (cache_evt.cache_prefix, cache_evt.key))
             print "%s did a password reset for %s via %s" % (
                 request.ip, cache_evt.user.name, cache_evt.key)
             self._login(jquery, cache_evt.user, '/')
@@ -1876,6 +1945,136 @@ class ApiController(RedditController):
         award.imgurl = imgurl
         award._commit()
         form.set_html(".status", _('saved'))
+
+    @validatedForm(VFlairManager(),
+                   VModhash(),
+                   user = VExistingUname("name", allow_deleted=True),
+                   text = VFlairText("text"),
+                   css_class = VFlairCss("css_class"))
+    def POST_flair(self, form, jquery, user, text, css_class):
+        # Check validation.
+        if form.has_errors('name', errors.USER_DOESNT_EXIST, errors.NO_USER):
+            return
+        if form.has_errors('css_class', errors.BAD_CSS_NAME):
+            form.set_html(".status:first", _('invalid css class'))
+            return
+        if form.has_errors('css_class', errors.TOO_MUCH_FLAIR_CSS):
+            form.set_html(".status:first", _('too many css classes'))
+            return
+
+        if not text and not css_class:
+            # empty text and css is equivalent to unflairing
+            text = css_class = None
+            c.site.remove_flair(user)
+            jquery('#flairrow_%s' % user._id36).hide()
+            new = False
+        elif not c.site.is_flair(user):
+            c.site.add_flair(user)
+            new = True
+        else:
+            new = False
+
+        # Save the flair details in the account data.
+        setattr(user, 'flair_%s_text' % c.site._id, text)
+        setattr(user, 'flair_%s_css_class' % c.site._id, css_class)
+        user._commit()
+
+        if new:
+            jquery.redirect('?name=%s' % user.name)
+        else:
+            jquery('input[name="text"]').data('saved', text)
+            jquery('input[name="css_class"]').data('saved', css_class)
+            form.set_html('.status', _('saved'))
+            form.set_html(
+                '.tagline',
+                WrappedUser(user, force_show_flair=True).render(style='html'))
+
+    @validate(VFlairManager(),
+              VModhash(),
+              flair_csv = nop('flair_csv'))
+    def POST_flaircsv(self, flair_csv):
+        limit = 100  # max of 100 flair settings per call
+        results = FlairCsv()
+        # encode to UTF-8, since csv module doesn't fully support unicode
+        infile = csv.reader(flair_csv.strip().encode('utf-8').split('\n'))
+        for i, row in enumerate(infile):
+            line_result = results.add_line()
+            line_no = i + 1
+            if line_no > limit:
+                line_result.error('row',
+                                  'limit of %d rows per call reached' % limit)
+                break
+
+            try:
+                name, text, css_class = row
+            except ValueError:
+                line_result.error('row', 'improperly formatted row, ignoring')
+                continue
+
+            user = VExistingUname('name', allow_deleted=True).run(name)
+            if not user:
+                line_result.error('user',
+                                  "unable to resolve user `%s', ignoring"
+                                  % name)
+                continue
+
+            if not text and not css_class:
+                # this is equivalent to unflairing
+                text = None
+                css_class = None
+
+            orig_text = text
+            text = VFlairText('text').run(orig_text)
+            if text and orig_text and len(text) < len(orig_text):
+                line_result.warn('text',
+                                 'truncating flair text to %d chars'
+                                 % len(text))
+
+            if css_class and not VCssName('css_class').run(css_class):
+                line_result.error('css',
+                                  "invalid css class `%s', ignoring"
+                                  % css_class)
+                continue
+
+            # all validation passed, enflair the user
+            if text or css_class:
+                mode = 'added'
+                c.site.add_flair(user)
+            else:
+                mode = 'removed'
+                c.site.remove_flair(user)
+            setattr(user, 'flair_%s_text' % c.site._id, text)
+            setattr(user, 'flair_%s_css_class' % c.site._id, css_class)
+            user._commit()
+            line_result.status = '%s flair for user %s' % (mode, user.name)
+            line_result.ok = True
+
+        return BoringPage(_("API"), content = results).render()
+
+    @validatedForm(VUser(),
+                   VModhash(),
+                   flair_enabled = VBoolean("flair_enabled"))
+    def POST_setflairenabled(self, form, jquery, flair_enabled):
+        setattr(c.user, 'flair_%s_enabled' % c.site._id, flair_enabled)
+        c.user._commit()
+        jquery.refresh()
+
+    @validatedForm(VFlairManager(),
+                   VModhash(),
+                   flair_enabled = VBoolean("flair_enabled"),
+                   flair_position = VOneOf("flair_position", ("left", "right")))
+    def POST_flairconfig(self, form, jquery, flair_enabled, flair_position):
+        c.site.flair_enabled = flair_enabled
+        c.site.flair_position = flair_position
+        c.site._commit()
+        jquery.refresh()
+
+    @paginated_listing(max_page_size=1000)
+    @validate(VFlairManager(),
+              user = VOptionalExistingUname('name'))
+    def GET_flairlist(self, num, after, reverse, count, user):
+        flair = FlairList(num, after, reverse, '', user)
+        return BoringPage(_("API"), content = flair).render()
 
     @validatedForm(VAdmin(),
                    award = VByName("fullname"),

@@ -145,8 +145,9 @@ function handleResponse(action) {
                         else {
                             $.debug("unrecognized");
                         }
-                    }
-                    else {
+                    } else if (op == "refresh") {
+                        $.refresh();
+                    } else {
                         $.debug("unrecognized");
                     }
                 });
@@ -167,7 +168,7 @@ $.request = function(op, parameters, worker_in, block, type,
     var action = op;
     var worker = worker_in;
 
-    if (rate_limit(op))
+    if (rate_limit(op) || (window != window.top && !reddit.cnameframe && !reddit.external_frame))
         return;
 
     /* we have a lock if we are not blocking or if we have gotten a lock */
@@ -307,6 +308,9 @@ $.fn.vote = function(vh, callback, event, ui_only) {
     }
 };
 
+$.fn.show_unvotable_message = function() {
+  $(this).thing().find(".entry:first .unvotable-message").css("display", "inline-block");
+};
 
 $.fn.thing = function() {
     /* Returns the first thing that is a parent of the current element */
@@ -328,7 +332,7 @@ $.fn.thing_id = function(class_filter) {
         t = t.find("." + class_filter + ":first");
     }
     if(t.length) {
-        var id = $.grep(t.get(0).className.split(' '),
+        var id = $.grep(t.get(0).className.match(/\S+/g),
                         function(i) { return i.match(/^id-/); }); 
         return (id.length) ? id[0].slice(3, id[0].length) : "";
     }
@@ -426,7 +430,7 @@ $.fn.new_thing_child = function(what, use_listing) {
         new_form = what.hide()
             .prependTo(where)
             .show()
-            .find('input[name=parent]').attr('value', id).end();
+            .find('input[name="parent"]').val(id).end();
     
     return (new_form).randomize_ids();
 };
@@ -588,7 +592,7 @@ $.fn.captcha = function(iden) {
     if(iden) {
         c.attr("src", "http://" + reddit.ajax_domain 
                + "/captcha/" + iden + ".png")
-            .parents("form").find("input[name=iden]").attr("value", iden);
+            .parents("form").find('input[name="iden"]').val(iden);
     }
     return c;
 };
@@ -639,7 +643,7 @@ $.fn.select_line = function(lineNo) {
                 caret_pos = 1;
             }
             
-            var lines = $(this).attr("value").split(newline);
+            var lines = $(this).val().split(newline);
             
             for(var x=0; x<lineNo-1; x++) 
                 caret_pos += lines[x].length + newline_length;
@@ -684,7 +688,7 @@ $.apply_stylesheet = function(cssText) {
         /* for everyone else, we walk <head> for the <link> or <style>
          * that has the old stylesheet, and delete it. Then we add a
          * <style> with the new one */
-        $("head").children("*[title=" + sheet_title + "]").remove();
+        $("head").children('*[title="' + sheet_title + '"]').remove();
         $("head").append("<style type='text/css' media='screen' title='" + 
                          sheet_title + "'>" + cssText + "</style>");
   }
@@ -760,8 +764,8 @@ $.cookie_write = function(c) {
     }
 };
 
-$.cookie_read = function(name) {
-    var nameEQ = cookie_name_prefix + name + '=';
+$.cookie_read = function(name, prefix) {
+    var nameEQ = (prefix || cookie_name_prefix) + name + '=';
     var ca=document.cookie.split(';');
     /* walk the list backwards so we always get the last cookie in the
        list */

@@ -31,6 +31,7 @@
 
 <%def name="javascript_run()">
   ${parent.javascript_run()}
+  reddit.external_frame = true;
   toolbar = new toolbar_p("${panel_size('expanded')}", "${panel_size('collapsed')}");
 </%def>
 
@@ -181,8 +182,10 @@
       </a>
     </%def>
 
-    ${arrow("up",   thing.upstyle,   _("like"))}
-    ${arrow("down", thing.downstyle, _("dislike"))}
+    %if getattr(thing, "votable", True):
+      ${arrow("up",   thing.upstyle,   _("like"))}
+      ${arrow("down", thing.downstyle, _("dislike"))}
+    %endif
   </span>
 
 

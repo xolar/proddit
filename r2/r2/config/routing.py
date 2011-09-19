@@ -235,7 +235,7 @@ def make_map(global_conf={}, app_conf={}):
        dest='http://store.proddit.com/index.html')
 
     mc('/code', controller='redirect', action='redirect',
-       dest='http://code.reddit.com/')
+       dest='http://github.com/reddit/')
 
     mc('/mobile', controller='redirect', action='redirect',
        dest='http://i.proddit.com/')
@@ -244,7 +244,7 @@ def make_map(global_conf={}, app_conf={}):
 
     # Used for showing ads
     mc("/ads/", controller = "ad", action = "ad")
-    mc("/ads/r/:reddit_name", controller = "ad", action = "ad")
+    mc("/ads/r/:reddit_name/:keyword", controller = "ad", action = "ad", keyword=None)
     mc("/ads/:codename", controller = "ad", action = "ad_by_codename")
 
     mc("/try", controller = "forms", action = "try_compact")

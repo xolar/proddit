@@ -254,34 +254,32 @@ def set_subreddit():
     elif sr_name == 'r':
         #reddits
         c.site = Sub
+    elif '+' in sr_name:
+        sr_names = sr_name.split('+')
+        srs = set(Subreddit._by_name(sr_names, stale=can_stale).values())
+        if All in srs:
+            c.site = All
+        elif Friends in srs:
+            c.site = Friends
+        else:
+            srs = [sr for sr in srs if not isinstance(sr, FakeSubreddit)]
+            if len(srs) == 0:
+                c.site = MultiReddit([], sr_name)
+            elif len(srs) == 1:
+                c.site = srs.pop()    
+            else:
+                sr_ids = [sr._id for sr in srs]
+                c.site = MultiReddit(sr_ids, sr_name)
     else:
         try:
-            if '+' in sr_name:
-                srs = set()
-                sr_names = sr_name.split('+')
-                real_path = sr_name
-                srs = Subreddit._by_name(sr_names, stale=can_stale).values()
-                if len(srs) != len(sr_names):
-                    abort(404)
-                elif any(isinstance(sr, FakeSubreddit)
-                         for sr in srs):
-                    if All in srs:
-                        c.site = All
-                    elif Friend in srs:
-                        c.site = Friend
-                    else:
-                        abort(400)
-                else:
-                    sr_ids = [sr._id for sr in srs]
-                    c.site = MultiReddit(sr_ids, real_path)
-            else:
-                c.site = Subreddit._by_name(sr_name, stale=can_stale)
+            c.site = Subreddit._by_name(sr_name, stale=can_stale)
         except NotFound:
             sr_name = chksrname(sr_name)
             if sr_name:
-                redirect_to("/proddits/search?q=%s" % sr_name)
-            elif not c.error_page:
+                redirect_to("/reddits/search?q=%s" % sr_name)
+            elif not c.error_page and not request.path.startswith("/api/login/") :
                 abort(404)
+
     #if we didn't find a subreddit, check for a domain listing
     if not sr_name and isinstance(c.site, DefaultSR) and domain:
         c.site = DomainSR(domain)
@@ -445,34 +443,41 @@ def ratelimit_throttled():
         abort(503, 'service temporarily unavailable')
 
 
+def paginated_listing(default_page_size=25, max_page_size=100):
+    def decorator(fn):
+        @validate(num=VLimit('limit', default=default_page_size,
+                             max_limit=max_page_size),
+                  after=VByName('after'),
+                  before=VByName('before'),
+                  count=VCount('count'),
+                  target=VTarget("target"),
+                  show=VLength('show', 3))
+        def new_fn(self, before, **env):
+            if c.render_style == "htmllite":
+                c.link_target = env.get("target")
+            elif "target" in env:
+                del env["target"]
+
+            if "show" in env and env['show'] == 'all':
+                c.ignore_hide_rules = True
+            kw = build_arg_list(fn, env)
+
+            #turn before into after/reverse
+            kw['reverse'] = False
+            if before:
+                kw['after'] = before
+                kw['reverse'] = True
+
+            return fn(self, **kw)
+        return new_fn
+    return decorator
+
 #TODO i want to get rid of this function. once the listings in front.py are
 #moved into listingcontroller, we shouldn't have a need for this
 #anymore
 def base_listing(fn):
-    @validate(num    = VLimit('limit'),
-              after  = VByName('after'),
-              before = VByName('before'),
-              count  = VCount('count'),
-              target = VTarget("target"),
-              show = VLength('show', 3))
-    def new_fn(self, before, **env):
-        if c.render_style == "htmllite":
-            c.link_target = env.get("target")
-        elif "target" in env:
-            del env["target"]
+    return paginated_listing()(fn)
 
-        if "show" in env and env['show'] == 'all':
-            c.ignore_hide_rules = True
-        kw = build_arg_list(fn, env)
-
-        #turn before into after/reverse
-        kw['reverse'] = False
-        if before:
-            kw['after'] = before
-            kw['reverse'] = True
-
-        return fn(self, **kw)
-    return new_fn
 
 class MinimalController(BaseController):
 
@@ -595,6 +600,11 @@ class MinimalController(BaseController):
                                     domain  = v.domain,
                                     expires = v.expires)
 
+        if g.logans_run_limit:
+            if c.start_time > g.logans_run_limit and not g.shutdown:
+                g.log.info("Time to restart. It's been an honor serving with you.")
+                g.shutdown = 'init'
+
         if g.usage_sampling <= 0.0:
             return
 
@@ -681,6 +691,7 @@ class RedditController(MinimalController):
                 #can't handle broken cookies
                 request.environ['HTTP_COOKIE'] = ''
 
+        c.secure = request.host in g.secure_domains
         c.firsttime = firsttime()
 
         # the user could have been logged in via one of the feeds 
@@ -721,7 +732,7 @@ class RedditController(MinimalController):
                 c.show_mod_mail = Subreddit.reverse_moderator_ids(c.user)
             c.user_is_admin = maybe_admin and c.user.name in g.admins
             c.user_is_sponsor = c.user_is_admin or c.user.name in g.sponsors
-            if not g.disallow_db_writes:
+            if request.path != '/validuser' and not g.disallow_db_writes:
                 c.user.update_last_visit(c.start_time)
 
         c.over18 = over18()
@@ -746,21 +757,21 @@ class RedditController(MinimalController):
         elif c.site == RandomNSFW:
             c.site = Subreddit.random_reddit(over18 = True)
             redirect_to("/" + c.site.path.strip('/') + request.path)
+        
+        if not request.path.startswith("/api/login/"):
+            # check that the site is available:
+            if c.site.spammy() and not c.user_is_admin and not c.error_page:
+                abort(404, "not found")
 
+            # check if the user has access to this subreddit
+            if not c.site.can_view(c.user) and not c.error_page:
+                abort(403, "forbidden")
 
-        # check that the site is available:
-        if c.site.spammy() and not c.user_is_admin and not c.error_page:
-            abort(404, "not found")
-
-        # check if the user has access to this subreddit
-        if not c.site.can_view(c.user) and not c.error_page:
-            abort(403, "forbidden")
-
-        #check over 18
-        if (c.site.over_18 and not c.over18 and
-            request.path not in  ("/frame", "/over18")
-            and c.render_style == 'html'):
-            return self.intermediate_redirect("/over18")
+            #check over 18
+            if (c.site.over_18 and not c.over18 and
+                request.path not in ("/frame", "/over18")
+                and c.render_style == 'html'):
+                return self.intermediate_redirect("/over18")
 
         #check whether to allow custom styles
         c.allow_styles = self.allow_stylesheets
@@ -820,3 +831,4 @@ class RedditController(MinimalController):
         request.environ['retry_after'] = 60
 
         abort(503)
+

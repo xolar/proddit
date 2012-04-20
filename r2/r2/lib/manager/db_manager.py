@@ -39,8 +39,12 @@ def get_engine(name, db_host='', db_user='', db_pass='', db_port='5432',
             host = "%s@%s:%s" % (db_user, db_host,db_port)
     return sa.create_engine('postgres://%s/%s' % (host, name),
                             strategy='threadlocal',
-                            pool_size = int(5),
-                            max_overflow = int(max_overflow))
+                            pool_size = int(pool_size),
+                            max_overflow = int(max_overflow),
+                            # our code isn't ready for unicode to appear
+                            # in place of strings yet
+                            use_native_unicode=False,
+                            )
 
 class db_manager:
     def __init__(self):
@@ -70,7 +74,9 @@ class db_manager:
 
     def things_iter(self):
         for name, engines in self._things.iteritems():
-            yield name, [e for e in engines if e not in self.dead]
+            # ensure we ALWAYS return the actual master as the first,
+            # regardless of if we think it's dead or not.
+            yield name, [engines[0]] + [e for e in engines[1:] if e not in self.dead]
 
     def rels_iter(self):
         for name, (type1_name, type2_name, engines) in self._relations.iteritems():
@@ -78,13 +84,8 @@ class db_manager:
             yield name, (type1_name, type2_name, engines) 
 
     def mark_dead(self, engine, g_override=None):
-        from r2.lib import services
         logger.error("db_manager: marking connection dead: %r" % engine)
         self.dead[engine] = time.time()
-        if g_override is None:
-            services.AppServiceMonitor.mark_db_down(engine.url.host)
-        else:
-            services.mark_db_down(g_override.servicecache, engine.url.host)
 
     def test_engine(self, engine, g_override=None):
         try:
@@ -106,10 +107,7 @@ class db_manager:
         return [self._engines[name] for name in names if name in self._engines]
 
     def get_read_table(self, tables):
-        from r2.lib.services import AppServiceMonitor
-        # short-cut for only one element
         if len(tables) == 1:
             return tables[0]
-
         return  random.choice(list(tables))
 

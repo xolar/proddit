@@ -91,7 +91,7 @@ class TableRowTemplate(JsonTemplate):
                                    css_class = self.css_class(thing),
                                    cells = self.cells(thing)))
 
-class UserItemJsonTemplate(TableRowTemplate):
+class UserItemHTMLJsonTemplate(TableRowTemplate):
     def cells(self, thing):
         cells = []
         for cell in thing.cells:
@@ -211,15 +211,18 @@ class SubredditJsonTemplate(ThingJsonTemplate):
         else:
             return ThingJsonTemplate.thing_attr(self, thing, attr)
 
-class AccountJsonTemplate(ThingJsonTemplate):
+class IdentityJsonTemplate(ThingJsonTemplate):
     _data_attrs_ = ThingJsonTemplate.data_attrs(name = "name",
                                                 link_karma = "safe_karma",
                                                 comment_karma = "comment_karma",
-                                                has_mail = "has_mail",
-                                                has_mod_mail = "has_mod_mail",
-                                                is_mod = "is_mod",
                                                 is_gold = "gold"
                                                 )
+
+class AccountJsonTemplate(IdentityJsonTemplate):
+    _data_attrs_ = IdentityJsonTemplate.data_attrs(has_mail = "has_mail",
+                                                  has_mod_mail = "has_mod_mail",
+                                                  is_mod = "is_mod",
+                                                  )
 
     def thing_attr(self, thing, attr):
         from r2.models import Subreddit
@@ -268,7 +271,6 @@ class LinkJsonTemplate(ThingJsonTemplate):
                                                 subreddit_id = "subreddit_id",
                                                 is_self      = "is_self", 
                                                 permalink    = "permalink",
-                                                levenshtein  = "levenshtein",
                                                 )
 
     def thing_attr(self, thing, attr):
@@ -325,7 +327,6 @@ class CommentJsonTemplate(ThingJsonTemplate):
                                                 subreddit    = "subreddit",
                                                 subreddit_id = "subreddit_id",
                                                 parent_id    = "parent_id",
-                                                levenshtein  = "levenshtein",
                                                 )
 
     def thing_attr(self, thing, attr):
@@ -366,11 +367,15 @@ class CommentJsonTemplate(ThingJsonTemplate):
 
 class MoreCommentJsonTemplate(CommentJsonTemplate):
     _data_attrs_ = dict(id           = "_id36",
-                        name         = "_fullname")
+                        name         = "_fullname",
+                        children     = "children")
+
     def kind(self, wrapped):
         return "more"
 
     def thing_attr(self, thing, attr):
+        if attr == 'children':
+            return [to36(x) for x in thing.children]
         if attr in ('body', 'body_html'):
             return ""
         return CommentJsonTemplate.thing_attr(self, thing, attr)
@@ -410,6 +415,8 @@ class MessageJsonTemplate(ThingJsonTemplate):
             return None
         elif attr == "body_html":
             return safemarkdown(thing.body)
+        elif attr == "author" and getattr(thing, "hide_author", False):
+            return None
         return ThingJsonTemplate.thing_attr(self, thing, attr)
 
     def rendered_data(self, wrapped):
@@ -464,6 +471,34 @@ class ListingJsonTemplate(ThingJsonTemplate):
     
     def kind(self, wrapped):
         return "Listing"
+
+class UserListJsonTemplate(ThingJsonTemplate):
+    _data_attrs_ = dict(children = "users")
+
+    def thing_attr(self, thing, attr):
+        if attr == "users":
+            res = []
+            for a in thing.users:
+                r = a.render()
+                res.append(r)
+            return res
+        return ThingJsonTemplate.thing_attr(self, thing, attr)
+
+    def rendered_data(self, thing):
+        return self.thing_attr(thing, "users")
+
+    def kind(self, wrapped):
+        return "UserList"
+
+class UserTableItemJsonTemplate(ThingJsonTemplate):
+    _data_attrs_ = dict(id = "_fullname",
+                        name = "name")
+
+    def thing_attr(self, thing, attr):
+        return ThingJsonTemplate.thing_attr(self, thing.user, attr)
+
+    def render(self, thing, *a, **kw):
+        return ObjectTemplate(self.data(thing))
 
 class OrganicListingJsonTemplate(ListingJsonTemplate):
     def kind(self, wrapped):

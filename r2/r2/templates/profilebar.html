@@ -25,7 +25,7 @@
    from r2.lib.filters import edit_comment_filter, unsafe, safemarkdown
    from r2.lib.template_helpers import static
  %>
-<%namespace file="utils.html" import="submit_form, plain_link, timestamp"/>
+<%namespace file="utils.html" import="submit_form, plain_link, thing_timestamp"/>
 <%namespace file="printablebuttons.html" import="toggle_button,state_button"/>
 
 <div class="titlebox">
@@ -61,46 +61,61 @@
          "friend('%s', '%s', 'friend')" % (thing.user.name, thing.my_fullname),
          "unfriend('%s', '%s', 'friend')" % (thing.user.name, thing.my_fullname),
          css_class = "add", alt_css_class = "remove",
-         reverse = thing.is_friend)}
+         reverse = thing.is_friend, login_required=True)}
     </div>
   %endif
 
-  %if c.user_is_admin:
-    <table>
+  <span class="karma">${locale.format("%d", thing.user.safe_karma, True)}</span>
+  &#32;
+  ${_("link karma")}
+
+  <br/>
+  <span class="karma comment-karma">${locale.format("%d", thing.user.comment_karma, True)}</span>
+  &#32;
+  ${_("comment karma")}
+
+  %if c.user_is_admin or (c.user.gold and c.user == thing.user):
+    <table id="per-sr-karma"
+      % if not c.user_is_admin:
+      class="more-karmas"
+      % endif
+      >
+     <thead>
+        <tr>
+          <th id="sr-karma-header">subreddit</th>
+          <th>link</th>
+          <th>comment</th>
+        </tr>
+     </thead>
      <%
        karmas = thing.user.all_karmas()
      %>
-     %for i, (label, lc, cc) in enumerate(karmas):
+     <tbody>
+     %for i, (label, title, lc, cc) in enumerate(karmas):
         <tr
-        %if i < 5:
-          style="text-align:right"
-        %else:
+        % if c.user_is_admin and i >= 5:
           class="more-karmas"
-          style="text-align:right; display: none"
-        %endif
+        % endif
         >
-          <th>${label}:</th>
-          <td><b>${lc}</b></td>
-          <td>/</td>
-          <td><b>${cc}</b></td>
+        % if title:
+          <th class="helpful" title="${title}"><span>${label}</span></th>
+        % else:
+          <th>${label}</th>
+        % endif
+          <td>${lc}</td>
+          <td>${cc}</td>
         </tr>
       %endfor
+      </tbody>
     </table>
-    %if i >= 5:
+    % if not c.user_is_admin or len(karmas) > 5:
+    <div class="giftgold karma-breakdown">
       <a href="javascript:void(0)"
          onclick="$('.more-karmas').show();$(this).hide();return false">
          karma pentru toate ${len(karmas)} proddituri
       </a>
-    %endif
-  %else:
-    <span class="karma">${locale.format("%d", thing.user.safe_karma, True)}</span>
-    &#32;
-    ${_("link karma")}
-    
-    <br/>
-    <span class="karma">${locale.format("%d", thing.user.comment_karma, True)}</span>
-    &#32;
-    ${_("comment karma")}
+    </div>
+    % endif
   %endif
 
   %if thing.gold_remaining:
@@ -128,7 +143,7 @@
     %endif
 
     <span class="age">
-      ${_("redditor for")}&#32;${timestamp(thing.user)}
+      ${_("redditor for")}&#32;${thing_timestamp(thing.user)}
     </span>
   </div>
 

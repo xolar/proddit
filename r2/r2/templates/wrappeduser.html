@@ -32,21 +32,31 @@
 </%def>
 
 %if context_deleted and not c.user_is_admin:
-  [deleted]
+  <span class="author">[deleted]</span>
 %else:
   %if thing.user_deleted:
-    <span>[deleted]</span>
+    <span class="author">[deleted]</span>
   %elif thing.name == '[blocked]':
-    <span>${_(thing.thing.original_author.name)}</span>
+    <span class="author">${_(thing.thing.original_author.name)}</span>
   %else:
     %if thing.flair_position == 'left':
       ${flair(thing, enabled=thing.force_show_flair)}
     %endif
+    <%
+      classes = [thing.author_cls, 'id-%s' % thing.fullname]
+      if thing.include_flair_selector:
+          classes.append('flairselectable')
+    %>
     ${plain_link(thing.name + thing.karma, "/user/%s" % thing.name,
-                 _class = thing.author_cls + (" id-%s" % thing.fullname),
+                 _class = ' '.join(classes),
                  _sr_path = False, target=target, title=thing.author_title)}
     %if thing.flair_position == 'right':
       ${flair(thing, enabled=thing.force_show_flair)}
+    %endif
+    %if thing.include_flair_selector:
+      (<a class="flairselectbtn" href="javascript://">${_('edit')}</a>)
+      <div class="flairselector drop-choices"></div>
+      <form><input type="hidden" name="name" value="${thing.name}"></form>
     %endif
     <span class="userattrs">
     %if thing.attribs:
@@ -62,7 +72,7 @@
             <% (src, alt, width, height) = img %>
             <img src="${src}" alt="${alt}" width="${width}" height="${height}"/>
           %else:
-            ${abbv}
+            ${unsafe(abbv)}
           %endif
           </a>
         %else:

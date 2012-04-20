@@ -78,14 +78,14 @@
 %if thing.password:
 <div class="spacer">
   <%utils:round_field title="${_('new password')}">
-    <input type="password" name="newpass"/>
+    <input type="password" name="newpass" />
     ${error_field("BAD_PASSWORD", "newpass")}
   </%utils:round_field>
 </div>  
 
 <div class="spacer">
   <%utils:round_field title="${_('verify password')}">
-    <input type="password" name="verpass"/>
+    <input type="password" name="verpass" />
     ${error_field("BAD_PASSWORD_MATCH", "verpass")}
   </%utils:round_field>
 </div>  

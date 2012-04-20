@@ -32,6 +32,7 @@ from pylons.wsgiapp import PylonsApp, PylonsBaseWSGIApp
 
 from r2.config.environment import load_environment
 from r2.config.rewrites import rewrites
+from r2.config.extensions import extension_mapping, set_extension
 from r2.lib.utils import rstrips, is_authorized_cname
 from r2.lib.jsontemplates import api_type
 
@@ -40,6 +41,17 @@ from r2.lib.html_source import HTMLValidationParser
 from cStringIO import StringIO
 import sys, tempfile, urllib, re, os, sha, subprocess
 from httplib import HTTPConnection
+
+# hack in Paste support for HTTP 429 "Too Many Requests"
+from paste import httpexceptions, wsgiwrappers
+
+class HTTPTooManyRequests(httpexceptions.HTTPClientError):
+    code = 429
+    title = 'Too Many Requests'
+    explanation = ('The server has received too many requests from the client.')
+
+httpexceptions._exceptions[429] = HTTPTooManyRequests
+wsgiwrappers.STATUS_CODE_TEXT[429] = HTTPTooManyRequests.title
 
 #from pylons.middleware import error_mapper
 def error_mapper(code, message, environ, global_conf=None, **kw):
@@ -51,7 +63,7 @@ def error_mapper(code, message, environ, global_conf=None, **kw):
 
     if global_conf is None:
         global_conf = {}
-    codes = [304, 401, 403, 404, 503]
+    codes = [304, 401, 403, 404, 429, 503]
     if not asbool(global_conf.get('debug')):
         codes.append(500)
     if code in codes:
@@ -306,7 +318,7 @@ class DomainMiddleware(object):
         sr_redirect = None
         for sd in list(sub_domains):
             # subdomains to disregard completely
-            if sd in ('www', 'origin', 'beta', 'pay', 'buttons'):
+            if sd in ('www', 'origin', 'beta', 'lab', 'pay', 'buttons', 'ssl'):
                 continue
             # subdomains which change the extension
             elif sd == 'm':
@@ -371,39 +383,25 @@ class DomainListingMiddleware(object):
 
 class ExtensionMiddleware(object):
     ext_pattern = re.compile(r'\.([^/]+)\Z')
-
-    extensions = (('rss' , ('xml', 'text/xml; charset=UTF-8')),
-                  ('xml' , ('xml', 'text/xml; charset=UTF-8')),
-                  ('js' , ('js', 'text/javascript; charset=UTF-8')),
-                  ('wired' , ('wired', 'text/javascript; charset=UTF-8')),
-                  ('embed' , ('htmllite', 'text/javascript; charset=UTF-8')),
-                  ('mobile' , ('mobile', 'text/html; charset=UTF-8')),
-                  ('png' , ('png', 'image/png')),
-                  ('css' , ('css', 'text/css')),
-                  ('csv' , ('csv', 'text/csv; charset=UTF-8')),
-                  ('api' , (api_type(), 'application/json; charset=UTF-8')),
-                  ('json-html' , (api_type('html'), 'application/json; charset=UTF-8')),
-                  ('json-compact' , (api_type('compact'), 'application/json; charset=UTF-8')),
-                  ('compact' , ('compact', 'text/html; charset=UTF-8')),
-                  ('json' , (api_type(), 'application/json; charset=UTF-8')),
-                  ('i' , ('compact', 'text/html; charset=UTF-8')),
-                  )
-
+    
     def __init__(self, app):
         self.app = app
 
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO']
+        fname, sep, path_ext = path.rpartition('.')
         domain_ext = environ.get('reddit-domain-extension')
-        for ext, val in self.extensions:
-            if ext == domain_ext or path.endswith('.' + ext):
-                environ['extension'] = ext
-                environ['render_style'] = val[0]
-                environ['content_type'] = val[1]
-                #strip off the extension
-                if path.endswith('.' + ext):
-                    environ['PATH_INFO'] = path[:-(len(ext) + 1)]
-                break
+
+        ext = None
+        if path_ext in extension_mapping:
+            ext = path_ext
+            # Strip off the extension.
+            environ['PATH_INFO'] = path[:-(len(ext) + 1)]
+        elif domain_ext in extension_mapping:
+            ext = domain_ext
+
+        if ext:
+            set_extension(environ, ext)
         else:
             environ['render_style'] = 'html'
             environ['content_type'] = 'text/html; charset=UTF-8'
@@ -458,7 +456,9 @@ class LimitUploadSize(object):
 
         return self.app(environ, start_response)
 
-
+# TODO CleanupMiddleware seems to exist because cookie headers are being duplicated
+# somewhere in the response processing chain. It should be removed as soon as we
+# find the underlying issue.
 class CleanupMiddleware(object):
     """
     Put anything here that should be called after every other bit of
@@ -475,9 +475,10 @@ class CleanupMiddleware(object):
             seen = set()
             for head, val in reversed(headers):
                 head = head.lower()
-                if head not in seen:
+                key = (head, val.split("=", 1)[0])
+                if key not in seen:
                     fixed.insert(0, (head, val))
-                    seen.add(head)
+                    seen.add(key)
             return start_response(status, fixed, exc_info)
         return self.app(environ, custom_start_response)
 

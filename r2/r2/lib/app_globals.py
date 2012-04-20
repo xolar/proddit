@@ -26,7 +26,8 @@ import signal
 from datetime import timedelta, datetime
 from urlparse import urlparse
 import json
-from pycassa.pool import ConnectionPool as PycassaConnectionPool
+from sqlalchemy import engine
+from sqlalchemy import event
 from r2.lib.cache import LocalCache, SelfEmptyingCache
 from r2.lib.cache import CMemcache, StaleCacheChain
 from r2.lib.cache import HardCache, MemcacheChain, MemcacheChain, HardcacheChain
@@ -36,6 +37,7 @@ from r2.lib.db.stats import QueryStats
 from r2.lib.translation import get_active_langs
 from r2.lib.lock import make_lock_factory
 from r2.lib.manager import db_manager
+from r2.lib.stats import Stats, CacheStats, StatsCollectingConnectionPool
 
 class Globals(object):
 
@@ -56,8 +58,6 @@ class Globals(object):
                  'MODWINDOW',
                  'RATELIMIT',
                  'QUOTA_THRESHOLD',
-                 'LOGANS_RUN_LOW',
-                 'LOGANS_RUN_HIGH',
                  'num_comments',
                  'max_comments',
                  'max_comments_gold',
@@ -68,17 +68,22 @@ class Globals(object):
                  'sr_dropdown_threshold',
                  'comment_visits_period',
                   'min_membership_create_community',
+                 'bcrypt_work_factor',
+                 'cassandra_pool_size',
                  ]
 
     float_props = ['min_promote_bid',
                    'max_promote_bid',
                    'usage_sampling',
+                   'statsd_sample_rate',
+                   'querycache_prune_chance',
                    ]
 
     bool_props = ['debug', 'translator',
                   'log_start',
                   'sqlprinting',
                   'template_debug',
+                  'reload_templates',
                   'uncompressedJS',
                   'enable_doquery',
                   'use_query_cache',
@@ -87,30 +92,33 @@ class Globals(object):
                   'db_create_tables',
                   'disallow_db_writes',
                   'exception_logging',
+                  'disable_ratelimit',
                   'amqp_logging',
                   'read_only_mode',
                   'frontpage_dart',
                   'allow_wiki_editing',
                   'heavy_load_mode',
+                  's3_media_direct',
                   'disable_captcha',
                   'disable_ads',
+                  'static_pre_gzipped',
+                  'static_secure_pre_gzipped',
+                  'trust_local_proxies',
                   ]
 
     tuple_props = ['stalecaches',
                    'memcaches',
                    'permacache_memcaches',
                    'rendercaches',
-                   'servicecaches',
                    'cassandra_seeds',
                    'admins',
                    'sponsors',
-                   'monitored_servers',
                    'automatic_reddits',
                    'agents',
                    'allowed_css_linked_domains',
                    'authorized_cnames',
                    'hardcache_categories',
-                   'proxy_addr',
+                   's3_media_buckets',
                    'allowed_pay_countries',
                    'case_sensitive_domains']
 
@@ -172,9 +180,10 @@ class Globals(object):
         self.running_as_script = global_conf.get('running_as_script', False)
         
         # turn on for language support
-        if not hasattr(self, 'lang'): self.lang = 'en'
+        if not hasattr(self, 'lang'):
+            self.lang = 'en'
         self.languages, self.lang_name = \
-                        get_active_langs(default_lang= self.lang)
+            get_active_langs(default_lang=self.lang)
 
         all_languages = self.lang_name.keys()
         all_languages.sort()
@@ -204,31 +213,61 @@ class Globals(object):
                           else LocalCache)
         num_mc_clients = self.num_mc_clients
 
-        self.cache_chains = []
+        self.cache_chains = {}
 
         self.memcache = CMemcache(self.memcaches, num_clients = num_mc_clients)
         self.make_lock = make_lock_factory(self.memcache)
 
+        self.stats = Stats(global_conf.get('statsd_addr'),
+                           global_conf.get('statsd_sample_rate'))
+
+        event.listens_for(engine.Engine, 'before_cursor_execute')(
+            self.stats.pg_before_cursor_execute)
+        event.listens_for(engine.Engine, 'after_cursor_execute')(
+            self.stats.pg_after_cursor_execute)
+
         if not self.cassandra_seeds:
             raise ValueError("cassandra_seeds not set in the .ini")
-        self.cassandra = PycassaConnectionPool('reddit',
-                                               server_list = self.cassandra_seeds,
-                                               pool_size = len(self.cassandra_seeds),
-                                               # TODO: .ini setting
-                                               timeout=15, max_retries=3,
-                                               prefill=False)
+
+
+        keyspace = "reddit"
+        self.cassandra_pools = {
+            "main":
+                StatsCollectingConnectionPool(
+                    keyspace,
+                    stats=self.stats,
+                    logging_name="main",
+                    server_list=self.cassandra_seeds,
+                    pool_size=self.cassandra_pool_size,
+                    timeout=2,
+                    max_retries=3,
+                    prefill=False
+                ),
+            "noretries":
+                StatsCollectingConnectionPool(
+                    keyspace,
+                    stats=self.stats,
+                    logging_name="noretries",
+                    server_list=self.cassandra_seeds,
+                    pool_size=len(self.cassandra_seeds),
+                    timeout=2,
+                    max_retries=0,
+                    prefill=False
+                ),
+        }
+
         perma_memcache = (CMemcache(self.permacache_memcaches, num_clients = num_mc_clients)
                           if self.permacache_memcaches
                           else None)
         self.permacache = CassandraCacheChain(localcache_cls(),
                                               CassandraCache('permacache',
-                                                             self.cassandra,
+                                                             self.cassandra_pools[self.cassandra_default_pool],
                                                              read_consistency_level = self.cassandra_rcl,
                                                              write_consistency_level = self.cassandra_wcl),
                                               memcache = perma_memcache,
                                               lock_factory = self.make_lock)
 
-        self.cache_chains.append(self.permacache)
+        self.cache_chains.update(permacache=self.permacache)
 
         # hardcache is done after the db info is loaded, and then the
         # chains are reset to use the appropriate initial entries
@@ -239,21 +278,16 @@ class Globals(object):
                                          self.memcache)
         else:
             self.cache = MemcacheChain((localcache_cls(), self.memcache))
-        self.cache_chains.append(self.cache)
+        self.cache_chains.update(cache=self.cache)
 
         self.rendercache = MemcacheChain((localcache_cls(),
                                           CMemcache(self.rendercaches,
                                                     noreply=True, no_block=True,
                                                     num_clients = num_mc_clients)))
-        self.cache_chains.append(self.rendercache)
-
-        self.servicecache = MemcacheChain((localcache_cls(),
-                                           CMemcache(self.servicecaches,
-                                                     num_clients = num_mc_clients)))
-        self.cache_chains.append(self.servicecache)
+        self.cache_chains.update(rendercache=self.rendercache)
 
         self.thing_cache = CacheChain((localcache_cls(),))
-        self.cache_chains.append(self.thing_cache)
+        self.cache_chains.update(thing_cache=self.thing_cache)
 
         #load the database info
         self.dbm = self.load_db_params(global_conf)
@@ -263,16 +297,17 @@ class Globals(object):
                                          self.memcache,
                                          HardCache(self)),
                                         cache_negative_results = True)
-        self.cache_chains.append(self.hardcache)
+        self.cache_chains.update(hardcache=self.hardcache)
 
         # I know this sucks, but we need non-request-threads to be
         # able to reset the caches, so we need them be able to close
         # around 'cache_chains' without being able to call getattr on
         # 'g'
-        cache_chains = self.cache_chains[::]
+        cache_chains = self.cache_chains.copy()
         def reset_caches():
-            for chain in cache_chains:
+            for name, chain in cache_chains.iteritems():
                 chain.reset()
+                chain.stats = CacheStats(self.stats, name)
 
         self.reset_caches = reset_caches
         self.reset_caches()
@@ -285,7 +320,17 @@ class Globals(object):
 
         self.REDDIT_MAIN = bool(os.environ.get('REDDIT_MAIN'))
 
+        origin_prefix = self.domain_prefix + "." if self.domain_prefix else ""
+        self.origin = "http://" + origin_prefix + self.domain
         self.secure_domains = set([urlparse(self.payment_domain).netloc])
+        
+        self.trusted_domains = set([self.domain])
+        self.trusted_domains.update(self.authorized_cnames)
+        if self.https_endpoint:
+            https_url = urlparse(self.https_endpoint)
+            self.secure_domains.add(https_url.netloc)
+            self.trusted_domains.add(https_url.hostname)
+
 
         # load the unique hashed names of files under static
         static_files = os.path.join(self.paths.get('static_files'), 'static')
@@ -313,16 +358,6 @@ class Globals(object):
             print ("Warning: g.media_domain == g.domain. " +
                    "This may give untrusted content access to user cookies")
 
-        self.profanities = None
-        if self.profanity_wordlist and os.path.exists(self.profanity_wordlist):
-            with open(self.profanity_wordlist, 'r') as handle:
-                words = []
-                for line in handle:
-                    words.append(line.strip(' \n\r'))
-                if words:
-                    self.profanities = re.compile(r"\b(%s)\b" % '|'.join(words),
-                                              re.I | re.U)
-
         self.reddit_host = socket.gethostname()
         self.reddit_pid  = os.getpid()
 
@@ -332,9 +367,6 @@ class Globals(object):
                 k, v = tokens
                 self.log.debug("Overriding g.%s to %s" % (k, v))
                 setattr(self, k, v)
-
-        #the shutdown toggle
-        self.shutdown = False
 
         #if we're going to use the query_queue, we need amqp
         if self.write_query_queue and not self.amqp_host:
@@ -347,36 +379,17 @@ class Globals(object):
 
         # try to set the source control revision number
         try:
-            #popen = subprocess.Popen(["git", "log", "--date=short",
-            #                          "--pretty=format:%H %h", '-n1'],
-            #                         stdin=subprocess.PIPE,
-            #                         stdout=subprocess.PIPE)
-            #resp, stderrdata = popen.communicate()
-            #resp = resp.strip().split(' ')
-            #self.version, self.short_version = resp
-            self.version = self.short_version = '(unknown)'
-        except object, e:
+            self.version = subprocess.check_output(["git", "rev-parse", "HEAD"])
+        except subprocess.CalledProcessError, e:
             self.log.info("Couldn't read source revision (%r)" % e)
             self.version = self.short_version = '(unknown)'
-        except ValueError:
-            self.version = self.short_version = '(unknown)'
+        else:
+            self.short_version = self.version[:7]
 
         if self.log_start:
             self.log.error("reddit app %s:%s started %s at %s" %
                            (self.reddit_host, self.reddit_pid,
                             self.short_version, datetime.now()))
-
-        if self.LOGANS_RUN_LOW:
-            minutes_to_live = random.randint(self.LOGANS_RUN_LOW,
-                                             self.LOGANS_RUN_HIGH)
-            self.logans_run_limit = datetime.now(self.tz) + timedelta(0,
-                                                 minutes_to_live * 60)
-            disptime = self.logans_run_limit.astimezone(self.display_tz)
-            self.log.info("Will shut down at %s (%d minutes from now)" %
-                (disptime.strftime("%H:%M:%S"), minutes_to_live))
-        else:
-            self.logans_run_limit = None
-
 
     @staticmethod
     def to_bool(x):
@@ -387,8 +400,6 @@ class Globals(object):
         return (x.strip() for x in v.split(delim) if x)
 
     def load_db_params(self, gc):
-        from r2.lib.services import get_db_load
-
         self.databases = tuple(self.to_iter(gc['databases']))
         self.db_params = {}
         if not self.databases:
@@ -412,10 +423,7 @@ class Globals(object):
             if params['max_overflow'] == "*":
                 params['max_overflow'] = self.db_pool_overflow_size
 
-            ip = params['db_host']
-            ip_loads = get_db_load(self.servicecache, ip)
-            if ip not in ip_loads or ip_loads[ip][0] < 1000:
-                dbm.setup_db(db_name, g_override=self, **params)
+            dbm.setup_db(db_name, g_override=self, **params)
             self.db_params[db_name] = params
 
         dbm.type_db = dbm.get_engine(gc['type_db'])

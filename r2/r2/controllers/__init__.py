@@ -44,7 +44,6 @@ from embed import EmbedController
 from error import ErrorController
 from post import PostController
 from toolbar import ToolbarController
-from i18n import I18nController
 from awards import AwardsController
 from ads import AdsController
 from usage import UsageController
@@ -61,6 +60,9 @@ except ImportError:
     from api import ApiController
 
 from api import ApiminimalController
+from apiv1 import APIv1Controller as Apiv1Controller
+from oauth2 import OAuth2FrontendController as Oauth2frontendController
+from oauth2 import OAuth2AccessController as Oauth2accessController
 from admin import AdminController
 from redirect import RedirectController
 from ipn import IpnController

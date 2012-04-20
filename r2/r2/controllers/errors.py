@@ -34,7 +34,9 @@ error_list = dict((
         ('USERNAME_TAKEN_DEL', _('that username is taken by a deleted account')),
         ('USER_BLOCKED', _("you can't send to a user that you have blocked")),
         ('NO_THING_ID', _('id not specified')),
+        ('TOO_MANY_THING_IDS', _('you provided too many ids')),
         ('NOT_AUTHOR', _("you can't do that")),
+        ('NOT_USER', _("you are not logged in as that user")),
         ('DELETED_LINK', _('the link you are commenting on has been deleted')),
         ('DELETED_COMMENT', _('that comment has been deleted')),
         ('DELETED_THING', _('that element has been deleted')),
@@ -56,9 +58,10 @@ error_list = dict((
         ('SUBREDDIT_EXISTS', _('that reddit already exists')),
         ('SUBREDDIT_NOEXIST', _('that reddit doesn\'t exist')),
         ('SUBREDDIT_NOTALLOWED', _("you aren't allowed to post there.")),
-        ('SUBREDDIT_REQUIRED', _('you must specify a reddit')),
+        ('SUBREDDIT_REQUIRED', _('you must specify a subreddit')),
         ('BAD_SR_NAME', _('that name isn\'t going to work')),
         ('RATELIMIT', _('you are doing that too much. try again in %(time)s.')),
+        ('QUOTA_FILLED', _("You've submitted too many links recently. Please try again in an hour.")),
         ('EXPIRED', _('your session has expired')),
         ('DRACONIAN', _('you must accept the terms first')),
         ('BANNED_IP', "IP banned"),
@@ -85,6 +88,10 @@ error_list = dict((
         ('TOO_OLD', _("that's a piece of history now; it's too late to reply to it")),
         ('BAD_CSS_NAME', _('invalid css name')),
         ('TOO_MUCH_FLAIR_CSS', _('too many flair css classes')),
+        ('OAUTH2_INVALID_CLIENT', _('invalid client id')),
+        ('OAUTH2_ACCESS_DENIED', _('access denied by the user')),
+        ('CONFIRM', _("please confirm the form")),
+        ('NO_API', _('cannot perform this action via the API')),
     ))
 errors = Storage([(e, e) for e in error_list.keys()])
 
@@ -127,6 +134,9 @@ class ErrorSet(object):
     def __iter__(self):
         for x in self.errors:
             yield x
+
+    def __len__(self):
+        return len(self.errors)
         
     def add(self, error_name, msg_params = {}, field = None):
         msg = error_list[error_name]

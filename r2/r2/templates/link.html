@@ -22,6 +22,7 @@
 
 <%!
    from r2.lib.template_helpers import get_domain
+   from r2.lib.template_helpers import s3_https_if_secure
    from r2.lib.pages.things import LinkButtons
    from r2.lib.pages import WrappedUser
    from r2.lib.template_helpers import static
@@ -29,7 +30,7 @@
 %>
  
 <%inherit  file="printable.html"/>
-<%namespace file="utils.html" import="plain_link, timestamp" />
+<%namespace file="utils.html" import="plain_link, thing_timestamp" />
 <%namespace file="printablebuttons.html" import="toggle_button" />
  
 <%def name="numcol()">
@@ -215,7 +216,7 @@ ${parent.thing_css_class(what)} ${"over18" if thing.over_18 else ""}
 
   ${unsafe(taglinetext % dict(reddit = self.subreddit(), 
                               score = capture(self.score, thing, thing.likes, tag='span'),
-                              when = capture(timestamp, thing, thing.timesince),
+                              when = capture(thing_timestamp, thing, thing.timesince),
                               author = WrappedUser(thing.author, thing.attribs, thing).render()))}
 
 </%def>
@@ -231,9 +232,16 @@ ${parent.thing_css_class(what)} ${"over18" if thing.over_18 else ""}
 
 <%def name="thumbnail()">
   %if thing.thumbnail and not getattr(thing, "trial_mode", None):
-  <%call expr="make_link('thumbnail', 'thumbnail')">
-    &#8203;
-    <img src="${thing.thumbnail}" alt=""/>
+  <%call expr="make_link('thumbnail', 'thumbnail ' + (thing.thumbnail if thing.thumbnail_sprited else ''))">
+    % if not thing.thumbnail_sprited:
+        <%
+            if hasattr(thing, 'thumbnail_size'):
+                size_str = "width='%d' height='%d'" % (thing.thumbnail_size[0], thing.thumbnail_size[1])
+            else:
+                size_str = ""
+        %>
+        <img src="${s3_https_if_secure(thing.thumbnail)}" ${size_str} alt=""/>
+    % endif
   </%call>
   %endif
 </%def>

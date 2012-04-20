@@ -45,6 +45,7 @@ def score_changes(amount, old_amount):
 
 class CassandraVote(tdb_cassandra.Relation):
     _use_db = False
+    _connection_pool = 'main'
 
     _bool_props = ('valid_user', 'valid_thing', 'organic')
     _str_props  = ('name', # one of '-1', '0', '1'
@@ -84,6 +85,7 @@ class CassandraVote(tdb_cassandra.Relation):
 class VotesByLink(tdb_cassandra.View):
     _use_db = True
     _type_prefix = 'VotesByLink'
+    _connection_pool = 'main'
 
     # _view_of = CassandraLinkVote
 
@@ -99,6 +101,7 @@ class VotesByLink(tdb_cassandra.View):
 class VotesByDay(tdb_cassandra.View):
     _use_db = True
     _type_prefix = 'VotesByDay'
+    _connection_pool = 'main'
 
     # _view_of = CassandraLinkVote
 
@@ -129,8 +132,9 @@ class VotesByDay(tdb_cassandra.View):
 
 class CassandraLinkVote(CassandraVote):
     _use_db = True
-    _type_prefix = 'r6'
+    _type_prefix = 'LinkVote'
     _cf_name = 'LinkVote'
+    _read_consistency_level = tdb_cassandra.CL.ONE
 
     # these parameters aren't actually meaningful, they just help
     # keep track
@@ -153,8 +157,9 @@ class CassandraLinkVote(CassandraVote):
 
 class CassandraCommentVote(CassandraVote):
     _use_db = True
-    _type_prefix = 'r5'
+    _type_prefix = 'CommentVote'
     _cf_name = 'CommentVote'
+    _read_consistency_level = tdb_cassandra.CL.ONE
 
     # these parameters aren't actually meaningful, they just help
     # keep track
@@ -332,7 +337,7 @@ def test():
     print 'fast_query', CassandraLinkVote._fast_query('abc', ['def'])
 
     assert CassandraLinkVote._fast_query('abc', 'def') == v2
-    assert CassandraLinkVote._byID('abc_def') == CassandraLinkVote._by_fullname('r6_abc_def')
+    assert CassandraLinkVote._byID('abc_def') == CassandraLinkVote._by_fullname('LinkVote_abc_def')
 
     print 'all', list(CassandraLinkVote._all()), list(VotesByLink._all())
 

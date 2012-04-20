@@ -29,15 +29,26 @@ from r2.lib.utils import TimeoutFunction, TimeoutFunctionException
 from r2.lib.db.operators import desc
 from r2.lib.scraper import make_scraper, str_to_image, image_to_str, prepare_image
 from r2.lib import amqp
-from r2.lib.contrib.nymph import optimize_png
+from r2.lib.nymph import optimize_png
+
+import Image
 
 import os
 import tempfile
 import traceback
 
-s3_thumbnail_bucket = g.s3_thumb_bucket
+import base64
+import hashlib
+
+import mimetypes
+
+s3_direct_url = g.s3_thumb_bucket
+
 threads = 20
 log = g.log
+
+MEDIA_FILENAME_LENGTH = 12
+
 
 def thumbnail_url(link):
     """Given a link, returns the url for its thumbnail based on its fullname"""
@@ -115,6 +126,7 @@ def force_thumbnail(link, image_data, never_expire = True):
     update_link(link, thumbnail = True, media_object = None)
 
 def run():
+    @g.stats.amqp_processor('scraper_q')
     def process_link(msg):
         def _process_link(fname):
             link = Link._by_fullname(fname, data=True)

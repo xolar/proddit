@@ -28,7 +28,7 @@ from r2.lib.db.thing import Thing, Relation, NotFound
 from account import Account
 from printable import Printable
 from r2.lib.db.userrel import UserRel
-from r2.lib.db.operators import lower, or_, and_, desc, asc
+from r2.lib.db.operators import lower, or_, and_, desc
 from r2.lib.memoize import memoize
 from r2.lib.utils import tup, interleave_lists, last_modified_multi, flatten
 from r2.lib.utils import timeago
@@ -37,7 +37,6 @@ from r2.lib.strings import strings, Score
 from r2.lib.filters import _force_unicode
 from r2.lib.db import tdb_cassandra
 from r2.lib.cache import CL_ONE
-
 
 import os.path
 import random
@@ -55,6 +54,7 @@ class Subreddit(Thing, Printable):
                      stylesheet_hash     = '0',
                      firsttext = strings.firsttext,
                      header = None,
+                     header_size = None,
                      header_title = "",
                      allow_top = False, # overridden in "_new"
                      description = '',
@@ -75,6 +75,7 @@ class Subreddit(Thing, Printable):
                      link_type = 'any', # one of ('link', 'self', 'any')
                      flair_enabled = True,
                      flair_position = 'right', # one of ('left', 'right')
+                     flair_self_assign_enabled = False,
                      )
     _essentials = ('type', 'name', 'lang')
     _data_int_props = Thing._data_int_props + ('mod_actions', 'reported')
@@ -195,19 +196,6 @@ class Subreddit(Thing, Printable):
     def flair(self):
         return self.flair_ids()
 
-    def flair_id_query(self, limit, after, reverse=False):
-        extra_rules = [
-            Flair.c._thing1_id == self._id,
-            Flair.c._name == 'flair',
-          ]
-        if after:
-            if reverse:
-                extra_rules.append(Flair.c._thing2_id < after._id)
-            else:
-                extra_rules.append(Flair.c._thing2_id > after._id)
-        sort = (desc if reverse else asc)('_thing2_id')
-        return Flair._query(*extra_rules, sort=sort, limit=limit)
-
     def spammy(self):
         return self._spam
 
@@ -224,10 +212,10 @@ class Subreddit(Thing, Printable):
         else:
             return False
 
-    def can_submit(self, user):
+    def can_submit(self, user, promotion=False):
         if c.user_is_admin:
             return True
-        elif self.is_banned(user):
+        elif self.is_banned(user) and not promotion:
             return False
         elif self.type == 'public':
             return True
@@ -277,7 +265,7 @@ class Subreddit(Thing, Printable):
         if c.user_is_admin:
             return True
 
-        if self.type in ('public', 'restricted'):
+        if self.type in ('public', 'restricted', 'archived'):
             return True
         elif c.user_is_loggedin:
             #private requires contributorship
@@ -344,12 +332,18 @@ class Subreddit(Thing, Printable):
         from r2.lib.db import queries
         return queries.get_sr_comments(self)
 
+    @classmethod
+    def get_modactions(cls, srs, mod=None, action=None):
+        # Get a query that will yield ModAction objects with mod and action 
+        from r2.models import ModAction
+        return ModAction.get_actions(srs, mod=mod, action=action)
 
     @classmethod
     def add_props(cls, user, wrapped):
         names = ('subscriber', 'moderator', 'contributor')
         rels = (SRMember._fast_query(wrapped, [user], names) if c.user_is_loggedin else {})
         defaults = Subreddit.default_subreddits()
+        target = "_top" if c.cname else None
         for item in wrapped:
             if not user or not user.has_subscribed:
                 item.subscriber = item._id in defaults
@@ -376,7 +370,7 @@ class Subreddit(Thing, Printable):
 
             #will seem less horrible when add_props is in pages.py
             from r2.lib.pages import UserText
-            item.usertext = UserText(item, item.description)
+            item.usertext = UserText(item, item.description, target=target)
 
 
         Printable.add_props(user, wrapped)
@@ -563,54 +557,46 @@ class Subreddit(Thing, Printable):
 
     def get_images(self):
         """
-        Iterator over list of (name, image_num) pairs which have been
-        uploaded for custom styling of this subreddit.
+        Iterator over list of (name, url) pairs which have been
+        uploaded for custom styling of this subreddit. 
         """
-        for name, img_num in self.images.iteritems():
-            if isinstance(img_num, int):
-                yield (name, img_num)
-
-    def add_image(self, name, max_num = None):
+        for name, img in self.images.iteritems():
+            if name != "/empties/":
+                yield (name, img)
+    
+    def get_num_images(self):
+        if '/empties/' in self.images:
+            return len(self.images) - 1
+        else:
+            return len(self.images)
+    
+    def add_image(self, name, url, max_num = None):
         """
         Adds an image to the subreddit's image list.  The resulting
         number of the image is returned.  Note that image numbers are
         non-sequential insofar as unused numbers in an existing range
         will be populated before a number outside the range is
-        returned.  Imaged deleted with del_image are pushed onto the
-        "/empties/" stack in the images dict, and those values are
-        pop'd until the stack is empty.
+        returned.
 
         raises ValueError if the resulting number is >= max_num.
 
         The Subreddit will be _dirty if a new image has been added to
         its images list, and no _commit is called.
         """
-        if not self.images.has_key(name):
-            # copy and blank out the images list to flag as _dirty
-            l = self.images
-            self.images = None
-            # initialize the /empties/ list 
-            l.setdefault('/empties/', [])
-            try:
-                num = l['/empties/'].pop() # grab old number if we can
-            except IndexError:
-                num = len(l) - 1 # one less to account for /empties/ key
-            if max_num is not None and num >= max_num:
-                raise ValueError, "too many images"
-            # update the dictionary and rewrite to images attr
-            l[name] = num
-            self.images = l
-        else:
-            # we've seen the image before, so just return the existing num
-            num = self.images[name]
-        return num
+        if max_num is not None and self.get_num_images() >= max_num:
+            raise ValueError, "too many images"
+        
+        # copy and blank out the images list to flag as _dirty
+        l = self.images
+        self.images = None
+        # update the dictionary and rewrite to images attr
+        l[name] = url
+        self.images = l
 
     def del_image(self, name):
         """
         Deletes an image from the images dictionary assuming an image
-        of that name is in the current dictionary.  The freed up
-        number is pushed onto the /empties/ stack for later recycling
-        by add_image.
+        of that name is in the current dictionary.
 
         The Subreddit will be _dirty if image has been removed from
         its images list, and no _commit is called.
@@ -618,9 +604,7 @@ class Subreddit(Thing, Printable):
         if self.images.has_key(name):
             l = self.images
             self.images = None
-            l.setdefault('/empties/', [])
-            # push the number on the empties list
-            l['/empties/'].append(l[name])
+
             del l[name]
             self.images = l
 
@@ -636,6 +620,28 @@ class Subreddit(Thing, Printable):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    @staticmethod
+    def user_mods_all(user, srs):
+        # Get moderator SRMember relations for all in srs
+        # if a relation doesn't exist there will be a None entry in the
+        # returned dict
+        mod_rels = SRMember._fast_query(srs, user, 'moderator', data=False)
+        if None in mod_rels.values():
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def get_all_mod_ids(srs):
+        from r2.lib.db.thing import Merge
+        srs = tup(srs)
+        queries = [SRMember._query(SRMember.c._thing1_id == sr._id,
+                                   SRMember.c._name == 'moderator') for sr in srs]
+        merged = Merge(queries)
+        # sr_ids = [sr._id for sr in srs]
+        # query = SRMember._query(SRMember.c._thing1_id == sr_ids, ...)
+        # is really slow
+        return [rel._thing2_id for rel in list(merged)]
 
 class FakeSubreddit(Subreddit):
     over_18 = False
@@ -830,7 +836,7 @@ class DefaultSR(_DefaultSR):
     def __init__(self):
         _DefaultSR.__init__(self)
         try:
-            self._base = Subreddit._by_name(g.default_sr)
+            self._base = Subreddit._by_name(g.default_sr, stale=True)
         except NotFound:
             self._base = None
 
@@ -842,10 +848,13 @@ class DefaultSR(_DefaultSR):
     def header(self):
         return (self._base and self._base.header) or _DefaultSR.header
 
-
     @property
     def header_title(self):
         return (self._base and self._base.header_title) or ""
+
+    @property
+    def header_size(self):
+        return (self._base and self._base.header_size) or None
 
     @property
     def stylesheet_contents(self):
@@ -994,33 +1003,8 @@ Subreddit.__bases__ += (UserRel('moderator', SRMember),
                         UserRel('subscriber', SRMember, disable_ids_fn = True),
                         UserRel('banned', SRMember))
 
-class Flair(Relation(Subreddit, Account)):
-    @classmethod
-    def store(cls, sr, account, text = None, css_class = None):
-        flair = Flair(sr, account, 'flair', text = text, css_class = css_class)
-        flair._commit()
-
-        setattr(account, 'flair_%s_text' % sr._id, text)
-        setattr(account, 'flair_%s_css_class' % sr._id, css_class)
-        account._commit()
-
-    @classmethod
-    @memoize('flair.all_flair_by_sr')
-    def all_flair_by_sr_cache(cls, sr_id):
-        q = cls._query(cls.c._thing1_id == sr_id)
-        return [t._id for t in q]
-
-    @classmethod
-    def all_flair_by_sr(cls, sr_id, _update=False):
-        relids = cls.all_flair_by_sr_cache(sr_id, _update=_update)
-        return cls._byID(relids).itervalues()
-
-Subreddit.__bases__ += (UserRel('flair', Flair,
-                                disable_ids_fn = True,
-                                disable_reverse_ids_fn = True),)
-
 class SubredditPopularityByLanguage(tdb_cassandra.View):
     _use_db = True
     _value_type = 'pickle'
-    _use_new_ring = True
+    _connection_pool = 'main'
     _read_consistency_level = CL_ONE

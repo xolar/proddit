@@ -47,8 +47,10 @@ def make_map(global_conf={}, app_conf={}):
 
     mc('/sup', controller='front', action='sup')
     mc('/traffic', controller='front', action='site_traffic')
+    mc('/account-activity', controller='front', action='account_activity')
 
     mc('/about/message/:where', controller='message', action='listing')
+    mc('/about/log', controller='front', action='moderationlog')
     mc('/about/:location', controller='front', 
        action='editreddit', location = 'about')
 
@@ -77,13 +79,10 @@ def make_map(global_conf={}, app_conf={}):
 
     mc('/awards', controller='front', action='awards')
 
-    mc('/i18n', controller='feedback', action='i18n')
+    mc('/i18n', controller='redirect', action='redirect',
+       dest='http://www.proddit.com/r/i18n')
     mc('/feedback', controller='feedback', action='feedback')
     mc('/ad_inq',   controller='feedback', action='ad_inq')
-
-    mc('/admin/i18n', controller='i18n', action='list')
-    mc('/admin/i18n/:action', controller='i18n')
-    mc('/admin/i18n/:action/:lang', controller='i18n')
 
     mc('/admin/usage', controller='usage')
 
@@ -104,6 +103,7 @@ def make_map(global_conf={}, app_conf={}):
        where='overview')
     mc('/user/:username/:where', controller='user', action='listing',
        where='overview')
+    mc('/u/:username', controller='redirect', action='user_redirect')
 
     mc('/prefs/:location', controller='forms',
        action='prefs', location='options')
@@ -147,9 +147,6 @@ def make_map(global_conf={}, app_conf={}):
        sort = "")
 
     mc('/health', controller='health', action='health')
-    mc('/health/:action', controller='health',
-       requirements=dict(action="threads|dump|sleep"))
-    mc('/shutdown', controller='health', action='shutdown')
 
     mc('/', controller='hot', action='listing')
 
@@ -220,8 +217,12 @@ def make_map(global_conf={}, app_conf={}):
     mc('/api/:action', controller='promote',
        requirements=dict(action="promote|unpromote|edit_promo|link_thumb|freebie|promote_note|update_pay|refund|traffic_viewer|rm_traffic_viewer|edit_campaign|delete_campaign|meta_promo|add_roadblock|rm_roadblock"))
     mc('/api/:action', controller='apiminimal',
-       requirements=dict(action="onload|new_captcha"))
+       requirements=dict(action="new_captcha"))
     mc('/api/:action', controller='api')
+
+    mc("/api/v1/:action", controller="oauth2frontend", requirements=dict(action="authorize"))
+    mc("/api/v1/:action", controller="oauth2access", requirements=dict(action="access_token"))
+    mc("/api/v1/:action", controller="apiv1")
 
     mc("/button_info", controller="api", action="info", limit = 1)
 

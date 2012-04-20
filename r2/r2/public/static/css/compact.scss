@@ -13,7 +13,7 @@
     background-image: url($url); /*SPRITE*/
 }
 //Directory for compact static files
-$static: "/static/compact/";
+$static: "../compact/";
 
 /* meat */
 
@@ -229,9 +229,6 @@ button.button {
     .options_expando {
         margin: 10px -50px 10px 0px; //Overwrite the link styles
     }
-    .md {
-        margin-right: 40px;
-    }
 }
 .message {
 
@@ -317,8 +314,8 @@ button.button {
     position: relative;
 
     #header-img {
-        width: 90px;
-
+        height: 32px;
+        width: auto;
     }
 
     .left {
@@ -844,7 +841,6 @@ padding: 5px;
     -moz-border-radius-topright: 0px;
 }
 
-.comment .md { margin-left: 25px;  }
 
 .comment.collapsed .child,
 .comment.collapsed .usertext,
@@ -1101,6 +1097,16 @@ padding: 5px;
   -webkit-animation-iteration-count:infinite;
   -webkit-animation-timing-function:linear;
 }
+
+.throbber {
+    display: none;
+    margin: 0 2px;
+    background: url($static + 'throbber.gif') no-repeat;
+    width: 18px;
+    height: 18px;
+}
+.working .throbber { display: inline-block; }
+
 /* Login and Register */
 #login_login, #login_reg {
     background: white;
@@ -1137,6 +1143,11 @@ padding: 5px;
 #login_login > div > ul li input[type="checkbox"] + label, #login_reg > div > ul li input[type="checkbox"] + label {
 	display: inline;
 }
+
+.user-form .submit * {
+    vertical-align: middle;
+}
+
 /* toolbar specific stuf here */
 body.toolbar {
 	margin: 0px;

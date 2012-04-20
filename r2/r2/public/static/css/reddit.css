@@ -146,11 +146,11 @@ label.disabled { color: gray; }
 
 .hover a:hover { text-decoration: underline }
 
-.selected { font-weight: bold; }
+.selected, .choice.primary { font-weight: bold; }
 
 .flat-list {list-style-type: none; display: inline;}
 .flat-list li, .flat-list form {display: inline; white-space: nowrap; }
-.flat-list .selected a { color: orangered; }
+.flat-list .selected a { color: tomato; }
 
 .link .flat-list { display: block; padding: 1px 0; }
 .link.compressed .flat-list { display: inline-block; padding: 0 0 1px 0; }
@@ -185,6 +185,16 @@ ul.flat-vert {text-align: left;}
 
 #header-img {margin-top: 2px; margin-right: 5px;}
 
+#header-img.default-header {
+    text-indent: -9999px;
+    background-image: url(../reddit.com.header.png); /* SPRITE */
+    height: 40px;
+    width: 120px;
+    display: inline-block;
+    vertical-align: bottom;
+    margin-bottom: 3px;
+}
+
 #header-top {
     position: absolute;
     right: 5px;
@@ -200,16 +210,42 @@ ul.flat-vert {text-align: left;}
     bottom: 0px;
     background-color: #EFF7FF;
     padding: 4px;
+    line-height: 12px;
     -moz-border-radius-topleft: 7px;
     -webkit-border-top-left-radius: 7px;
     border-top-left-radius: 7px;
  }
 
-#mail img {position: relative; top: 2px}
-#modmail img {position: relative; top: 5px; margin-top: -6px; }
+#mail {
+    position: relative;
+    top: 2px;
+    display: inline-block;
+    text-indent: -9999px;
+    overflow: hidden;
+    width: 15px;
+    height: 10px;
+}
+#mail.havemail {
+    background-image: url(../mail.png);  /* SPRITE */
+}
+#mail.nohavemail {
+    background-image: url(../mailgray.png);  /* SPRITE */
+}
+#modmail {
+    position: relative;
+    top: -2px;
+    display: inline-block;
+    text-indent: -9999px;
+    overflow: hidden;
+    width: 16px;
+    height: 16px;
+    margin-bottom: -6px;
+}
+#modmail.havemail {
+    background-image: url(../modmail.png);  /* SPRITE */
+}
 #modmail.nohavemail {
-    opacity: .7;
-    filter:alpha(opacity=70); /* IE patch */
+	background-image: url(../modmailgray.png);  /* SPRITE */
 }
 .user {color: gray;}
 
@@ -219,6 +255,7 @@ ul.flat-vert {text-align: left;}
     font-variant: small-caps;
     line-height: 100%;
     font-size: 1.2em;
+    vertical-align: bottom;
 }
 .pagename a {color: black; }
 .redditname { }
@@ -261,7 +298,7 @@ ul.flat-vert {text-align: left;}
 
 .dropdown.heavydrop .selected{
     background: white none no-repeat scroll center right;
-    background-image: url(/static/droparrow.gif);
+    background-image: url(../droparrow.gif);
     border: 1px solid gray;
     padding: 2px;
     padding-right: 23px;
@@ -272,7 +309,7 @@ ul.flat-vert {text-align: left;}
 .dropdown.lightdrop .selected {
     position: relative;
     background: transparent none no-repeat scroll center right;
-    background-image: url(/static/droparrowgray.gif);
+    background-image: url(../droparrowgray.gif);
     padding-right: 21px;
     text-decoration: underline;
     color: gray; 
@@ -286,7 +323,7 @@ ul.flat-vert {text-align: left;}
 .dropdown.tabdrop .selected {
     position: relative;
     background: white none no-repeat scroll center right;
-    background-image: url(/static/droparrowgray.gif);
+    background-image: url(../droparrowgray.gif);
     padding: 2px 21px 1px 5px;
     margin-left: 3px;
     border: 1px solid #234a53;
@@ -308,6 +345,7 @@ ul.flat-vert {text-align: left;}
     white-space: nowrap;
     display: inline-block;
     margin-top: 5px;
+    vertical-align: bottom;
 }
 
 .tabmenu li {
@@ -370,7 +408,7 @@ ul.flat-vert {text-align: left;}
     border: 1px solid #c4dbf1;
 
     background: white none repeat-x scroll center left;
-    background-image: url(/static/gradient-button.png);
+    background-image: url(../gradient-button.png);
 
     font-size:150%;
     font-weight:bold;
@@ -382,7 +420,7 @@ ul.flat-vert {text-align: left;}
 
 .morelink:hover, .mlh {
     border-color: #234a53;
-    background-image: url(/static/gradient-button-hover.png);
+    background-image: url(../gradient-button-hover.png);
 }
 
 .morelink a {
@@ -402,11 +440,29 @@ ul.flat-vert {text-align: left;}
     #height: 31px;
     #width: 24px;
     #background: white none no-repeat scroll center left;
-    #background-image: url(/static/gradient-nub.png);  /* SPRITE */
+    #background-image: url(../gradient-nub.png);  /* SPRITE */
 }
 
 .morelink:hover .nub, .mlhn {
-    #background-image: url(/static/gradient-nub-hover.png);  /* SPRITE */
+    #background-image: url(../gradient-nub-hover.png);  /* SPRITE */
+}
+
+.disabled .morelink, .disabled .morelink:hover {
+    background-image: url(../gradient-button-gray.png);  /* SPRITE stretch-x */
+    border-color: #dadada;
+}
+
+.disabled .morelink a {
+    cursor: default;
+    color: #aaa;
+}
+
+.disabled .morelink .nub, .disabled .morelink:hover .nub {
+    background-image: url(../gradient-nub-gray.png);  /* SPRITE */
+}
+
+.sidebox.submit.disabled .spacer a {
+    opacity: .5;
 }
 
 /* raised box */
@@ -436,20 +492,20 @@ ul.flat-vert {text-align: left;}
     width: 40px;
 }
 
-.sidebox.create .spacer {
-    background-image: url(/static/create-a-reddit.png);  /* SPRITE */
+.sidebox.create .spacer a {
+    background-image: url(../create-a-reddit.png);  /* SPRITE */
     background-repeat:no-repeat;
 }
 
-.sidebox.gold .spacer {
-    background-image: url(/static/reddit_gold-40.png);  /* SPRITE */
+.sidebox.gold .spacer a {
+    background-image: url(../reddit_gold-40.png);  /* SPRITE */
     background-repeat:no-repeat;
 }
 
 .sidebox.gold .morelink {
     border:none;
     background-color:transparent;
-    background-image: url(/static/goldmorelink.png);  
+    background-image: url(../goldmorelink.png);  
     background-position: 0 0;
     background-repeat:no-repeat;
     height:31px;
@@ -472,8 +528,8 @@ ul.flat-vert {text-align: left;}
     display: none;
 }
 
-.sidebox.submit .spacer {
-    background-image: url(/static/submit-alien.png);  /* SPRITE */
+.sidebox.submit .spacer a {
+    background-image: url(../submit-alien.png);  /* SPRITE */
     background-repeat:no-repeat;
 }
 
@@ -483,7 +539,23 @@ ul.flat-vert {text-align: left;}
     font-size: 110%;
 }
 
+.account-activity-box {
+    text-align: center;
+}
 
+#account-activity table {
+    margin: 2em 0 0 2em;
+    width: 45em;
+    font-size: larger;
+}
+
+#account-activity th {
+    font-weight: bold;
+}
+
+#account-activity td {
+    padding: .5em 0;
+}
 
 .infotable { margin-top: 5px; margin-bottom: 10px; }
 .infotable .small { font-size: smaller; }
@@ -544,16 +616,16 @@ ul.flat-vert {text-align: left;}
 }
 
 .arrow.upmod { 
-    background-image: url(/static/aupmod.png);  /* SPRITE */
+    background-image: url(../aupmod.png);  /* SPRITE */
 }
 .arrow.downmod { 
-    background-image: url(/static/adownmod.png);  /* SPRITE */
+    background-image: url(../adownmod.png);  /* SPRITE */
 }
 .arrow.up { 
-    background-image: url(/static/aupgray.gif);  /* SPRITE */
+    background-image: url(../aupgray.gif);  /* SPRITE */
 }
 .arrow.down { 
-    background-image: url(/static/adowngray.gif);  /* SPRITE */
+    background-image: url(../adowngray.gif);  /* SPRITE */
 }
 
 .midcol {
@@ -581,10 +653,11 @@ ul.flat-vert {text-align: left;}
 
 .tagline { color:#888; font-size:x-small; }
 .tagline a {color: #369; text-decoration: none; }
-.tagline .friend    { color: orangered }
+.tagline .friend    { color: tomato }
 .tagline .submitter { color: #0055df }
 .tagline .moderator, .green { color: #228822 }
 .tagline .admin { color: #ff0011; }
+.tagline .alum { color: #BE1337; }
 .tagline a.author.admin { font-weight: bold }
 .tagline a:hover { text-decoration: underline }
 
@@ -600,9 +673,17 @@ a.author { margin-right: 0.5em; }
     border-radius: 2px;
 }
 
+.collapsed .flair { display: none; }
+
+.flair input {
+    font-size: xx-small;
+}
+
 .link .flair {
     margin-top: -1px;
 }
+
+.flair-settings { margin-bottom: 16px; }
 
 .flairlist .flair-jump {
     margin-bottom: 1em;
@@ -627,48 +708,73 @@ a.author { margin-right: 0.5em; }
     margin-right: 4ex;
 }
 
-.flairrow .tagline { text-align: left; width:36ex; }
-.flairlist .header { text-align: center; }
+.flair-entry { display: inline-block; }
+
+.flaircell.narrow, .flairlist .header.narrow { width: 14ex; }
+
+.flairsample-left { text-align: right !important; }
+.flairsample-right { text-align: left !important; }
+
+.flairrow .tagline {
+    display: inline-block;
+    margin-bottom: 8px;
+    margin-left: 6px;
+    text-align: left;
+    width: 36ex;
+}
 .flairlist .flaircell input[type="text"] { width: 28ex; }
-.flairrow button { display: none; }
+.flairrow > form button { display: none; }
 .flairrow .edited button { display: inline-block; }
 
-.media-button .option { color: red; }
-.media-button .option.active {
-    background: transparent none no-repeat scroll right center;
-    background-image: url(/static/reddit-button-play.gif);   /* SPRITE */
-    padding-right: 15px;
-    color: #234a54;
-}
+.flairrow .flairdeletebtn { display: inline; }
+.flairrow:hover .flairdeletebtn { opacity: 1.0; }
 
-.embededmedia { margin-top: 5px; margin-left: 60px; }
-
-.thing .title { color: blue; padding: 0px; overflow: hidden; }
-.thing .title:visited { color: #551a8b }
-.thing .title.click { color: #551a8b } 
-
-.thing .title.loggedin { color: blue }
-.thing .title.loggedin:visited { color: #551a8b }
-.thing .title.loggedin.click { color: #551a8b } 
-.thing .title.loggedin.click:visited { color: #551a8b }
-
-.sitetable { list-style-type: none; }
-.ajaxhook { position: absolute; top: -1000px; left: 0px; }
-.nextprev { color: gray; font-size: larger; margin-top: 10px;}
-
-/* corner help */
-.help a.help {
-    color: #808080;
-    text-decoration: underline;
-}
-
-.help a.open {
-    margin: 0px 5px 5px 0;
+.flairselector {
+    box-shadow: 4px 4px 4px #ccc;
+    font-size: x-small;
     position: absolute;
-    right: 0px;
-    bottom: 0px;
+    width: 400px;
 }
 
+.flairselector img { margin: none; }
+
+.flairselector h2 {
+    background: #cee3f8;
+    padding-bottom: 2px;
+    margin-bottom: 3px;
+    text-align: center;
+}
+
+.flairselector.drop-choices.active {
+    border: 1px solid gray;
+    display: block;
+}
+
+.flairselector .error { text-align: center; }
+.flairselector ul {
+    display: inline-block;
+    max-width: 200px;
+    overflow: hidden;
+    vertical-align: top;
+}
+
+.flairselector .selected, .flairselector.active li {
+    display: block;
+    font-weight: normal;
+    text-decoration: none !important;
+}
+
+.flairselector li { border: 1px solid white; cursor: pointer; }
+.flairselector li:hover { background-color: #bbb;  border: 1px solid #bbb; }
+.flairselector li a:hover { text-decoration: none; }
+.flairselector li.selected { border: dashed 1px black; }
+
+.flairselector form {
+    border-top: solid 1px gray;
+    clear: both;
+    padding-top: 4px;
+    text-align: center;
+}
 
 .help.help-cover {
     background-color: #F8F8F8;
@@ -725,13 +831,30 @@ a.author { margin-right: 0.5em; }
     vertical-align: top;
 }
 
-.organic-listing .nextprev img {
-    margin: 5px 5px 2px 0px; border: solid 1px #B3B3B3;
+
+.organic-listing .nextprev .arrow {
+    width: 21px;
+    height: 21px;
+    margin: 5px 5px 2px 0px;
+    border: solid 1px #234a54;
+    display: inline-block;
+    position: relative;
+    /* This is a really weird value, but it needs to be low to hide text without affecting layout in IE. */
+    text-indent: 50px;
 }
-.organic-listing .nextprev img:hover {
-    cursor: pointer;  border: solid 1px #234a54;
+.organic-listing .nextprev .arrow.prev {
+    background-image: url(../prev_organic.png); /* SPRITE */
 }
-.organic-listing .nextprev img:active { margin: 6px 4px 1px 1px;}
+.organic-listing .nextprev .arrow.next {
+    background-image: url(../next_organic.png); /* SPRITE */
+}
+.organic-listing .nextprev .arrow:hover {
+    cursor: pointer;
+    border: solid 1px #336699;
+}
+.organic-listing .nextprev .arrow:active {
+    top: 1px;
+}
 
 .link.promotedlink {
     /*background-color: lightgreen; */
@@ -1045,10 +1168,13 @@ a.star { text-decoration: none; color: #ff6024 }
 
 textarea.gray { color: gray; }
 
-.deepthread {
-    padding-right: 30px;
-    background: transparent none no-repeat scroll center right;
-    background-image: url(/static/continue-thread.png);  
+.deepthread:after {
+    background-image: url(../continue-thread.png);  /* SPRITE */
+    content: " ";
+    display: inline-block;
+    width: 25px;
+    height: 9px;
+    margin: 5px 0 0 5px;
 }
 .deepthread a { font-size: larger; color: #234a54 }
 .deepthread a:hover { text-decoration: underline}
@@ -1103,7 +1229,7 @@ textarea.gray { color: gray; }
 }
 
 .message.new > .entry .head {
-  color:orangered; font-weight: bold;  
+  color:tomato; font-weight: bold;  
 }
 .message.new > .entry{ 
     background-color:#F7F7F7;
@@ -1240,7 +1366,7 @@ textarea.gray { color: gray; }
 
 .clippy-bubble ul {
     list-style-type: disc;
-    list-style-image: url(/static/clippy-bullet.png);
+    list-style-image: url(../clippy-bullet.png);
     padding-left: 15px;
 }
 
@@ -1275,10 +1401,10 @@ textarea.gray { color: gray; }
 }
 
 .fancy-toggle-button .remove { 
-    background-image: url(/static/bg-button-remove.png);
+    background-image: url(../bg-button-remove.png);
 }
 .fancy-toggle-button .add { 
-    background-image: url(/static/bg-button-add.png);
+    background-image: url(../bg-button-add.png);
 }
 .fancy-toggle-button .banned {
     background-color: #666;
@@ -1327,6 +1453,7 @@ textarea.gray { color: gray; }
 
 /* footer */
 .footer-parent {
+    font-size: larger;
     padding-top: 40px; 
     clear: both;
     text-align: center;
@@ -1334,7 +1461,6 @@ textarea.gray { color: gray; }
 
 .footer {
     color: gray;
-    font-size: larger;
     padding: 5px;
     margin: 15px;
     border:1px solid #F0F0F0;
@@ -1343,10 +1469,10 @@ textarea.gray { color: gray; }
 
 .footer .col {
     float: left;
-    margin: 10px;
-    padding-left: 10px;
+    margin: 10px 0;
+    padding: 0 15px;
     border-left: 1px solid #E0E0E0;
-    height: 150px;
+    height: 8.5em;
  }
 
 .footer .col:first-child {border: none;}
@@ -1359,19 +1485,6 @@ textarea.gray { color: gray; }
     font-size: larger;
 }
 
-.server-status { width: 300px;  }
-.server-status table {
-    font-size: xx-small; 
-    margin-left: 5px; 
-    border-top: #BCBCBC solid 1px;
-    border-left: #BCBCBC solid 1px;
-    border-bottom: #E0E0E0 solid 1px;
-    border-right: #E0E0E0 solid 1px;
-    margin-bottom: 5px; 
-    width: 290px;
-}
-.server-status td { padding-right: 2px; padding-left: 2px; }
-.server-status .bar { height: 5px; background-color: blue; }
 .load0 { background-color: #FFFFFF; } /* white */
 .load1 { background-color: #f0f5FF; } /* pale blue */
 .load2 { background-color: #E2ECFF; } /* blue */
@@ -1382,49 +1495,6 @@ textarea.gray { color: gray; }
 .load7 { background-color: #ffdb81; } /* orangerose */
 .load8 { background-color: #FF9191; } /* pink */
 .load9 { background-color: #FF0000; color: #FFFFFF } /* red */
-.server-status tr.down > * {
-    background-color: #C0C0C0; 
-    text-decoration: line-through; 
-}
-
-.server-status th { font-weight: bold; padding-right: 2px; }
-.server-status tr.title-region { cursor: pointer; }
-.server-status tr.title-region:hover > td,
-.server-status tr.title-region:hover > th { text-decoration: underline; }
-
-.server-status tr.title-region.empty { cursor: default; opacity: 0.7; }
-.server-status tr.title-region.empty:hover > td,
-.server-status tr.title-region.empty:hover > th { text-decoration: none; }
-
-
-.server-status .pegged {
-    background-color: red;
-    font-weight: bold;
-    color: #FFFFFF;
-}
-
-.server-status .membar {
-    height:11px; 
-    border:1px solid white;
-    background-color:#6699FF; 
-    position: relative;
-}
-.server-status .membar span {
-    position: absolute;
-    font-size: smaller;
-}
-.server-status .cpu50  {
-    height: 5px; 
-    background-color:green; 
-    border:1px solid white;
-    border-bottom: none;
-}
-.server-status .cpu300 {
-    height: 5px; 
-    background-color:red; 
-    border:1px solid white;
-}
-
 
 /* login form */
 
@@ -1435,21 +1505,36 @@ textarea.gray { color: gray; }
     border: 1px solid gray;
 }
 
-.login-form-side input {
-    border: 1px solid gray;
-    width: 138px;
+.login-form-side input[type=text],
+.login-form-side input[type=password] {
+    border: 1px solid #999;
+    width: 137px;
     height: 17px;
     margin: 5px 0px 0px 5px;
     top: 5px;
     padding: 1px;
  }
 
-.login-form-side .error {
-    margin: 5px;
+.login-form-side input[type=password] {
+    width: 138px;
 }
 
-#remember-me {
-    margin: 5px;
+.login-form-side #remember-me,
+.login-form-side .submit {
+    margin: 4px;
+}
+
+.login-form-side .submit input[type=button] {
+    margin:1px;
+}
+
+.login-form-side #remember-me {
+    float: left;
+    line-height: 24px;
+}
+
+.login-form-side #remember-me * {
+    vertical-align:middle;
 }
 
 /*the checkbox*/
@@ -1459,6 +1544,7 @@ textarea.gray { color: gray; }
     width: auto;
     border: none;
     margin-right: 5px;
+    margin-top: 0;
 }
 
 .login-form-side label {
@@ -1467,13 +1553,31 @@ textarea.gray { color: gray; }
     white-space: nowrap;
 }
 
-.login-form-side button {
+.login-form-side .recover-password {
+    margin-left: 1em;
+}
+
+.login-form-side .status { display:none; }
+
+.login-form-side .submit {
     float: right;
 }
 
+.login-form-side .submit *, .user-form .submit * {
+    vertical-align: middle;
+}
 
-.status { margin-left: 5px; color: red; font-size: small;}
-.error { color: red; font-size: small; margin: 5px; }
+.throbber {
+    display: none;
+    margin: 0 2px;
+    background: url(../throbber.gif) no-repeat;
+    width: 18px;
+    height: 18px;
+}
+.working .throbber { display: inline-block; }
+
+.status { margin: 5px 0 0 5px; font-size: small;}
+.error { color: red; font-size: small; }
 .red { color:red }
 .buygold { color: #c59534; font-weight: bold; }
 .line-through { text-decoration: line-through }
@@ -1595,16 +1699,16 @@ label + #moresearchinfo {
 .legal {color: #808080; font-family: serif; font-size: small; margin-top: 20px; }
 .legal a {text-decoration: underline}
 
-.divide { border-right: 2px solid #D3D3D3;  }
+.divide { border-right: 2px solid #D3D3D3; margin-right: -2px; }
 
-.loginform {
+.login-form-section {
     float: left; 
-    width: 45%; 
-    padding-left: 15px; 
-    padding-right: 15px; 
+    width: 46%;
+    padding-left: 2%;
+    padding-right: 2%;
 }
 
-.loginform h3 {
+.login-form-section h3 {
     margin-bottom: 0;
     margin-top: 10px;
     font-size: large;
@@ -1612,23 +1716,28 @@ label + #moresearchinfo {
     font-variant: small-caps;
     color: #404040;
 }
-.loginform p {
+.login-form-section p {
     text-align: left;
     margin-bottom: 10px; 
     color: #606060;
     margin-bottom: 20px; 
 }
-.loginform label {
+
+.user-form label {
     display: block; 
     font-weight: bold;
     color: #606060; 
 }
 
-.loginform .remember { display:inline; margin-left: 5px;  }
-.loginform ul { margin: 5px; }
-.loginform li { margin-top: 5px; }
-.loginform p .btn { margin-top: 5px }
-.loginform input.logtxt { width: 125px; }
+.user-form .error {
+    margin-left: 5px;
+}
+
+.user-form .remember { display:inline; margin-left: 5px;  }
+.user-form ul { margin: 5px; }
+.user-form li { margin-top: 5px; }
+.user-form p .btn { margin-top: 5px }
+.user-form input.logtxt { width: 125px; }
 
 .loginform input[type=text],
 .loginform input[type=password] {
@@ -1642,6 +1751,10 @@ label + #moresearchinfo {
 .loginform #captcha {
     width: 250px;
  }
+
+.user-form .submit {
+    margin-top: 10px;
+}
 
 #passform h1 {margin-bottom: 0px}
 #passform p {margin-bottom: 5px; font-size: small}
@@ -1668,9 +1781,8 @@ label + #moresearchinfo {
     text-align: left;
     z-index: 1001;
     padding: 10px;
-    border-color: #B2B2B2 black black #B2B2B2;
-    border-style: solid;
-    border-width: 1px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.5);
+    border-radius: 10px;
 }
 
 .popup h1 {
@@ -1686,6 +1798,11 @@ label + #moresearchinfo {
     margin-top: 0px;
     color: black;
     font-weight: normal;
+}
+
+.popup .close-popup {
+    text-align: center;
+    margin-top: 10px;
 }
 
 .usertable { margin-left: 10px;} 
@@ -2008,6 +2125,10 @@ label + #moresearchinfo {
 
 .bottommenu { color: gray; font-size: smaller; clear: both}
 .bottommenu a { color: gray; text-decoration: underline;   }
+.bottommenu.serverinfo { text-align:right; padding:5px; }
+.bottommenu.serverinfo .icon { color:#a0a0a0; font:1.5em serif; padding:0 2px; }
+.bottommenu.serverinfo .content { display:none; }
+.bottommenu.serverinfo:hover .content { display:inline; }
 
 
 /* Buttons specific */
@@ -2195,12 +2316,12 @@ label + #moresearchinfo {
 
 .self-service.instructions li.done { 
     text-decoration: line-through;
-    list-style-image:url(/static/green-check.png);
+    list-style-image:url(../green-check.png);
 }
 
 .self-service.instructions li.unfinished { 
     font-weight:bold;
-    list-style-image:url(/static/red-arrow.png);
+    list-style-image:url(../red-arrow.png);
 }
 
 
@@ -2212,10 +2333,14 @@ label + #moresearchinfo {
     margin-top: 10px; 
 }
 
-.feedback.instructions dd { 
-    background: transparent none no-repeat scroll bottom left;
-    background-image: url(/static/red-arrow.png);
-    padding-left: 35px; 
+.feedback.instructions dd:before { 
+    background-image: url(../red-arrow.png); /* SPRITE */
+    height: 15px;
+    width: 30px;
+    display: block;
+    content: " ";
+    float: left;
+    margin: 2px 5px 0 0;
 }
 
 
@@ -2356,16 +2481,16 @@ label + #moresearchinfo {
 }
 
 .toolbar .arrow.upmod   { 
-    background-image: url(/static/aminiupmod.gif); 
+    background-image: url(../aminiupmod.gif); 
 }
 .toolbar .arrow.downmod { 
-    background-image: url(/static/aminidownmod.gif); 
+    background-image: url(../aminidownmod.gif); 
 }
 .toolbar .arrow.up      { 
-    background-image: url(/static/aminiupgray.gif); 
+    background-image: url(../aminiupgray.gif); 
 }
 .toolbar .arrow.down    { 
-    background-image: url(/static/aminidowngray.gif); 
+    background-image: url(../aminidowngray.gif); 
 }
 
 .toolbar-status-bar {
@@ -2377,7 +2502,7 @@ label + #moresearchinfo {
 }
 .toolbar-status-bar .login-arrow-left {
     overflow: auto;
-    background-image: url(/static/tb-loginarrow-left.png);
+    background-image: url(../tb-loginarrow-left.png);
     background-position: top right;
 }
 .toolbar-status-bar .login-arrow-right {
@@ -2482,7 +2607,7 @@ form input[type=radio] {margin: 2px .5em 0 0; }
 
 
 /* delete page */
-.delete-field {
+.white-field, .delete-field {
     background-color: white;
     padding: 10px;
 }
@@ -2493,6 +2618,29 @@ form input[type=radio] {margin: 2px .5em 0 0; }
 
 .pretty-form .delete-field {
     background: transparent;
+}
+
+#pref-delete textarea#delete-message {
+    font-size: smaller;
+    height: 5em;
+}
+
+#pref-delete .md ul {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#pref-delete .md ul li {
+    margin: .5em 0;
+}
+
+#pref-delete .credentials input {
+    margin: .2em 0;
+}
+
+#pref-delete .credentials .error,
+#pref-delete .error.RATELIMIT {
+    margin-left: 5px;
 }
 
 /*pref page boxes*/
@@ -2608,7 +2756,22 @@ form input[type=radio] {margin: 2px .5em 0 0; }
     float: left; 
     margin: 0px 5px; 
     overflow: hidden;
-    width: 80; 
+    width: 80px; 
+}
+
+.thumbnail.nsfw {
+    height: 80px;
+    background-image: url(../nsfw2.png); /* SPRITE */
+}
+
+.thumbnail.self {
+    height: 50px;
+    background-image: url(../self_default2.png); /* SPRITE */
+}
+
+.thumbnail.default {
+    height: 50px;
+    background-image: url(../noimage.png); /* SPRITE */
 }
 
 
@@ -2726,49 +2889,42 @@ ul#image-preview-list .description pre {
 }
 
 .private-feeds.instructions .feedlink.rss-link {
-    background-image: url(/static/rss.png);
+    background-image: url(../rss.png);
 }
 
 .private-feeds.instructions .feedlink.json-link {
     background-color: #DDDDDD;
-    background-image: url(/static/json.png);
+    background-image: url(../json.png);
     color: black; 
 }
 
-/* Socialite */
-.socialite.instructions ul {
-    margin: 10px;
-    max-width: 60em;
+#sr-header-area {
+    background-color: #f0f0f0;
+    white-space: nowrap;
+    text-transform: uppercase;
+    border-bottom: 1px solid gray;
+    font-size: 90%;
+    height: 18px;
+    line-height: 18px;
+ }
+
+#sr-header-area .width-clip {
+    position: absolute;
+    left: 0;
+    right: 0;
 }
 
-.socialite.instructions ul > li {
-    list-style-type: disc;
-    list-style-position: inside;
+#sr-header-area .selected a {
+    color: tomato;
 }
 
-.socialite.instructions hr {
-    color: #C6C6C6;
-    border: none;
-    border-top: 1px solid #C6C6C6;
-    margin: 20px 0px 20px 0px;
-    max-width: 60em;
+#sr-header-area .sr-list {
+    overflow: hidden;
 }
 
-.socialite.instructions p.screenshot {
-    text-align: center;
-}
-  
-.socialite.instructions .logotext {
-    line-height: 32px;
-}
-
-.socialite.instructions .logotext .logo {
+#sr-header-area .dropdown.srdrop {
     float: left;
-    margin-right: 10px;
-}
-  
-.socialite.instructions .logoclear {
-    clear: left;
+    padding-left: 5px;
 }
 
 .socialite.instructions .features {
@@ -2776,60 +2932,10 @@ ul#image-preview-list .description pre {
     max-width: 60em;
 }
 
-/* From http://www.oscaralexander.com/tutorials/how-to-make-sexy-buttons-with-css.html */
-.socialite .buttonclear {
-    overflow: hidden;
-    float: right;
-    margin-right: 20px;
-    
-}
-
-.socialite a.installbutton {
-    background: transparent none no-repeat scroll top right;
-    background-image: url(/static/socialite/installbutton-end.png);   /* SPRITE */
-    color: #FFF;
-    display: block;
-    float: left;
-    font: bold 18px "Trebuchet MS",Helvetica,"Helvetica Neue",Arial,sans-serif;
-    height: 50px;
-    margin-right: 6px;
-    padding-right: 48px; /* sliding doors padding */
-    text-decoration: none;
-}
-
-.socialite a.installbutton span {
-    background: transparent none no-repeat;
-    background-image: url(/static/socialite/installbutton.png);   /* SPRITE */
-    display: block;
-    line-height: 30px;
-    padding: 10px 0 10px 17px;
-}
-
-.socialite a.installbutton:hover {
-    background-position: bottom right;
-}
-
-.socialite a.installbutton:hover span {
-    background-position: bottom left;
-} 
-
-#sr-header-area {
-    padding: 3px 0px 3px 5px;
-    background-color: #F4F9FF;
-    white-space: nowrap;
-    overflow: hidden;
-    text-transform: uppercase;
-    border-bottom: 1px solid gray;
-    font-size: 90%;
- }
-
-#sr-header-area .selected a {
-    color: tomato;
-}
 
 .dropdown.srdrop .selected {
     background: transparent none no-repeat scroll center right;
-    background-image: url(/static/droparrowgray.gif); 
+    background-image: url(../droparrowgray.gif); 
     display: inline-block;
     vertical-align: bottom;
     padding-right: 21px;
@@ -2928,7 +3034,7 @@ ul#image-preview-list .description pre {
 #sr-list-cover {
     position: absolute;
     background: gray none no-repeat scroll center center;
-    background-color: url(/static/throbber.gif); 
+    background-color: url(../throbber.gif); 
     height: 100%;
     width: 100%;
     opacity: .7;
@@ -2963,7 +3069,7 @@ ul#image-preview-list .description pre {
 
 .sr-row.sr-selected {
     background: #EFF7FF none no-repeat scroll 0px 5px;
-    background-image: url(/static/rightarrow.png);    /* SPRITE */
+    background-image: url(../rightarrow.png);    /* SPRITE */
 }
 
 .sr-arrow {
@@ -3079,32 +3185,32 @@ ul.tabmenu.formtab {
 }
 
 .expando-button.selftext.collapsed {
-    background-image: url(/static/blog-collapsed.png); /* SPRITE */
+    background-image: url(../blog-collapsed.png); /* SPRITE */
 }
 .expando-button.selftext.collapsed:hover, .eb-sch {
-    background-image: url(/static/blog-collapsed-hover.png); /* SPRITE */
+    background-image: url(../blog-collapsed-hover.png); /* SPRITE */
 }
 .expando-button.selftext.expanded, .eb-se {
     margin-bottom: 5px;
-    background-image: url(/static/blog-expanded.png); /* SPRITE */
+    background-image: url(../blog-expanded.png); /* SPRITE */
 }
 .expando-button.selftext.expanded:hover, .eb-seh {
-    background-image: url(/static/blog-expanded-hover.png); /* SPRITE */
+    background-image: url(../blog-expanded-hover.png); /* SPRITE */
 }
 
 .expando-button.video.collapsed {
-    background-image: url(/static/vid-collapsed.png); /* SPRITE */
+    background-image: url(../vid-collapsed.png); /* SPRITE */
 }
 
 .expando-button.video.collapsed:hover, .eb-vch {
-    background-image: url(/static/vid-collapsed-hover.png); /* SPRITE */
+    background-image: url(../vid-collapsed-hover.png); /* SPRITE */
 }
 
 .expando-button.video.expanded, .eb-ve {
-    background-image: url(/static/vid-expanded.png); /* SPRITE */
+    background-image: url(../vid-expanded.png); /* SPRITE */
 }
 .expando-button.video.expanded:hover, .eb-veh {
-    background-image: url(/static/vid-expanded-hover.png); /* SPRITE */
+    background-image: url(../vid-expanded-hover.png); /* SPRITE */
 }
 
 
@@ -3348,7 +3454,7 @@ ul.tabmenu.formtab {
 }
 
 .existing-campaigns td.bid.paid { 
-    background-image: url(/static/green-check.png);  
+    background-image: url(../green-check.png);  
 }
 
 .existing-campaigns td.bid .info{ 
@@ -3870,7 +3976,7 @@ table.lined-table {
     font-weight: bold;
     text-decoration: none;
     float: right;
-    color: orangered;
+    color: tomato;
 }
 
 
@@ -4103,17 +4209,40 @@ dd { margin-left: 20px;  }
 
 .titlebox form.toggle {
     margin: 0;
-    padding: 5px 0px 5px 20px;
+    padding: 5px 0px;
     font-size: smaller;
     color: gray;
     background: white none no-repeat scroll center left;
 }
 
-.titlebox form.leavemoderator-button {
-    background-image: url(/static/shield.png); /* SPRITE */
+.titlebox form.leavemoderator-button:before,
+.titlebox form.leavecontributor-button:before,
+.icon-menu .reddit-edit:before,
+.icon-menu .reddit-traffic:before,
+.icon-menu .reddit-reported:before,
+.icon-menu .reddit-spam:before,
+.icon-menu .reddit-ban:before,
+.icon-menu .reddit-flair:before,
+.icon-menu .reddit-moderationlog:before,
+.icon-menu .reddit-moderators:before,
+.icon-menu .moderator-mail:before,
+.icon-menu .reddit-contributors:before,
+.giftgold a:before,
+.gold-form h1.goldgift:before {
+    height: 16px;
+    width: 16px;
+    display: block;
+    content: " ";
+    float: left;
+    margin-right: 5px;
 }
-.titlebox form.leavecontributor-button {
-    background-image: url(/static/pencil.png); /* SPRITE */
+
+.titlebox form.leavemoderator-button:before {
+    background-image: url(../shield.png); /* SPRITE */
+}
+
+.titlebox form.leavecontributor-button:before {
+    background-image: url(../pencil.png); /* SPRITE */
 }
 
 .titlebox form.flairtoggle {
@@ -4125,40 +4254,47 @@ dd { margin-left: 20px;  }
 }
 
 .icon-menu a {
-    padding-left: 20px;
     background: white none no-repeat scroll center left;
 } 
 .icon-menu li {margin: 5px 0;}
 
 .icon-menu .reddit-edit {
-    background-image: url(/static/reddit_edit.png); /* SPRITE */
+    background-image: url(../reddit_edit.png); /* SPRITE */
 }
 .icon-menu .reddit-traffic {
-    background-image: url(/static/reddit_traffic.png); /* SPRITE */
+    background-image: url(../reddit_traffic.png); /* SPRITE */
 }
 .icon-menu .reddit-reported {
-    background-image: url(/static/reddit_reported.png); /* SPRITE */
+    background-image: url(../reddit_reported.png); /* SPRITE */
 }
 .icon-menu .reddit-spam {
-    background-image: url(/static/reddit_spam.png); /* SPRITE */
+    background-image: url(../reddit_spam.png); /* SPRITE */
 }
 .icon-menu .reddit-ban {
-    background-image: url(/static/reddit_ban.png); /* SPRITE */
+    background-image: url(../reddit_ban.png); /* SPRITE */
 }
 .icon-menu .reddit-flair {
-    background-image: url(/static/reddit_flair.png); /* SPRITE */
+    background-image: url(../reddit_flair.png); /* SPRITE */
     /* Work around a centering difference between this icon and reddit_ban.png */
     margin-left: 1px;
     padding-left: 19px;
 }
-.icon-menu .reddit-moderators {
-    background-image: url(/static/shield.png); /* SPRITE */
+.icon-menu .reddit-moderationlog:before {
+    background-image: url(../reddit_moderationlog.png); /* SPRITE */
+    margin-left: 1px;
 }
-.icon-menu .moderator-mail {
-    background-image: url(/static/mailgray.png); /* SPRITE */
+.icon-menu .reddit-moderators:before {
+    background-image: url(../shield.png); /* SPRITE */
 }
-.icon-menu .reddit-contributors {
-    background-image: url(/static/pencil.png); /* SPRITE */
+.icon-menu .moderator-mail:before {
+    background-image: url(../mailgray.png); /* SPRITE */
+    width: 15px;
+    height: 10px;
+    margin-top: 4px;
+    margin-left: 1px;
+}
+.icon-menu .reddit-contributors:before {
+    background-image: url(../pencil.png); /* SPRITE */
 }
 
 .linkinfo {
@@ -4341,22 +4477,22 @@ a.pretty-button:hover { text-decoration: none !important }
 
 a.pretty-button.negative {
     color: black;
-    background-image: url(/static/bg-button-negative-unpressed.png);
+    background-image: url(../bg-button-negative-unpressed.png);
 }
 
 a.pretty-button.negative.pressed {
     color: white;
-    background-image: url(/static/bg-button-negative-pressed.png);
+    background-image: url(../bg-button-negative-pressed.png);
 }
 
 a.pretty-button.positive {
     color: black;
-    background-image: url(/static/bg-button-positive-unpressed.png);
+    background-image: url(../bg-button-positive-unpressed.png);
 }
 
 a.pretty-button.positive.pressed {
     color: white;
-    background-image: url(/static/bg-button-positive-pressed.png);
+    background-image: url(../bg-button-positive-pressed.png);
 }
 
 
@@ -4443,6 +4579,57 @@ tr.gold-accent + tr > td {
     padding-top: 10px; 
 }
 
+#per-sr-karma {
+    width: 300px;
+    margin: .6em auto 0 auto;
+    table-layout: fixed;
+}
+
+#per-sr-karma thead th,
+#per-sr-karma td {
+    text-align: right;
+}
+
+#per-sr-karma tbody th {
+    text-align: left;
+}
+
+#per-sr-karma #sr-karma-header {
+    width: 150px;
+    text-align: left;
+}
+
+#per-sr-karma thead th {
+    font-weight: bold;
+    padding-bottom: 2px;
+}
+
+#per-sr-karma tbody th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+}
+
+#per-sr-karma tbody td {
+    font-weight: bold;
+    color: #666;
+}
+
+#per-sr-karma th.helpful span {
+    border-bottom: 1px dotted #666;
+    cursor: help;
+    display: inline-block;
+}
+
+.more-karmas {
+    display: none;
+}
+
+.giftgold.karma-breakdown {
+    margin-top: .6em;
+}
+
 .friend-note button[type=submit] { 
     display: none; 
     font-size: x-small;
@@ -4487,7 +4674,9 @@ tr.gold-accent + tr > td {
 }
 
 .gold-expiration-info {
-    margin: 3px 0 5px;
+    margin: 3px 0;
+    width: 278px;
+    text-align: center;
 }
 
 .gold-expiration-info .karma {
@@ -4498,11 +4687,16 @@ tr.gold-accent + tr > td {
     margin-bottom: 5px;
 }
 .giftgold a {
-    padding-left: 20px;
     color: #9a7d2e;
     font-weight: bold;
-    background-image: url(/static/giftgold.png);
-    background-repeat:no-repeat;
+}
+.giftgold a:before,
+.gold-form h1.goldgift:before {
+    background-image: url(../giftgold.png); /* SPRITE */
+}
+
+.gold-form h1:before {
+    margin-top: 3px;
 }
 
 .tiny {
@@ -4616,4 +4810,227 @@ tr.gold-accent + tr > td {
     -webkit-box-shadow: inset 0px 1px 1px hsla(0,0%,0%,.3), 0px 1px 0px hsla(0,0%,100%,.6);
     -moz-box-shadow: inset 0px 1px 1px hsla(0,0%,0%,.3), 0px 1px 0px hsla(0,0%,100%,.6);
     box-shadow: inset 0px 1px 1px hsla(0,0%,0%,.3), 0px 1px 0px hsla(0,0%,100%,.6);
+}
+.infobar.client-info {
+    position: relative;
+    margin: 10px 2%;
+    width: 94%;
+    height: 48px;
+}
+
+.infobar.client-info .icon img {
+    position: absolute;
+    left: 10px;
+    width: 48px;
+    height: 48px;
+}
+
+.infobar.client-info .md {
+    line-height: 48px;
+    margin-left: 56px;
+}
+
+.infobar.client-info .md p {
+    margin: 0;
+}
+
+.oauth2-authorize {
+    position: relative;
+    background: url(../snoo-tray.png) no-repeat;
+    width: 415px;
+    height: 235px;
+    margin: 40px auto 0;
+    padding-left: 280px;
+    padding-top: 18px;
+}
+
+.oauth2-authorize h1 a {
+    display: block;
+    font-weight: bold;
+    font-size: 1.5em;
+    letter-spacing: -.04em;
+}
+
+.oauth2-authorize .icon {
+    position: absolute;
+    left: 160px;
+    top: 77px;
+}
+
+.oauth2-authorize .access,
+.infobar.client-info {
+    background: #f7f7f7;
+    border: 1px solid #b3b3b3;
+}
+
+.oauth2-authorize .access {
+    position: relative;
+    margin: 0 -12px;
+    padding: 10px 15px;
+    font-size: 1.5em;
+    line-height: 1.5em;
+}
+
+.oauth2-authorize .access:before {
+    position: absolute;
+    display: block;
+    content: '';
+    border-width: 9px;
+    border-style: solid solid outset; /* mitigates firefox drawing a thicker arrow */
+    border-color: transparent #b3b3b3 transparent transparent;
+    left: -19px;
+    top: 13px;
+}
+
+.oauth2-authorize .access:after {
+    position: absolute;
+    display: block;
+    content: '';
+    border: 9px solid;
+    border-color: transparent #f7f7f7 transparent transparent;
+    left: -18px;
+    top: 13px;
+}
+
+.oauth2-authorize h2 {
+    font-size: 1em;
+    font-weight: normal;
+    color: black;
+}
+
+.oauth2-authorize ul {
+    list-style-type: disc;
+    padding-left: 25px;
+}
+
+.oauth2-authorize .notice {
+    color: #333;
+    font-size: .85em;
+    margin: .5em 0;
+}
+
+.oauth2-authorize .fancybutton {
+    margin: 0;
+    margin-right: 1em;
+    cursor: pointer;
+}
+
+.oauth2-authorize .fancybutton.allow {
+    color: white;
+    background: #ff4500;
+    border-color: #541700;
+    box-shadow: inset 0px 1px 0px rgba(255, 255, 255, .25);
+    text-shadow: 0px 1px 0px rgba(0, 0, 0, .7);
+}
+
+.oauth2-authorize .fancybutton.allow:hover {
+    background: #ff571a;
+}
+
+.oauth2-authorize .fancybutton.allow:active {
+    background: #eb3f00;
+    box-shadow: inset 0px -1px 0px rgba(255, 255, 255, .25);
+}
+
+.oauth2-authorize .fancybutton.decline {
+    color: black;
+    background: #eee;
+    border-color: #555;
+    box-shadow: inset 0px 1px 0px rgba(255, 255, 255, .5);
+    text-shadow: 0px 1px 0px rgba(255, 255, 255, .7);
+}
+
+.oauth2-authorize .fancybutton.decline:hover {
+    background: #f7f7f7;
+}
+
+.oauth2-authorize .fancybutton.decline:active {
+    background: #e4e4e4;
+    box-shadow: inset 0px -1px 0px white;
+}
+
+.modactionlisting table {
+    margin: 0 5px;
+}
+
+.modactionlisting td.timestamp, .modactionlisting td.subreddit {
+    white-space: nowrap;
+}
+
+.modactionlisting td.button {
+    padding-right: 0;
+    padding-left: 1.5em;
+}
+
+.modactionlisting td.description em {
+    font-style: italic;
+}
+
+.modactions td {
+    font-size: small;
+    text-align: left;
+    padding: 2px 10px;
+}
+.modactions.banuser,
+.modactions.unbanuser,
+.modactions.removelink,
+.modactions.approvelink,
+.modactions.removecomment,
+.modactions.approvecomment,
+.modactions.addmoderator,
+.modactions.removemoderator,
+.modactions.addcontributor,
+.modactions.removecontributor,
+.modactions.editsettings,
+.modactions.editflair,
+.modactions.distinguish,
+.modactions.marknsfw {
+    height: 16px;
+    width: 16px;
+    display: block;
+    content: " ";
+    float: left;
+    margin-right: 5px;
+}
+.modactions.banuser {
+    background-image: url(../modactions_banuser.png); /* SPRITE */
+}
+.modactions.unbanuser {
+    background-image: url(../modactions_unbanuser.png); /* SPRITE */
+}
+.modactions.removelink {
+    background-image: url(../modactions_removelink.png); /* SPRITE */
+}
+.modactions.approvelink {
+    background-image: url(../modactions_approvelink.png); /* SPRITE */
+}
+.modactions.removecomment {
+    background-image: url(../modactions_removecomment.png); /* SPRITE */
+}
+.modactions.approvecomment {
+    background-image: url(../modactions_approvecomment.png); /* SPRITE */
+}
+.modactions.addmoderator {
+    background-image: url(../modactions_addmoderator.png); /* SPRITE */
+}
+.modactions.removemoderator {
+    background-image: url(../modactions_removemoderator.png); /* SPRITE */
+}
+.modactions.addcontributor {
+    background-image: url(../modactions_addcontributor.png); /* SPRITE */
+}
+.modactions.removecontributor {
+    background-image: url(../modactions_removecontributor.png); /* SPRITE */
+}
+.modactions.editsettings {
+    background-image: url(../modactions_editsettings.png); /* SPRITE */
+}
+.modactions.editflair {
+    background-image: url(../modactions_editflair.png); /* SPRITE */
+}
+.modactions.distinguish {
+    background-image: url(../modactions_distinguish.png); /* SPRITE */
+}
+.modactions.marknsfw {
+    background-image: url(../modactions_marknsfw.png); /* SPRITE */
 }

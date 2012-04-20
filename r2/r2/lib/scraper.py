@@ -760,8 +760,8 @@ class EmbedlyOEmbed(OEmbed):
         'polldaddy.com', 'polleverywhere.com', 'posterous.com', 'prezi.com',
         'qik.com', 'quantcast.com', 'questionablecontent.net', 'qwantz.com',
         'qwiki.com', 'radionomy.com', 'radioreddit.com', 'rdio.com',
-        'redux.com', 'revision3.com', 'revver.com', 'saynow.com',
-        'schooltube.com', 'sciencestage.com', 'scrapblog.com',
+        'recordsetter.com','redux.com', 'revision3.com', 'revver.com',
+        'saynow.com', 'schooltube.com', 'sciencestage.com', 'scrapblog.com',
         'screencast.com', 'screenr.com', 'scribd.com', 'sendables.jibjab.com',
         'share.ovi.com', 'shitmydadsays.com', 'shopstyle.com', 'skitch.com',
         'slideshare.net', 'smugmug.com', 'snotr.com', 'socialcam.com',
@@ -779,7 +779,8 @@ class EmbedlyOEmbed(OEmbed):
         'vodcars.com', 'washingtonpost.com', 'whitehouse.gov', 'whosay.com',
         'wikimedia.org', 'wikipedia.org', 'wistia.com', 'wordpress.tv',
         'worldstarhiphop.com', 'xiami.com', 'xkcd.com', 'xtranormal.com',
-        'yfrog.com', 'youku.com', 'youtube.com', 'zapiks.com', 'zero-inch.com']
+        'yfrog.com', 'youku.com', 'youtu.be', 'youtube.com', 'zapiks.com',
+        'zero-inch.com']
 
     url_re = re.compile(
         'http:\\/\\/.*youtube\\.com\\/watch.*|' +
@@ -1320,7 +1321,8 @@ class EmbedlyOEmbed(OEmbed):
         'http:\\/\\/planetgreen\\.discovery\\.com\\/videos\\/.*|' +
         'http:\\/\\/science\\.discovery\\.com\\/videos\\/.*|' +
         'http:\\/\\/tlc\\.discovery\\.com\\/videos\\/.*|' +
-        'http:\\/\\/video\\.forbes\\.com\\/fvn\\/.*|'
+        'http:\\/\\/video\\.forbes\\.com\\/fvn\\/.*|' + 
+        'http:\\/\\/recordsetter\\.com\\/*\\/*\\/*'
         , re.I
     )
     

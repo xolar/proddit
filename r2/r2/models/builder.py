@@ -45,7 +45,7 @@ EXTRA_FACTOR = 1.5
 MAX_RECURSION = 10
 
 class Builder(object):
-    def __init__(self, wrap = Wrapped, keep_fn = None, stale = True):
+    def __init__(self, wrap=Wrapped, keep_fn=None, stale=True):
         self.stale = stale
         self.wrap = wrap
         self.keep_fn = keep_fn
@@ -124,8 +124,8 @@ class Builder(object):
             if hasattr(item, "distinguished"):
                 if item.distinguished == 'yes':
                     w.distinguished = 'moderator'
-                elif item.distinguished == 'admin':
-                    w.distinguished = 'admin'
+                elif item.distinguished in ('admin', 'special'):
+                    w.distinguished = item.distinguished
 
             try:
                 w.author = authors.get(item.author_id)
@@ -152,6 +152,13 @@ class Builder(object):
             if w.distinguished == 'moderator':
                 add_attr(w.attribs, 'M', label=modlabel[item.sr_id],
                          link=modlink[item.sr_id])
+            
+            if w.distinguished == 'special':
+                args = w.author.special_distinguish()
+                args.pop('name')
+                if not args.get('kind'):
+                    args['kind'] = 'special'
+                add_attr(w.attribs, **args)
 
             if False and w.author and c.user_is_admin:
                 for attr in email_attrses[w.author._id]:
@@ -265,9 +272,8 @@ class Builder(object):
             return True
 
 class QueryBuilder(Builder):
-    def __init__(self, query, wrap = Wrapped, keep_fn = None,
-                 skip = False, **kw):
-        Builder.__init__(self, wrap, keep_fn)
+    def __init__(self, query, wrap=Wrapped, keep_fn=None, skip=False, **kw):
+        Builder.__init__(self, wrap=wrap, keep_fn=keep_fn)
         self.query = query
         self.skip = skip
         self.num = kw.get('num')
@@ -332,9 +338,6 @@ class QueryBuilder(Builder):
         last_item = None
         have_next = True
 
-        #for prewrap
-        orig_items = {}
-
         #logloop
         self.loopcount = 0
         
@@ -359,16 +362,17 @@ class QueryBuilder(Builder):
             if not first_item and self.start_count > 0:
                 first_item = new_items[0]
 
-            #pre-wrap
             if self.prewrap_fn:
+                orig_items = {}
                 new_items2 = []
                 for i in new_items:
                     new = self.prewrap_fn(i)
                     orig_items[new._id] = i
                     new_items2.append(new)
                 new_items = new_items2
+            else:
+                orig_items = dict((i._id, i) for i in new_items)
 
-            #wrap
             if self.wrap:
                 new_items = self.wrap_items(new_items)
 
@@ -384,8 +388,8 @@ class QueryBuilder(Builder):
                         i.num = count
                 last_item = i
         
-            #unprewrap the last item
-            if self.prewrap_fn and last_item:
+            # get original version of last item
+            if last_item and (self.prewrap_fn or self.wrap):
                 last_item = orig_items[last_item._id]
 
         if self.reverse:

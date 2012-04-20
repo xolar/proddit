@@ -27,12 +27,13 @@ from r2.lib.pages import WrappedUser
 %>
 
 <div id="flairrow_${thing.user._id36}" class="flairrow">
+  <span class="tagline flaircell">
+    ${unsafe(WrappedUser(thing.user, force_show_flair=True,
+                         include_flair_selector=True).render())}
+  </span>
   <form action="/post/flair" id="flair-${thing.user._id36}" method="post"
         class="medium-text flair-entry">
     <input type="hidden" name="name" value="${thing.user.name}" />
-    <span class="tagline flaircell">
-      ${unsafe(WrappedUser(thing.user, force_show_flair=True).render())}
-    </span>
     <span class="flaircell">
       <input type="text" size="32" maxlength="64" name="text"
              value="${thing.flair_text}" />
@@ -41,7 +42,8 @@ from r2.lib.pages import WrappedUser
       <input type="text" size="32" maxlength="1000" name="css_class"
              value="${thing.flair_css_class}" />
     </span>
-    <button type="submit">save</button>
+    <button type="submit">${_('save')}</button>
+    <button class="flairdeletebtn">delete</button>
     <span class="status"></span>
     ${utils.error_field(('BAD_CSS_NAME', 'flair_css_class'), 'name')}
     ${utils.error_field(('TOO_MUCH_FLAIR_CSS', 'flair_css_class'), 'name')}

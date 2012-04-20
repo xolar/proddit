@@ -20,14 +20,13 @@
 ## CondeNet, Inc. All Rights Reserved.
 ################################################################################
 <%!
-   from r2.lib.template_helpers import get_domain
+   from r2.lib.template_helpers import static
    from r2.lib.strings import Score
  %>
 
 <%namespace file="buttontypes.html" import="submiturl" />
 
 <% 
-    domain = get_domain()
     if thing._fullname:
         path = thing.make_permalink_slow()
     else:

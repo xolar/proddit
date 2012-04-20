@@ -20,13 +20,12 @@
 # CondeNet, Inc. All Rights Reserved.
 ################################################################################
 from sqlalchemy import Column, String, DateTime, Date, Float, Integer, Boolean,\
-     func as safunc, and_, or_
-from sqlalchemy.exceptions import IntegrityError
+     BigInteger, func as safunc, and_, or_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.schema import PrimaryKeyConstraint
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.databases.postgres import PGBigInteger as BigInteger, \
-     PGInet as Inet
+from sqlalchemy.dialects.postgresql.base import PGInet as Inet
 from sqlalchemy.ext.declarative import declarative_base
 from pylons import g
 from r2.lib.utils import Enum
@@ -117,7 +116,10 @@ class Sessionized(object):
 
         """
         args = []
-        cols = filter(filter_fn, cls.__table__.c)
+        if filter_fn is None:
+            cols = cls.__table__.c
+        else:
+            cols = filter(filter_fn, cls.__table__.c)
         for k, v in zip(cols, a):
             if not kw.has_key(k.name):
                 args.append((k, cls._make_storable(v)))

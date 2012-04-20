@@ -64,25 +64,29 @@ setup(
         "Routes<=1.8",
         "Pylons==0.9.6.2",
         "webhelpers==0.6.4",
-        "boto >= 1.9b",
+        "boto >= 2.0",
         "pytz",
         "pycrypto",
         "Babel>=0.9.1",
         "cython>=0.14",
-        "SQLAlchemy==0.5.3",
+        "SQLAlchemy==0.7.4",
         "BeautifulSoup",
         "cssutils==0.9.5.1",
         "chardet",
         "psycopg2",
         "pycountry",
-        "pycassa==1.1.0",
+        "pycassa>=1.1.0,<=1.4.0",
         "PIL",
         "pycaptcha",
         "amqplib",
         "pylibmc==1.2.1-dev",
+        "py-bcrypt",
+        "python-statsd",
+        "snudown",
     ],
     dependency_links=[
         "https://github.com/downloads/reddit/pylibmc/pylibmc-1.2.1-dev.tar.gz#egg=pylibmc-1.2.1-dev",
+        "https://nodeload.github.com/reddit/snudown/tarball/v1.0.4#egg=snudown-1.0.4",
     ],
     packages=find_packages(exclude=["ez_setup"]),
     cmdclass=commands,
@@ -93,33 +97,6 @@ setup(
                 "r2/lib/c/filters.c",
             ]
         ),
-        Extension(
-            "reddit-discount",
-            include_dirs=[discount_path],
-            define_macros=[("VERSION", '"1.6.8"')],
-            sources=(
-                ["r2/lib/c/reddit-discount-wrapper.c"] +
-                [os.path.join(discount_path, x) for x in [
-                    "Csio.c",
-                    "css.c",
-                    "docheader.c",
-                    "dumptree.c",
-                    "generate.c",
-                    "main.c",
-                    "markdown.c",
-                    "mkdio.c",
-                    "resource.c",
-                    "html5.c",
-                    "tags.c",
-                    "toc.c",
-                    "version.c",
-                    "emmatch.c",
-                    "basename.c",
-                    "xml.c",
-                    "xmlpage.c",
-                ]]
-            )
-        )
     ],
     entry_points="""
     [paste.app_factory]

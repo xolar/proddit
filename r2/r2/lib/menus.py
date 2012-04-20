@@ -86,22 +86,20 @@ menu =   MenuHandler(hot          = _('hot'),
                      prefs        = _("preferences"), 
                      submit       = _("submit"),
                      help         = _("help"),
-                     blog         = _("the reddit blog"),
+                     blog         = _("blog"),
                      logout       = _("logout"),
                      
                      #reddit footer strings
-                     feedback     = _("feedback"),
-                     bookmarklets = _("bookmarklets"),
-                     socialite    = _("socialite firefox extension"),
+                     feedback     = _("contact us"),
+                     socialite    = _("firefox extension"),
                      buttons      = _("buttons"),
                      widget       = _("widget"), 
                      code         = _("source code"),
                      mobile       = _("mobile"), 
                      store        = _("store"),  
-                     ad_inq       = _("inquire about advertising"),
-                     random       = _('random'),
-                     iphone       = _("iPhone app"),
+                     ad_inq       = _("advertise"),
                      gold         = _('reddit gold'),
+                     reddits      = _('subreddits'),
 
                      #preferences
                      options      = _('options'),
@@ -120,7 +118,6 @@ menu =   MenuHandler(hot          = _('hot'),
                      related      = _("related"),
                      details      = _("details"),
                      duplicates   = _("other discussions (%(num)s)"),
-                     shirt        = _("shirt"),
                      traffic      = _("traffic stats"),
 
                      # reddits
@@ -134,6 +131,7 @@ menu =   MenuHandler(hot          = _('hot'),
                      banned       = _("ban users"),
                      banusers     = _("ban users"),
                      flair        = _("edit user flair"),
+                     log          = _("moderation log"),
 
                      popular      = _("popular"),
                      create       = _("create"),
@@ -250,7 +248,8 @@ class NavButton(Styled):
                  target = "", style = "plain", **kw):
         # keep original dest to check against c.location when rendering
         aliases = set(_force_unicode(a.rstrip('/')) for a in aliases)
-        aliases.add(_force_unicode(dest.rstrip('/')))
+        if dest:
+            aliases.add(_force_unicode(dest.rstrip('/')))
 
         self.request_params = dict(request.GET)
         self.stripped_path = _force_unicode(request.path.rstrip('/').lower())
@@ -268,7 +267,10 @@ class NavButton(Styled):
         # of opt 
         if self.opt:
             p = self.request_params.copy()
-            p[self.opt] = self.dest
+            if self.dest:
+                p[self.opt] = self.dest
+            elif self.opt in p:
+                del p[self.opt]
         else:
             p = {}
             base_path = ("%s/%s/" % (base_path, self.dest)).replace('//', '/')
@@ -288,6 +290,8 @@ class NavButton(Styled):
     def is_selected(self):
         """Given the current request path, would the button be selected."""
         if self.opt:
+            if not self.dest and self.opt not in self.request_params:
+                return True
             return self.request_params.get(self.opt, '') in self.aliases
         else:
             if self.stripped_path == self.bare_path:

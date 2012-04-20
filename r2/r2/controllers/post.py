@@ -20,6 +20,7 @@
 # CondeNet, Inc. All Rights Reserved.
 ################################################################################
 from r2.lib.pages import *
+from reddit_base import cross_domain
 from api import ApiController
 from r2.lib.utils import Storage, query_string, UrlParser
 from r2.lib.emailer import opt_in, opt_out
@@ -89,6 +90,7 @@ class PostController(ApiController):
               pref_num_comments = VInt('num_comments', 1, g.max_comments,
                                        default = g.num_comments),
               pref_show_stylesheets = VBoolean('show_stylesheets'),
+              pref_show_flair = VBoolean('show_flair'),
               pref_no_profanity = VBoolean('no_profanity'),
               pref_label_nsfw = VBoolean('label_nsfw'),
               pref_show_promote = VBoolean('show_promote'),
@@ -133,12 +135,12 @@ class PostController(ApiController):
         return BoringPage(_("over 18?"),
                           content = Over18()).render()
 
-    @validate(over18 = nop('over18'),
-              uh = nop('uh'),
+    @validate(VModhash(fatal=False),
+              over18 = nop('over18'),
               dest = VDestination(default = '/'))
-    def POST_over18(self, over18, uh, dest):
+    def POST_over18(self, over18, dest):
         if over18 == 'yes':
-            if c.user_is_loggedin and c.user.valid_hash(uh):
+            if c.user_is_loggedin and not c.errors:
                 c.user.pref_over_18 = True
                 c.user._commit()
             else:
@@ -174,18 +176,11 @@ class PostController(ApiController):
 
     @validate(dest = VDestination(default = "/"))
     def POST_login(self, dest, *a, **kw):
-        ApiController.POST_login(self, *a, **kw)
+        ApiController._handle_login(self, *a, **kw)
         c.render_style = "html"
         c.response_content_type = ""
 
-        errors = list(c.errors)
-        if errors:
-            for e in errors:
-                if not e[0].endswith("_login"):
-                    msg = c.errors[e].message
-                    c.errors.remove(e)
-                    c.errors.add(e[0], msg)
-
+        if c.errors:
             return LoginPage(user_login = request.post.get('user'),
                              dest = dest).render()
 
@@ -193,17 +188,11 @@ class PostController(ApiController):
 
     @validate(dest = VDestination(default = "/"))
     def POST_reg(self, dest, *a, **kw):
-        ApiController.POST_register(self, *a, **kw)
+        ApiController._handle_register(self, *a, **kw)
         c.render_style = "html"
         c.response_content_type = ""
 
-        errors = list(c.errors)
-        if errors:
-            for e in errors:
-                if not e[0].endswith("_reg"):
-                    msg = c.errors[e].message
-                    c.errors.remove(e)
-                    c.errors.add(e[0], msg)
+        if c.errors:
             return LoginPage(user_reg = request.post.get('user'),
                              dest = dest).render()
 

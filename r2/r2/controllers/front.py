@@ -21,7 +21,7 @@
 ################################################################################
 from validator import *
 from pylons.i18n import _, ungettext
-from reddit_base import RedditController, base_listing
+from reddit_base import RedditController, base_listing, paginated_listing
 from r2 import config
 from r2.models import *
 from r2.lib.pages import *
@@ -36,6 +36,7 @@ from r2.lib.filters import unsafe
 from r2.lib.emailer import has_opted_out, Email
 from r2.lib.db.operators import desc
 from r2.lib.db import queries
+from r2.lib.db.tdb_cassandra import MultiColumnQuery
 from r2.lib.strings import strings
 from r2.lib.solrsearch import RelatedSearchQuery, SubredditSearchQuery
 from r2.lib.indextank import IndextankQuery, IndextankException, InvalidIndextankQuery
@@ -127,9 +128,6 @@ class FrontController(RedditController):
     def GET_shirt(self, article):
         if not can_view_link_comments(article):
             abort(403, 'forbidden')
-        if g.spreadshirt_url:
-            from r2.lib.spreadshirt import ShirtPage
-            return ShirtPage(link = article).render()
         return self.abort404()
 
     def _comment_visits(self, article, user, new_visit=None):
@@ -365,6 +363,78 @@ class FrontController(RedditController):
         else:
             return self.abort404()
 
+    def _make_moderationlog(self, srs, num, after, reverse, count, mod=None, action=None):
+
+        if mod and action:
+            query = Subreddit.get_modactions(srs, mod=mod, action=None)
+            def keep_fn(ma):
+                return ma.action == action
+        else:
+            query = Subreddit.get_modactions(srs, mod=mod, action=action)
+            def keep_fn(ma):
+                return True
+
+        builder = QueryBuilder(query, skip=True, num=num, after=after, 
+                               keep_fn=keep_fn, count=count, 
+                               reverse=reverse,
+                               wrap=default_thing_wrapper())
+        listing = ModActionListing(builder)
+        pane = listing.listing()
+        return pane
+
+    @paginated_listing(max_page_size=500, backend='cassandra')
+    @validate(mod=VAccountByName('mod'),
+              action=VOneOf('type', ModAction.actions))
+    def GET_moderationlog(self, num, after, reverse, count, mod, action):
+        if not c.user_is_loggedin:
+            return self.abort404()
+
+        if isinstance(c.site, ModSR) or isinstance(c.site, MultiReddit):
+            if isinstance(c.site, ModSR):
+                srs = Subreddit._byID(c.site.sr_ids(), return_dict=False)
+            else:
+                srs = Subreddit._byID(c.site.sr_ids, return_dict=False)
+
+            # check that user is mod on all requested srs
+            if not Subreddit.user_mods_all(c.user, srs) and not c.user_is_admin:
+                return self.abort404()
+
+            # grab all moderators
+            mod_ids = set(Subreddit.get_all_mod_ids(srs))
+            mods = Account._byID(mod_ids, data=True)
+
+            pane = self._make_moderationlog(srs, num, after, reverse, count,
+                                            mod=mod, action=action)
+        elif isinstance(c.site, FakeSubreddit):
+            return self.abort404()
+        else:
+            if not c.site.is_moderator(c.user) and not c.user_is_admin:
+                return self.abort404()
+            mod_ids = c.site.moderators
+            mods = Account._byID(mod_ids, data=True)
+
+            pane = self._make_moderationlog(c.site, num, after, reverse, count,
+                                            mod=mod, action=action)
+
+        panes = PaneStack()
+        panes.append(pane)
+
+        action_buttons = [NavButton(_('all'), None, opt='type', css_class='primary')]
+        for a in ModAction.actions:
+            action_buttons.append(NavButton(ModAction._menu[a], a, opt='type'))
+        
+        mod_buttons = [NavButton(_('all'), None, opt='mod', css_class='primary')]
+        for mod_id in mod_ids:
+            mod = mods[mod_id]
+            mod_buttons.append(NavButton(mod.name, mod.name, opt='mod'))
+        base_path = request.path
+        menus = [NavMenu(action_buttons, base_path=base_path, 
+                         title=_('filter by action'), type='lightdrop', css_class='modaction-drop'),
+                NavMenu(mod_buttons, base_path=base_path, 
+                        title=_('filter by moderator'), type='lightdrop')]
+        return EditReddit(content=panes, nav_menus=menus,
+                          extension_handling=False).render()
+
     def _make_spamlisting(self, location, num, after, reverse, count):
         if location == 'reports':
             query = c.site.get_reported()
@@ -599,7 +669,7 @@ class FrontController(RedditController):
 
     verify_langs_regex = re.compile(r"\A[a-z][a-z](,[a-z][a-z])*\Z")
     @base_listing
-    @validate(query = nop('q'),
+    @validate(query = VLength('q', max_length=512),
               sort = VMenu('sort', SearchSortMenu, remember=False),
               restrict_sr = VBoolean('restrict_sr', default=False))
     def GET_search(self, query, num, reverse, after, count, sort, restrict_sr):
@@ -686,7 +756,8 @@ class FrontController(RedditController):
               then = VOneOf('then', ('tb','comments'), default = 'comments'))
     def GET_submit(self, url, title, then):
         """Submit form."""
-        if url and not request.get.get('resubmit'):
+        resubmit = request.get.get('resubmit')
+        if url and not resubmit:
             # check to see if the url has already been submitted
             links = link_from_url(url)
             if links and len(links) == 1:
@@ -715,6 +786,7 @@ class FrontController(RedditController):
                                         title=title or '',
                                         subreddits = sr_names,
                                         captcha=captcha,
+                                        resubmit=resubmit,
                                         then = then)).render()
 
     def GET_frame(self):
@@ -791,6 +863,11 @@ class FrontController(RedditController):
     def GET_site_traffic(self):
         return BoringPage("traffic",
                           content = RedditTraffic()).render()
+
+    @validate(VUser())
+    def GET_account_activity(self):
+        return AccountActivityPage().render()
+
 
 class FormsController(RedditController):
 
@@ -1101,5 +1178,4 @@ class FormsController(RedditController):
                                                   signed, recipient,
                                                   giftmessage, passthrough)
                               ).render()
-
 

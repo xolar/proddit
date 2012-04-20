@@ -175,11 +175,11 @@ class Templated(object):
         from r2.config.templates import tpm
         from pylons import g
 
-        debug = g.template_debug
+        use_cache = not g.reload_templates
         template = None
         try:
             template = tpm.get(self.render_class,
-                               style, cache = not debug)
+                               style, cache = use_cache)
         except AttributeError:
             self._notfound(style)
         return template
@@ -445,7 +445,7 @@ class CachedTemplate(Templated):
         return ret
 
     def cache_key(self, attr, style, *a):
-        from pylons import c, g
+        from pylons import c
 
         # if template debugging is on, there will be no hash and we
         # can make the caching process-local.
@@ -456,14 +456,16 @@ class CachedTemplate(Templated):
         # a menu is just a set of links, so we best cache against
         # them.
         keys = [c.user_is_loggedin, c.user_is_admin, c.domain_prefix,
-                style, c.cname, c.lang, c.site.path,
+                style, c.secure, c.cname, c.lang, c.site.path,
                 getattr(c.user, "gold", False),
-                template_hash, g.markdown_backend]
+                template_hash]
+
         # if viewing a single subreddit, take flair settings into account.
-        if hasattr(c.site, '_id'):
+        if c.user and hasattr(c.site, '_id'):
             keys.extend([
                 c.site.flair_enabled, c.site.flair_position,
-                c.user.flair_enabled_in_sr(c.site._id)])
+                c.user.flair_enabled_in_sr(c.site._id),
+                c.user.pref_show_flair])
         keys = [make_cachable(x, *a) for x in keys]
 
         # add all parameters sent into __init__, using their current value

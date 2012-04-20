@@ -87,8 +87,9 @@
           type="text/css" />
   %endif
 
-  <link rel='shortcut icon' href="${static('favicon.ico')}"
-        type="image/x-icon" />
+  <link rel='shortcut icon' href="${static('favicon.ico')}" type="image/x-icon" />
+  <link rel='apple-touch-icon-precomposed' href="${static('icon-touch.png')}" />
+
   %if thing.extension_handling:
     <%
        rss= add_sr(join_urls(request.path,'.rss'))
@@ -113,6 +114,9 @@
 <%def name="javascript()">
   <% from r2.lib import js %>
   ${unsafe(js.use('jquery', 'reddit'))}
+  % if c.deny_frames:
+    <script>if (window != top) top.location = window.location</script>
+  % endif
 </%def>
 
 <%def name="javascript_run()">
@@ -149,7 +153,7 @@
           <div class="popup">
             <h1 class="cover-msg">${strings.cover_msg}</h1>
             ${login_panel(login_form)}
-            <div style="text-align:center; clear: both">
+            <div class="close-popup">
               <a href="#" onclick="return hidecover(this)">
                 ${_("close this window")}
               </a>

@@ -244,7 +244,7 @@ class PromoteController(ListingController):
                                       reference_date = promote.promo_datetime_now,
                                       business_days = False, 
                                       admin_override = True),
-                   sr = VSubmitSR('sr'))
+                   sr = VSubmitSR('sr', promotion=True))
     def POST_add_roadblock(self, form, jquery, dates, sr):
         if (form.has_errors('startdate', errors.BAD_DATE,
                             errors.BAD_FUTURE_DATE) or
@@ -267,7 +267,7 @@ class PromoteController(ListingController):
                                       reference_date = promote.promo_datetime_now,
                                       business_days = False, 
                                       admin_override = True),
-                   sr = VSubmitSR('sr'))
+                   sr = VSubmitSR('sr', promotion=True))
     def POST_rm_roadblock(self, form, jquery, dates, sr):
         if dates and sr:
             sd, ed = dates
@@ -283,7 +283,7 @@ class PromoteController(ListingController):
                                   admin_override = True),
                    l     = VLink('link_id'),
                    bid   = VBid('bid', 'link_id', 'sr'),
-                   sr = VSubmitSR('sr'),
+                   sr = VSubmitSR('sr', promotion=True),
                    indx = VInt("indx"), 
                    targeting = VLength("targeting", 10))
     def POST_edit_campaign(self, form, jquery, l, indx,
@@ -482,7 +482,7 @@ class PromoteController(ListingController):
             errors = dict(BAD_CSS_NAME = "", IMAGE_ERROR = "")
             try:
                 # thumnails for promoted links can change and therefore expire
-                force_thumbnail(link, file)
+                force_thumbnail(link, file, file_type=".jpg")
             except cssfilter.BadImage:
                 # if the image doesn't clean up nicely, abort
                 errors["IMAGE_ERROR"] = _("bad image")
@@ -490,7 +490,6 @@ class PromoteController(ListingController):
                 return UploadedImage("", "", "upload", errors = errors,
                                      form_id = "image-upload").render()
             else:
-                link.thumbnail_version = sha.new(file).hexdigest()
                 link._commit()
                 return UploadedImage(_('saved'), thumbnail_url(link), "",
                                      errors = errors,

@@ -47,29 +47,24 @@ ${parent.thing_css_class(what)} ${"new" if thing.new else ""} ${"was-comment" if
          %else:
            onclick="return hidecomment(this)">
          %endif
-         [${_("+") if collapse else _("-")}]&nbsp;
+         [${"+" if collapse else unsafe("&ndash;")}]&nbsp;
      </a>
   <span class="head">
   <%
-   taglinetext = ''
-   if thing.to_id == c.user._id or thing.to_id is None:
-        taglinetext = _("from %(author)s sent %(when)s ago")
-   elif thing.author_id == c.user._id:
-        taglinetext = _("to %(dest)s sent %(when)s ago")
-   else:
-        taglinetext = _("to %(dest)s from %(author)s sent %(when)s ago")
-
-   taglinetext = taglinetext.replace(' ', '&nbsp;')
    author = WrappedUser(thing.author, thing.attribs, thing).render()
    if thing.sr_id:
-     updated_author = _("%(author)s via %(subreddit)s").replace(' ', '&nbsp;')
-     subreddit = '<a href="%s">%s</a>' % (thing.subreddit.path, 
-                                          thing.subreddit.name)
-     author = updated_author % dict(author = author, subreddit = subreddit)
+     subreddit = '<a href="%s">%s</a>' % (thing.subreddit.path,
+                                          thing.subreddit.path)
+     if not thing.dest:
+       thing.dest = subreddit
+     author = thing.updated_author % dict(author=author, subreddit=subreddit)
+   
+   taglinetext = thing.taglinetext % dict(when=thing.timesince,
+                                          author=u"<b>%s</b>" % author,
+                                          dest=u"<b>%s</b>" % thing.dest)
+   taglinetext = taglinetext.replace(' ', '&nbsp;')
   %>
-  ${unsafe(taglinetext % dict(when = thing.timesince, 
-                              author= u"<b>%s</b>" % author,
-                              dest = u"<b>%s</b>" % (thing.to.name if thing.to else "")))}
+  ${unsafe(taglinetext)}
   </span>
   %if c.user_is_admin:
     ${self.admintagline()}
@@ -82,7 +77,7 @@ ${parent.thing_css_class(what)} ${"new" if thing.new else ""} ${"was-comment" if
        %if thing.sr_id:
          <span class="correspondent reddit rounded">
            <a href="${thing.subreddit.path}message/moderator/inbox">
-             #${thing.subreddit.name}
+             /r/${thing.subreddit.name}
            </a>
          </span>
        %else:

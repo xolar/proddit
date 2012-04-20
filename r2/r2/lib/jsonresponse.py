@@ -44,6 +44,9 @@ class JsonResponse(object):
     in the api func's validators, as well as blobs of data set by the
     api func.
     """
+
+    content_type = 'application/json; charset=UTF-8'
+
     def __init__(self):
         self._clear()
 
@@ -57,7 +60,7 @@ class JsonResponse(object):
         self._clear()
         self._errors.add((error, None))
 
-    def __call__(self, *a):
+    def __call__(self, *a, **kw):
         return self
 
     def __getattr__(self, key):
@@ -67,7 +70,9 @@ class JsonResponse(object):
         res = {}
         if self._data:
             res['data'] = self._data
-        res['errors'] = [(e[0], c.errors[e].message) for e in self._errors]
+        if self._new_captcha:
+            res['captcha'] = get_iden()
+        res['errors'] = [(e[0], c.errors[e].message, e[1]) for e in self._errors]
         return {"json": res}
 
     def set_error(self, error_name, field_name):
@@ -117,6 +122,9 @@ class JsonResponse(object):
 
     def _send_data(self, **kw):
         self._data.update(kw)
+
+    def new_captcha(self):
+        self._new_captcha = True
 
 
 class JQueryResponse(JsonResponse):

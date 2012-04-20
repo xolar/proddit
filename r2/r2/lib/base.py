@@ -22,6 +22,7 @@
 
 from pylons import Response, c, g, request, session, config
 from pylons.controllers import WSGIController, Controller
+from pylons.controllers.util import abort
 from pylons.i18n import N_, _, ungettext, get_lang
 import r2.lib.helpers as h
 from r2.lib.utils import to_js
@@ -40,6 +41,12 @@ import sys
 import logging
 from r2.lib.utils import UrlParser, query_string
 logging.getLogger('scgi-wsgi').setLevel(logging.CRITICAL)
+
+
+def is_local_address(ip):
+    # TODO: support the /20 and /24 private networks? make this configurable?
+    return ip.startswith('10.')
+
 
 class BaseController(WSGIController):
     def try_pagecache(self):
@@ -64,7 +71,7 @@ class BaseController(WSGIController):
             and hashlib.md5(true_client_ip + g.ip_hash).hexdigest() \
             == ip_hash.lower()):
             request.ip = true_client_ip
-        elif remote_addr in g.proxy_addr and forwarded_for:
+        elif g.trust_local_proxies and forwarded_for and is_local_address(remote_addr):
             request.ip = forwarded_for.split(',')[-1]
         else:
             request.ip = environ['REMOTE_ADDR']
@@ -93,9 +100,15 @@ class BaseController(WSGIController):
             meth = request.method.upper()
             if meth == 'HEAD':
                 meth = 'GET'
-            request.environ['pylons.routes_dict']['action'] = \
-                    meth + '_' + action
 
+            if meth != 'OPTIONS':
+                handler_name = meth + '_' + action
+            else:
+                handler_name = meth
+
+            request.environ['pylons.routes_dict']['action_name'] = action
+            request.environ['pylons.routes_dict']['action'] = handler_name
+                    
         c.response = Response()
         try:
             res = WSGIController.__call__(self, environ, start_response)
@@ -112,6 +125,11 @@ class BaseController(WSGIController):
     def pre(self): pass
     def post(self): pass
 
+    def _get_action_handler(self, name=None, method=None):
+        name = name or request.environ["pylons.routes_dict"]["action_name"]
+        method = method or request.method
+        action = method + "_" + name
+        return getattr(self, action, None)
 
     @classmethod
     def format_output_url(cls, url, **kw):
@@ -162,7 +180,7 @@ class BaseController(WSGIController):
 
         path = add_sr(cls.format_output_url(form_path) +
                       query_string(params))
-        return cls.redirect(path)
+        abort(302, path)
 
     @classmethod
     def redirect(cls, dest, code = 302):

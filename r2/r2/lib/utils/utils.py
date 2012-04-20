@@ -32,6 +32,7 @@ from BeautifulSoup import BeautifulSoup
 
 from time import sleep
 from datetime import datetime, timedelta
+from pylons import g
 from pylons.i18n import ungettext, _
 from r2.lib.filters import _force_unicode
 from mako.filters import url_escape
@@ -52,8 +53,7 @@ def randstr(len, reallyrandom = False):
                    for i in range(len))
 
 def is_authorized_cname(domain, cnames):
-    return any((domain == cname or domain.endswith('.' + cname))
-               for cname in cnames)
+    return any(is_subdomain(domain, cname) for cname in cnames)
 
 class Storage(dict):
     """
@@ -212,6 +212,10 @@ def strip_www(domain):
     else:
         return domain
 
+def is_subdomain(subdomain, base):
+    """Check if a domain is equal to or a subdomain of a base domain."""
+    return subdomain == base or (subdomain is not None and subdomain.endswith('.' + base))
+
 r_base_url = re.compile("(?i)(?:.+?://)?(?:www[\d]*\.)?([^#]*[^#/])/?")
 def base_url(url):
     res = r_base_url.findall(url)
@@ -248,7 +252,7 @@ def get_title(url):
         opener = urlopen(url, timeout=15)
         text = opener.read(1024)
         opener.close()
-        bs = BeautifulSoup(text)
+        bs = BeautifulSoup(text, convertEntities=BeautifulSoup.HTML_ENTITIES)
         if not bs:
             return
 
@@ -257,7 +261,7 @@ def get_title(url):
         if not title_bs or not title_bs.string:
             return
 
-        return title_bs.string.encode('utf-8')
+        return title_bs.string.encode('utf-8').strip()
 
     except:
         return None
@@ -332,7 +336,7 @@ def trunc_time(time, mins, hours=None):
                         microsecond = 0)
 
 def long_datetime(datetime):
-    return datetime.ctime() + " GMT"
+    return datetime.astimezone(g.tz).ctime() + " " + str(g.tz)
 
 def median(l):
     if l:
@@ -513,10 +517,10 @@ class UrlParser(object):
         """
         from pylons import g
         return (not self.hostname or
-                self.hostname.endswith(g.domain) or
+                is_subdomain(self.hostname, g.domain) or
                 is_authorized_cname(self.hostname, g.authorized_cnames) or
                 (subreddit and subreddit.domain and
-                 self.hostname.endswith(subreddit.domain)))
+                 is_subdomain(self.hostname, subreddit.domain)))
 
     def path_add_subreddit(self, subreddit):
         """

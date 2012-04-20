@@ -23,7 +23,11 @@ from r2.lib.wrapped import Wrapped, Templated, CachedTemplate
 from r2.models import Account, FakeAccount, DefaultSR, make_feedurl
 from r2.models import FakeSubreddit, Subreddit, Ad, AdSR
 from r2.models import Friends, All, Sub, NotFound, DomainSR, Random, Mod, RandomNSFW, MultiReddit
-from r2.models import Link, Printable, Trophy, bidding, PromotionWeights, Comment, Flair
+from r2.models import Link, Printable, Trophy, bidding, PromotionWeights, Comment
+from r2.models import Flair, FlairTemplate, FlairTemplateBySubredditIndex
+from r2.models.oauth2 import OAuth2Client
+from r2.models import ModAction
+from r2.models import Thing
 from r2.config import cache
 from r2.lib.tracking import AdframeInfo
 from r2.lib.jsonresponse import json_respond
@@ -35,7 +39,6 @@ from pylons.controllers.util import abort
 from r2.lib import promote
 from r2.lib.traffic import load_traffic, load_summary
 from r2.lib.captcha import get_iden
-from r2.lib.contrib.markdown import markdown
 from r2.lib.filters import spaceCompress, _force_unicode, _force_utf8
 from r2.lib.filters import unsafe, websafe, SC_ON, SC_OFF, websafe_json
 from r2.lib.menus import NavButton, NamedButton, NavMenu, PageNameNav, JsButton
@@ -51,11 +54,20 @@ from r2.lib.scraper import get_media_embed
 from r2.lib.log import log_text
 from r2.lib.memoize import memoize
 from r2.lib.utils import trunc_string as _truncate
+from r2.lib.filters import safemarkdown
 
 import sys, random, datetime, locale, calendar, simplejson, re, time
 import graph, pycountry, time
 from itertools import chain
 from urllib import quote
+
+# the ip tracking code is currently deeply tied with spam prevention stuff
+# this will be open sourced as soon as it can be decoupled
+try:
+    from r2admin.lib.ip_events import ips_by_account_id
+except ImportError:
+    def ips_by_account_id(account_id):
+        return []
 
 from things import wrap_links, default_thing_wrapper
 
@@ -153,8 +165,11 @@ class Reddit(Templated):
             elif (c.firsttime == 'mobile_suggest' and
                   c.render_style != 'compact'):
                 infotext = strings.iphone_first
+            elif g.announcement_message:
+                infotext = g.announcement_message
             elif c.firsttime and c.site.firsttext:
                 infotext = c.site.firsttext
+
         if infotext:
             self.infobar = InfoBar(message = infotext)
 
@@ -190,6 +205,7 @@ class Reddit(Templated):
                 NamedButton('spam', css_class = 'reddit-spam'),
                 NamedButton('banned', css_class = 'reddit-ban'),
                 NamedButton('flair', css_class = 'reddit-flair'),
+                NamedButton('log', css_class = 'reddit-moderationlog'),
                 ])
         return [NavMenu(buttons, type = "flat_vert", base_path = "/about/",
                         css_class = "icon-menu",  separator = '')]
@@ -228,13 +244,24 @@ class Reddit(Templated):
                 ps.append(Ads())
             no_ads_yet = False
 
-        if self.submit_box and (c.user_is_loggedin or not g.read_only_mode):
-            ps.append(SideBox(_('Submit a link'),
-                              '/submit', 'submit',
-                              sr_path = (isinstance(c.site,DefaultSR)
-                                         or not isinstance(c.site, FakeSubreddit)),
-                              subtitles = [strings.submit_box_text],
-                              show_cover = True))
+        user_banned = c.user_is_loggedin and c.site.is_banned(c.user)
+        if self.submit_box and (c.user_is_loggedin or not g.read_only_mode) and not user_banned:
+            kwargs = {
+                "title": _("Submit a link"),
+                "css_class": "submit",
+                "show_cover": True
+            }
+            if not c.user_is_loggedin or c.site.can_submit(c.user) or isinstance(c.site, FakeSubreddit):
+                kwargs["link"] = "/submit"
+                kwargs["sr_path"] = isinstance(c.site, DefaultSR) or not isinstance(c.site, FakeSubreddit),
+                kwargs["subtitles"] = [strings.submit_box_text]
+            else:
+                kwargs["disabled"] = True
+                if c.site.type == "archived":
+                    kwargs["subtitles"] = [strings.submit_box_archived_text]
+                else:
+                    kwargs["subtitles"] = [strings.submit_box_restricted_text]
+            ps.append(SideBox(**kwargs))
 
         if self.create_reddit_box and c.user_is_loggedin:
             delta = datetime.datetime.now(g.tz) - c.user._date
@@ -244,15 +271,6 @@ class Reddit(Templated):
                            subtitles = rand_strings.get("create_reddit", 2),
                            show_cover = True, nocname=True))
 
-        if False and self.submit_box:
-            ps.append(SideBox(_('reddit gold creddits: now for sale!'),
-                              'http://www.reddit.com/tb/efpn0',
-                              'gold',
-                              sr_path = False,
-                              subtitles = ["check it out: you can now give gold",
-                                           "subscriptions to deserving redditors"],
-                              show_cover = False, nocname = True))
-
         if not isinstance(c.site, FakeSubreddit) and not c.cname:
             moderators = self.sr_moderators()
             if moderators:
@@ -261,7 +279,7 @@ class Reddit(Templated):
                 if total > len(moderators):
                     more_text = "...and %d more" % (total - len(moderators))
                     mod_href = "http://%s/about/moderators" % get_domain()
-                helplink = ("/message/compose?to=%%23%s" % c.site.name,
+                helplink = ("/message/compose?to=%%2Fr%%2F%s" % c.site.name,
                             "trimite un mesaj moderatorilor")
                 ps.append(SideContentBox(_('moderators'), moderators,
                                          helplink = helplink, 
@@ -277,12 +295,13 @@ class Reddit(Templated):
             if c.user.pref_show_adbox or not c.user.gold:
                 ps.append(Ads())
 
-        if c.user_is_admin:
-            ps.append(Admin_Rightbox())
-
         if c.user.pref_clickgadget and c.recent_clicks:
             ps.append(SideContentBox(_("Recently viewed links"),
                                      [ClickGadget(c.recent_clicks)]))
+
+        if c.user_is_loggedin:
+            activity_link = AccountActivityBox()
+            ps.append(activity_link)
 
         return ps
 
@@ -313,9 +332,11 @@ class Reddit(Templated):
                                   css_class = "pref-lang")]
         else:
             lang = c.lang.split('-')[0] if c.lang else ''
-            buttons += [JsButton(g.lang_name.get(lang, lang),  
-                                  onclick = "return showlang();",
-                                  css_class = "pref-lang")]
+            lang_name = g.lang_name.get(lang) or [lang, '']
+            lang_name = "".join(lang_name)
+            buttons += [JsButton(lang_name,
+                                 onclick = "return showlang();",
+                                 css_class = "pref-lang")]
         return NavMenu(buttons, base_path = "/", type = "flatlist")
 
     def build_toolbars(self):
@@ -369,6 +390,10 @@ class Reddit(Templated):
     def content(self):
         """returns a Wrapped (or renderable) item for the main content div."""
         return self.content_stack((self.infobar, self.nav_menu, self._content))
+
+class AccountActivityBox(Templated):
+    def __init__(self):
+        super(AccountActivityBox, self).__init__()
 
 class RedditHeader(Templated):
     def __init__(self):
@@ -489,7 +514,7 @@ class LoginFormWide(CachedTemplate):
     """generates a login form suitable for the 300px rightbox."""
     def __init__(self):
         self.cname = c.cname
-        self.auth_cname = not c.frameless_cname or c.authorized_cname
+        self.auth_cname = c.authorized_cname
         CachedTemplate.__init__(self)
 
 class SubredditInfoBar(CachedTemplate):
@@ -510,13 +535,10 @@ class SubredditInfoBar(CachedTemplate):
         # so the menus cache properly
         self.path = request.path
 
-        # if user has flair, then it will be displayed in this bar
-        self.flair_user = None
-        if c.user_is_loggedin:
-            wrapped_user = WrappedUser(c.user, subreddit=self.sr,
-                                       force_show_flair=True)
-            if wrapped_user.has_flair:
-                self.flair_user = wrapped_user
+        if c.user_is_loggedin and c.user.pref_show_flair:
+            self.flair_prefs = FlairPrefs()
+        else:
+            self.flair_prefs = None
 
         CachedTemplate.__init__(self)
 
@@ -533,6 +555,7 @@ class SubredditInfoBar(CachedTemplate):
                     NamedButton('traffic'),
                     NavButton(menu.community_settings, 'edit'),
                     NavButton(menu.flair, 'flair'),
+                    NavButton(menu.modactions, 'modactions'),
                     ])
         return [NavMenu(buttons, type = "flat_vert", base_path = "/about/",
                         separator = '')]
@@ -552,12 +575,13 @@ class SideBox(CachedTemplate):
     """
     Generic sidebox used to generate the 'submit' and 'create a reddit' boxes.
     """
-    def __init__(self, title, link, css_class='', subtitles = [],
-                 show_cover = False, nocname=False, sr_path = False):
+    def __init__(self, title, link=None, css_class='', subtitles = [],
+                 show_cover = False, nocname=False, sr_path = False, disabled=False):
         CachedTemplate.__init__(self, link = link, target = '_top',
                            title = title, css_class = css_class,
                            sr_path = sr_path, subtitles = subtitles,
-                           show_cover = show_cover, nocname=nocname)
+                           show_cover = show_cover, nocname=nocname,
+                           disabled=disabled)
 
 
 class PrefsPage(Reddit):
@@ -674,7 +698,10 @@ class BoringPage(Reddit):
         Reddit.__init__(self, **context)
 
     def build_toolbars(self):
-        return [PageNameNav('nomenu', title = self.pagename)]
+        if not isinstance(c.site, DefaultSR) and not c.cname:
+            return [PageNameNav('subreddit', title = self.pagename)]
+        else:
+            return [PageNameNav('nomenu', title = self.pagename)]
 
 class HelpPage(BoringPage):
     def build_toolbars(self):
@@ -704,11 +731,20 @@ class LoginPage(BoringPage):
             title = _("login or register")
         BoringPage.__init__(self,  title, **context)
 
+        if self.dest:
+            u = UrlParser(self.dest)
+            # Display a preview message for OAuth2 client authorizations
+            if u.path == '/api/v1/authorize':
+                client_id = u.query_dict.get("client_id")
+                self.client = client_id and OAuth2Client.get_token(client_id)
+                self.infobar = self.client and ClientInfoBar(self.client, strings.oauth_login_msg)
+
     def content(self):
         kw = {}
         for x in ('user_login', 'user_reg'):
             kw[x] = getattr(self, x) if hasattr(self, x) else ''
-        return self.login_template(dest = self.dest, **kw)
+        login_content = self.login_template(dest = self.dest, **kw)
+        return self.content_stack((self.infobar, login_content))
 
     @classmethod
     def login_template(cls, **kw):
@@ -728,7 +764,19 @@ class Login(Templated):
 
 class Register(Login):
     pass
-    
+
+class OAuth2AuthorizationPage(BoringPage):
+    def __init__(self, client, redirect_uri, scope, state):
+        content = OAuth2Authorization(client=client,
+                                      redirect_uri=redirect_uri,
+                                      scope=scope,
+                                      state=state)
+        BoringPage.__init__(self, _("request for permission"),
+                show_sidebar=False, content=content)
+
+class OAuth2Authorization(Templated):
+    pass
+
 class SearchPage(BoringPage):
     """Search results page"""
     searchbox = False
@@ -846,7 +894,8 @@ class LinkInfoPage(Reddit):
         else:
             self.duplicates = duplicates
 
-        Reddit.__init__(self, title = title, short_description=short_description, *a, **kw)
+        robots = "noindex,nofollow" if link._deleted else None
+        Reddit.__init__(self, title = title, short_description=short_description, robots=robots, *a, **kw)
 
     def build_toolbars(self):
         base_path = "/%s/%s/" % (self.link._id36, title_to_url(self.link.title))
@@ -912,7 +961,8 @@ class CommentPane(Templated):
             num = (num / 10) * 10
         return "_".join(map(str, ["commentpane", self.article._fullname,
                                   num, self.sort, self.num, c.lang,
-                                  self.can_reply, c.render_style]))
+                                  self.can_reply, c.render_style,
+                                  c.user.pref_show_flair]))
 
     def __init__(self, article, sort, comment, context, num, **kw):
         # keys: lang, num, can_reply, render_style
@@ -965,6 +1015,8 @@ class CommentPane(Templated):
                 logged_in = c.user_is_loggedin
                 try:
                     c.user = UnloggedUser([c.lang])
+                    # Preserve the viewing user's flair preference.
+                    c.user.pref_show_flair = user.pref_show_flair
                     c.user_is_loggedin = False
 
                     # render as if not logged in (but possibly with reply buttons)
@@ -1068,12 +1120,12 @@ class SubredditsPage(Reddit):
         if c.user_is_loggedin:
             #add the aliases to "my reddits" stays highlighted
             buttons.append(NamedButton("mine",
-                                       aliases=['/mine/subscriber',
-                                                '/mine/contributor',
-                                                '/mine/moderator']))
+                                       aliases=['/reddits/mine/subscriber',
+                                                '/reddits/mine/contributor',
+                                                '/reddits/mine/moderator']))
 
         return [PageNameNav('reddits'),
-                NavMenu(buttons, base_path = '/proddits', type="tabmenu")]
+                NavMenu(buttons, base_path = '/reddits', type="tabmenu")]
 
     def content(self):
         return self.content_stack((self.searchbar, self.nav_menu,
@@ -1103,6 +1155,7 @@ def votes_visible(user):
     return ((c.user_is_loggedin and c.user.name == user.name) or
             user.pref_public_votes or
             c.user_is_admin)
+
 
 class ProfilePage(Reddit):
     """Container for a user's profile page.  As such, the Account
@@ -1230,6 +1283,12 @@ class InfoBar(Templated):
     def __init__(self, message = '', extra_class = ''):
         Templated.__init__(self, message = message, extra_class = extra_class)
 
+class ClientInfoBar(InfoBar):
+    """Draws the message the top of a login page before OAuth2 authorization"""
+    def __init__(self, client, *args, **kwargs):
+        kwargs.setdefault("extra_class", "client-info")
+        InfoBar.__init__(self, *args, **kwargs)
+        self.client = client
 
 class RedditError(BoringPage):
     site_tracking = False
@@ -1243,7 +1302,7 @@ class RedditError(BoringPage):
 class Reddit404(BoringPage):
     site_tracking = False
     def __init__(self):
-        ch=random.choice(['a','b','c'])
+        ch=random.choice(['a','b','c','d','e'])
         BoringPage.__init__(self, _("page not found"), loginbox=False,
                             show_sidebar = False, 
                             content=UnfoundPage(ch))
@@ -1299,9 +1358,11 @@ class SubredditTopBar(CachedTemplate):
                                                  limit = Subreddit.sr_limit)
             self._pop_reddits = [ sr for sr in p_srs
                                   if sr.name not in g.automatic_reddits ]
-
         return self._pop_reddits
 
+    @property
+    def show_my_reddits_dropdown(self):
+        return len(self.my_reddits) > g.sr_dropdown_threshold
 
     def my_reddits_dropdown(self):
         drop_down_buttons = []
@@ -1310,7 +1371,7 @@ class SubredditTopBar(CachedTemplate):
         drop_down_buttons.append(NavButton(menu.edit_subscriptions,
                                            sr_path = False,
                                            css_class = 'bottom-option',
-                                           dest = '/proddits/'))
+                                           dest = '/reddits/'))
         return SubredditMenu(drop_down_buttons,
                              title = _('my reddits'),
                              type = 'srdrop')
@@ -1358,9 +1419,6 @@ class SubredditTopBar(CachedTemplate):
         if not c.user_is_loggedin:
             menus.append(self.popular_reddits())
         else:
-            if len(self.my_reddits) > g.sr_dropdown_threshold:
-                menus = [self.my_reddits_dropdown()] + menus
-
             menus.append(self.subscribed_reddits())
             sep = '<span class="separator">&nbsp;&ndash;&nbsp;</span>'
             menus.append(RawString(sep))
@@ -1382,7 +1440,7 @@ class SubscriptionBox(Templated):
         self.prelink = None
         
         if len(srs) > Subreddit.sr_limit and c.user_is_loggedin:
-            if False and not c.user.gold:
+            if not c.user.gold:
                 self.goldlink = "/gold"
                 self.goldmsg = _("raise it to %s") % Subreddit.gold_limit
                 self.prelink = ["/help/faq#HowmanyredditscanIsubscribeto",
@@ -1441,15 +1499,15 @@ class Thanks(Templated):
         else:
             status = "mundane"
 
-        if g.lounge_reddit:
-            lounge_url = "/r/" + g.lounge_reddit
-            lounge_html = (SC_OFF +
-                           markdown(strings.lounge_msg % dict(link=lounge_url))
-                           + SC_ON)
-        else:
-            lounge_html = None
-        Templated.__init__(self, status=status, secret=secret,
-                           lounge_html=lounge_html)
+    @property
+    def pop_reddits(self):
+        if self._pop_reddits is None:
+            p_srs = Subreddit.default_subreddits(ids = False,
+                                                 limit = Subreddit.sr_limit)
+            self._pop_reddits = [ sr for sr in p_srs
+                                  if sr.name not in g.automatic_reddits ]
+
+        return self._pop_reddits
 
 class Gold(Templated):
     def __init__(self, goldtype, period, months, signed,
@@ -1503,6 +1561,7 @@ class GoldPayment(Templated):
 
             summary = strings.gold_summary_onetime % dict(user=c.user.name,
                                      amount=Score.somethings(months, "month"))
+
 
             google_id = g.GOOGLE_ID
         else:
@@ -1660,10 +1719,7 @@ class SearchBar(Templated):
 class SearchFail(Templated):
     """Search failure page."""
     def __init__(self, **kw):
-        md = SC_OFF + markdown(strings.search_failed % dict(
-            link="javascript:tryagain\(\)")) + SC_ON
-
-        self.errmsg = md
+        self.errmsg = strings.search_failed
 
         Templated.__init__(self)
 
@@ -1741,7 +1797,7 @@ class FrameToolbar(Wrapped):
 class NewLink(Templated):
     """Render the link submission form"""
     def __init__(self, captcha = None, url = '', title= '', subreddits = (),
-                 then = 'comments'):
+                 then = 'comments', resubmit=False):
 
         self.show_link = self.show_self = False
 
@@ -1772,12 +1828,11 @@ class NewLink(Templated):
 
         self.sr_searches = simplejson.dumps(popular_searches())
 
-        self.on_default_sr = c.default_sr
-
-        if isinstance(c.site, FakeSubreddit):
-            self.default_sr = subreddits[0] if subreddits else g.default_sr
+        self.resubmit = resubmit
+        if c.default_sr:
+            self.default_sr = None
         else:
-            self.default_sr = c.site.name
+            self.default_sr = c.site
 
         Templated.__init__(self, captcha = captcha, url = url,
                          title = title, subreddits = subreddits,
@@ -1897,31 +1952,13 @@ class Bookmarklets(Templated):
     """The bookmarklets page."""
     def __init__(self, buttons=None):
         if buttons is None:
-            buttons = ["trimite", "la intamplare"]
+            buttons = ["submit", "serendipity!"]
             # only include the toolbar link if we're not on an
             # unathorised cname. See toolbar.py:GET_s for discussion
             if not (c.cname and c.site.domain not in g.authorized_cnames):
-                buttons.insert(0, "toolbar proddit")
+                buttons.insert(0, "reddit toolbar")
         Templated.__init__(self, buttons = buttons)
 
-
-class Translator_Message(Templated):
-    def __init__(self, locale, user):
-        from r2.lib.translation import Translator
-        self.user = user
-        self.locale = locale
-        self.lang_name = Translator.get_name(self.locale)
-        self.en_name = Translator.get_en_name(self.locale)
-        Templated.__init__(self)
-
-class AdminTranslations(Templated):
-    """The translator control interface, used for determining which
-    user is allowed to edit which translation file and for providing a
-    summary of what translation files are done and/or in use."""
-    def __init__(self):
-        from r2.lib.translation import list_translations
-        Templated.__init__(self)
-        self.translations = list_translations()
 
 class UserAwards(Templated):
     """For drawing the regular-user awards page."""
@@ -2264,19 +2301,11 @@ class AdminUsage(Templated):
 class Ads(Templated):
     pass
 
-class Admin_Rightbox(Templated):
-    pass
-
 class Embed(Templated):
     """wrapper for embedding /help into reddit as if it were not on a separate wiki."""
     def __init__(self,content = ''):
         Templated.__init__(self, content = content)
 
-
-class Page_down(Templated):
-    def __init__(self, **kw):
-        message = kw.get('message', _("This feature is currently unavailable. Sorry"))
-        Templated.__init__(self, message = message)
 
 def wrapped_flair(user, subreddit, force_show_flair):
     if (not hasattr(subreddit, '_id')
@@ -2294,7 +2323,12 @@ class WrappedUser(CachedTemplate):
     FLAIR_CSS_PREFIX = 'flair-'
 
     def __init__(self, user, attribs = [], context_thing = None, gray = False,
-                 subreddit = None, force_show_flair = None):
+                 subreddit = None, force_show_flair = None,
+                 flair_template = None, flair_text_editable = False,
+                 include_flair_selector = False):
+        if not subreddit:
+            subreddit = c.site
+
         attribs.sort()
         author_cls = 'author'
 
@@ -2309,12 +2343,27 @@ class WrappedUser(CachedTemplate):
 
         flair = wrapped_flair(user, subreddit or c.site, force_show_flair)
         flair_enabled, flair_position, flair_text, flair_css_class = flair
-        has_flair = bool(flair_text or flair_css_class)
+        has_flair = bool(
+            c.user.pref_show_flair and (flair_text or flair_css_class))
+
+        if flair_template:
+            flair_template_id = flair_template._id
+            flair_text = flair_template.text
+            flair_css_class = flair_template.css_class
+            has_flair = True
+        else:
+            flair_template_id = None
+
         if flair_css_class:
             # This is actually a list of CSS class *suffixes*. E.g., "a b c"
             # should expand to "flair-a flair-b flair-c".
             flair_css_class = ' '.join(self.FLAIR_CSS_PREFIX + c
                                        for c in flair_css_class.split())
+
+        if include_flair_selector:
+            if (not getattr(c.site, 'flair_self_assign_enabled', True)
+                and not (c.user_is_admin or c.site.is_moderator(c.user))):
+                include_flair_selector = False
 
         target = None
         ip_span = None
@@ -2335,7 +2384,10 @@ class WrappedUser(CachedTemplate):
                                 flair_enabled = flair_enabled,
                                 flair_position = flair_position,
                                 flair_text = flair_text,
+                                flair_text_editable = flair_text_editable,
                                 flair_css_class = flair_css_class,
+                                flair_template_id = flair_template_id,
+                                include_flair_selector = include_flair_selector,
                                 author_cls = author_cls,
                                 author_title = author_title,
                                 attribs = attribs,
@@ -2422,11 +2474,19 @@ class FlairPane(Templated):
     def __init__(self, num, after, reverse, name, user):
         # Make sure c.site isn't stale before rendering.
         c.site = Subreddit._byID(c.site._id)
+
+        tabs = [
+            ('grant', _('grant flair'), FlairList(num, after, reverse, name,
+                                                  user)),
+            ('templates', _('edit flair templates'), FlairTemplateList()),
+        ]
+
         Templated.__init__(
             self,
-            flair_list=FlairList(num, after, reverse, name, user),
+            tabs=TabbedPane(tabs),
             flair_enabled=c.site.flair_enabled,
-            flair_position=c.site.flair_position)
+            flair_position=c.site.flair_position,
+            flair_self_assign_enabled=c.site.flair_self_assign_enabled)
 
 class FlairList(Templated):
     """List of users who are tagged with flair within a subreddit."""
@@ -2446,7 +2506,8 @@ class FlairList(Templated):
 
         # Fetch one item more than the limit, so we can tell if we need to link
         # to a "next" page.
-        query = c.site.flair_id_query(self.num + 1, self.after, self.reverse)
+        query = Flair.flair_id_query(c.site, self.num + 1, self.after,
+                                     self.reverse)
         flair_rows = list(query)
         if len(flair_rows) > self.num:
             next_page = flair_rows.pop()
@@ -2508,6 +2569,104 @@ class FlairCsv(Templated):
     def add_line(self):
         self.results_by_line.append(self.LineResult())
         return self.results_by_line[-1]
+
+class FlairTemplateList(Templated):
+    @property
+    def templates(self):
+        ids = FlairTemplateBySubredditIndex.get_template_ids(c.site._id)
+        fts = FlairTemplate._byID(ids)
+        return [FlairTemplateEditor(fts[i]) for i in ids]
+
+class FlairTemplateEditor(Templated):
+    def __init__(self, flair_template):
+        Templated.__init__(self,
+                           id=flair_template._id,
+                           text=flair_template.text,
+                           css_class=flair_template.css_class,
+                           text_editable=flair_template.text_editable,
+                           sample=FlairTemplateSample(flair_template),
+                           position=getattr(c.site, 'flair_position', 'right'))
+
+    def render(self, *a, **kw):
+        res = Templated.render(self, *a, **kw)
+        if not g.template_debug:
+            res = spaceCompress(res)
+        return res
+
+class FlairTemplateSample(Templated):
+    """Like a read-only version of FlairTemplateEditor."""
+    def __init__(self, flair_template):
+        wrapped_user = WrappedUser(c.user, subreddit=c.site, force_show_flair=True,
+                                   flair_template=flair_template)
+        Templated.__init__(self, flair_template_id=flair_template._id,
+                           wrapped_user=wrapped_user)
+
+class FlairPrefs(CachedTemplate):
+    def __init__(self):
+        sr_flair_enabled = getattr(c.site, 'flair_enabled', False)
+        user_flair_enabled = getattr(c.user, 'flair_%s_enabled' % c.site._id,
+                                     True)
+        sr_flair_self_assign_enabled = getattr(
+            c.site, 'flair_self_assign_enabled', True)
+        wrapped_user = WrappedUser(c.user, subreddit=c.site,
+                                   force_show_flair=True,
+                                   include_flair_selector=True)
+        CachedTemplate.__init__(
+            self,
+            sr_flair_enabled=sr_flair_enabled,
+            sr_flair_self_assign_enabled=sr_flair_self_assign_enabled,
+            user_flair_enabled=user_flair_enabled,
+            wrapped_user=wrapped_user)
+
+class FlairSelector(CachedTemplate):
+    """Provide user with flair options according to subreddit settings."""
+    def __init__(self, user=None):
+        if user is None:
+            user = c.user
+
+        position = getattr(c.site, 'flair_position', 'right')
+
+        attr_pattern = 'flair_%s_%%s' % c.site._id
+        text = getattr(user, attr_pattern % 'text', '')
+        css_class = getattr(user, attr_pattern % 'css_class', '')
+
+        ids = FlairTemplateBySubredditIndex.get_template_ids(c.site._id)
+        template_dict = FlairTemplate._byID(ids)
+        templates = [template_dict[i] for i in ids]
+        for template in templates:
+            if template.covers((text, css_class)):
+                matching_template = template._id
+                break
+        else:
+             matching_template = None
+
+        admin = bool(c.user_is_admin or c.site.is_moderator(c.user))
+
+        if c.site.flair_self_assign_enabled or admin:
+            choices = [
+                WrappedUser(
+                    user, subreddit=c.site, force_show_flair=True,
+                    flair_template=template,
+                    flair_text_editable=admin or template.text_editable)
+                for template in templates]
+
+        # If one of the templates is already selected, modify its text to match
+        # the user's current flair.
+        if matching_template:
+            for choice in choices:
+                if choice.flair_template_id == matching_template:
+                    if choice.flair_text_editable:
+                        choice.flair_text = text
+                    break
+
+        wrapped_user = WrappedUser(user, subreddit=c.site,
+                                   force_show_flair=True)
+
+        Templated.__init__(self, text=text, css_class=css_class,
+                           position=position, choices=choices,
+                           matching_template=matching_template,
+                           wrapped_user=wrapped_user)
+
 
 class FriendList(UserList):
     """Friend list on /pref/friends"""
@@ -2806,7 +2965,7 @@ class TabbedPane(Templated):
         for tab_name, title, pane in tabs:
             buttons.append(JsButton(title, onclick="return select_tab_menu(this, '%s');" % tab_name))
 
-        self.tabmenu = JsNavMenu(buttons, type = 'tabpane')
+        self.tabmenu = JsNavMenu(buttons, type = 'tabmenu')
         self.tabs = tabs
 
         Templated.__init__(self)
@@ -2888,6 +3047,7 @@ class SelfTextChild(LinkChild):
         u = UserText(self.link, self.link.selftext,
                      editable = c.user == self.link.author,
                      nofollow = self.nofollow,
+                     target="_top" if c.cname else None,
                      expunged=self.link.expunged)
         return u.render()
 
@@ -3518,7 +3678,7 @@ def render_ad(reddit_name=None, codename=None, keyword=None):
             return Dart_Ad("reddit.dart", reddit_name, keyword).render()
 
     try:
-        sr = Subreddit._by_name(reddit_name)
+        sr = Subreddit._by_name(reddit_name, stale=True)
     except NotFound:
         return Dart_Ad("reddit.dart", g.default_sr, keyword).render()
 
@@ -3588,3 +3748,15 @@ class TryCompact(Reddit):
         u.set_extension("mobile")
         self.mobile = u.unparse()
         Reddit.__init__(self, **kw)
+
+class AccountActivityPage(BoringPage):
+    def __init__(self):
+        super(AccountActivityPage, self).__init__(_("account activity"))
+
+    def content(self):
+        return UserIPHistory()
+
+class UserIPHistory(Templated):
+    def __init__(self):
+        self.ips = ips_by_account_id(c.user._id)
+        super(UserIPHistory, self).__init__()

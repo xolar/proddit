@@ -8,11 +8,14 @@ from r2.lib import utils
 from r2.lib.solrsearch import DomainSearchQuery
 from r2.lib import amqp, sup, filters
 from r2.lib.comment_tree import add_comments, update_comment_votes
+from r2.models.query_cache import cached_query, merged_cached_query, UserQueryCache, CachedQueryMutator
+from r2.models.query_cache import ThingTupleComparator
 
 import cPickle as pickle
 
 from datetime import datetime
 import itertools
+import collections
 
 from pylons import g
 query_cache = g.permacache
@@ -216,24 +219,16 @@ class MergedCachedResults(object):
         self._fetched = True
 
         self.sort = results[0].sort
+        comparator = ThingTupleComparator(self.sort)
         # make sure they're all the same
         assert all(r.sort == self.sort for r in results[1:])
 
         all_items = []
         for cr in results:
             all_items.extend(cr.data)
-        all_items.sort(cmp=self._thing_cmp)
+        all_items.sort(cmp=comparator)
         self.data = all_items
 
-    def _thing_cmp(self, t1, t2):
-        for i, s in enumerate(self.sort):
-            # t1 and t2 are tuples of (fullname, *sort_cols), so we
-            # can get the value to compare right out of the tuple
-            v1, v2 = t1[i + 1], t2[i + 1]
-            if v1 != v2:
-                return cmp(v1, v2) if isinstance(s, asc) else cmp(v2, v1)
-        #they're equal
-        return 0
 
     def __repr__(self):
         return '<MergedCachedResults %r>' % (self.cached_results,)
@@ -265,6 +260,29 @@ def merge_results(*results):
         m = Merge(results, sort = results[0]._sort)
         m.prewrap_fn = results[0].prewrap_fn
         return m
+
+
+@cached_query(UserQueryCache)
+def get_deleted_links(user_id):
+    return Link._query(Link.c.author_id == user_id,
+                       Link.c._deleted == True,
+                       Link.c._spam == (True, False),
+                       sort=db_sort('new'))
+
+
+@cached_query(UserQueryCache)
+def get_deleted_comments(user_id):
+    return Comment._query(Comment.c.author_id == user_id,
+                          Comment.c._deleted == True,
+                          Comment.c._spam == (True, False),
+                          sort=db_sort('new'))
+
+
+@merged_cached_query
+def get_deleted(user):
+    return [get_deleted_links(user),
+            get_deleted_comments(user)]
+
 
 def get_links(sr, sort, time):
     return _get_links(sr._id, sort, time)
@@ -693,33 +711,37 @@ def new_message(message, inbox_rels):
     from_user = Account._byID(message.author_id)
     for inbox_rel in tup(inbox_rels):
         to = inbox_rel._thing1
+        add_queries([get_sent(from_user)], insert_items=message)
         # moderator message
         if isinstance(inbox_rel, ModeratorInbox):
             add_queries([get_subreddit_messages(to)],
                         insert_items = inbox_rel)
         # personal message
         else:
-            add_queries([get_sent(from_user)], insert_items = message)
             add_queries([get_inbox_messages(to)],
                         insert_items = inbox_rel)
         set_unread(message, to, True)
 
     add_message(message)
 
-def set_unread(message, to, unread):
+def set_unread(messages, to, unread):
+    # Maintain backwards compatability
+    messages = tup(messages)
+
     if isinstance(to, Subreddit):
-        for i in ModeratorInbox.set_unread(message, unread):
+        for i in ModeratorInbox.set_unread(messages, unread):
             kw = dict(insert_items = i) if unread else dict(delete_items = i)
             add_queries([get_unread_subreddit_messages(i._thing1)], **kw)
     else:
-        for i in Inbox.set_unread(message, unread, to = to):
+        # All messages should be of the same type
+        for i in Inbox.set_unread(messages, unread, to=to):
             kw = dict(insert_items = i) if unread else dict(delete_items = i)
-            if isinstance(message, Comment) and not unread:
+            if isinstance(messages[0], Comment) and not unread:
                 add_queries([get_unread_comments(i._thing1)], **kw)
                 add_queries([get_unread_selfreply(i._thing1)], **kw)
             elif i._name == 'selfreply':
                 add_queries([get_unread_selfreply(i._thing1)], **kw)
-            elif isinstance(message, Comment):
+            elif isinstance(messages[0], Comment):
                 add_queries([get_unread_comments(i._thing1)], **kw)
             else:
                 add_queries([get_unread_messages(i._thing1)], **kw)
@@ -762,11 +784,26 @@ def _by_srid(things,srs=True):
     else:
         return ret
 
+
+def _by_author(things):
+    by_account = collections.defaultdict(list)
+
+    for thing in tup(things):
+        author_id = getattr(thing, 'author_id')
+        if author_id:
+            by_account[author_id].append(thing)
+
+    return by_account
+
+
 def ban(things):
     del_or_ban(things, "ban")
 
 def delete_links(links):
     del_or_ban(links, "del")
+
+def delete_comments(comments):
+    del_or_ban(comments, "del")
 
 def del_or_ban(things, why):
     by_srid, srs = _by_srid(things)
@@ -796,6 +833,17 @@ def del_or_ban(things, why):
             add_queries([get_spam_comments(sr)], insert_items = comments)
             add_queries([get_all_comments(),
                          get_sr_comments(sr)], delete_items = comments)
+
+    if why == "del":
+        with CachedQueryMutator() as m:
+            for author_id, things in _by_author(things).iteritems():
+                links = [x for x in things if isinstance(x, Link)]
+                if links:
+                    m.insert(get_deleted_links(author_id), links)
+
+                comments = [x for x in things if isinstance(x, Comment)]
+                if comments:
+                    m.insert(get_deleted_comments(author_id), comments)
 
     changed(things)
 
@@ -918,6 +966,7 @@ def run_new_comments(limit=1000):
     # this is done as a queue because otherwise the contention for the
     # lock on the query would be very high
 
+    @g.stats.amqp_processor('newcomments_q')
     def _run_new_comments(msgs, chan):
         fnames = [msg.body for msg in msgs]
 
@@ -935,6 +984,7 @@ def run_new_comments(limit=1000):
 def run_commentstree(limit=100):
     """Add new incoming comments to their respective comments trees"""
 
+    @g.stats.amqp_processor('commentstree_q')
     def _run_commentstree(msgs, chan):
         comments = Comment._by_fullname([msg.body for msg in msgs],
                                         data = True, return_dict = False)
@@ -1054,6 +1104,7 @@ def handle_vote(user, thing, dir, ip, organic, cheater=False, foreground=False):
 def process_votes_single(qname, limit=0):
     # limit is taken but ignored for backwards compatibility
 
+    @g.stats.amqp_processor(qname)
     def _handle_vote(msg):
         #assert(len(msgs) == 1)
         r = pickle.loads(msg.body)
@@ -1075,6 +1126,7 @@ def process_votes_single(qname, limit=0):
 
 def process_votes_multi(qname, limit=100):
     # limit is taken but ignored for backwards compatibility
+    @g.stats.amqp_processor(qname)
     def _handle_vote(msgs, chan):
         comments = []
 

@@ -14,6 +14,9 @@ function close_menus(event) {
         .removeClass("inuse");
     $(".drop-choices.active").removeClass("active");
 
+    // Clear any flairselectors that may have been opened.
+    $(".flairselector").empty();
+
     /* hide the search expando if the user clicks elsewhere on the page */ 
     if ($(event.target).closest("#search").length == 0) {
         $("#moresearchinfo").slideUp();
@@ -29,6 +32,16 @@ function close_menus(event) {
 };
 
 function hover_open_menu(menu) { };
+
+function select_tab_menu(tab_link, tab_name) {
+    var target = "tabbedpane-" + tab_name;
+    var menu = $(tab_link).parent().parent().parent();
+    menu.find(".tabmenu li").removeClass("selected");
+    $(tab_link).parent().addClass("selected");
+    menu.find(".tabbedpane").each(function() {
+        this.style.display = (this.id == target) ? "block" : "none";
+      });
+}
 
 function update_user(form) {
   try {
@@ -120,17 +133,6 @@ function emptyInput(elem, msg) {
 
 function showlang() {
     $(".lang-popup:first").show();
-    return false;
-};
-
-function showcover(warning, reason) {
-    $.request("new_captcha");
-    if (warning) 
-        $("#cover_disclaim, #cover_msg").show();
-    else
-        $("#cover_disclaim, #cover_msg").hide();
-    $(".login-popup:first").show()
-        .find('form input[name="reason"]').val(reason || "");
     return false;
 };
 
@@ -322,9 +324,7 @@ function linkstatus(form) {
 
 function subscribe(reddit_name) {
     return function() { 
-        if (!reddit.logged)  {
-            showcover();
-        } else {
+        if (reddit.logged) {
             $.things(reddit_name).find(".entry").addClass("likes");
             $.request("subscribe", {sr: reddit_name, action: "sub"});
         }
@@ -333,9 +333,7 @@ function subscribe(reddit_name) {
 
 function unsubscribe(reddit_name) {
     return function() { 
-        if (!reddit.logged)  {
-            showcover();
-        } else {
+        if (reddit.logged) {
             $.things(reddit_name).find(".entry").removeClass("likes");
             $.request("subscribe", {sr: reddit_name, action: "unsub"});
         }
@@ -344,10 +342,7 @@ function unsubscribe(reddit_name) {
 
 function friend(user_name, container_name, type) {
     return function() {
-        if (!reddit.logged)  {
-            showcover();
-        }
-        else {
+        if (reddit.logged) {
             encoded = encodeURIComponent(reddit.referer);
             $.request("friend?note=" + encoded,
                       {name: user_name, container: container_name, type: type});
@@ -472,76 +467,6 @@ function moremessages(elem) {
 
 /* stylesheet and CSS stuff */
 
-function update_reddit_count(site) {
-    if (!site || !reddit.logged) return;
-    
-    var decay_factor = .9; //precentage to keep
-    var decay_period = 86400; //num of seconds between updates
-    var num_recent = 10; //num of recent reddits to report
-    var num_count = 100; //num of reddits to actually count
-    
-    var date_key = '_date';
-    var cur_date = new Date();
-    var count_cookie = 'reddit_counts';
-    var recent_cookie = 'recent_reddits';
-    var reddit_counts = $.cookie_read(count_cookie).data;
-    
-    //init the reddit_counts dict
-    if (!$.defined(reddit_counts) ) {
-        reddit_counts = {};
-        reddit_counts[date_key] = cur_date.toString();
-    }
-    var last_reset = new Date(reddit_counts[date_key]);
-    var decay = cur_date - last_reset > decay_period * 1000;
-
-    //incrmenet the count on the current reddit
-    reddit_counts[site] = $.with_default(reddit_counts[site], 0) + 1;
-
-    //collect the reddit names (for sorting) and decay the view counts
-    //if necessary
-    var names = [];
-    $.each(reddit_counts, function(sr_name, value) {
-            if(sr_name != date_key) {
-                if (decay && sr_name != site) {
-                    //compute the new count val
-                    var val = Math.floor(decay_factor * reddit_counts[sr_name]);
-                    if (val > 0) 
-                        reddit_counts[sr_name] = val;
-                    else 
-                        delete reddit_counts[sr_name];
-                }
-                if (reddit_counts[sr_name]) 
-                    names.push(sr_name);
-            }
-        });
-
-    //sort the names by the view counts
-    names.sort(function(n1, n2) {
-            return reddit_counts[n2] - reddit_counts[n1];
-        });
-
-    //update the last decay date
-    if (decay) reddit_counts[date_key] = cur_date.toString();
-
-    //build the list of names to report as "recent"
-    var recent_reddits = "";
-    for (var i = 0; i < names.length; i++) {
-        var sr_name = names[i];
-        if (i < num_recent) {
-            recent_reddits += names[i] + ',';
-        } else if (i >= num_count && sr_name != site) {
-            delete reddit_counts[sr_name];
-        }
-    }
-
-    //set the two cookies: one for the counts, one for the final
-    //recent list
-    $.cookie_write({name: count_cookie, data: reddit_counts});
-    if (recent_reddits) 
-        $.cookie_write({name: recent_cookie, data: recent_reddits});
-};
-
-
 function add_thing_to_cookie(thing, cookie_name) {
     var id = $(thing).thing_id();
 
@@ -603,51 +528,9 @@ function updateEventHandlers(thing) {
     thing = $(thing);
     var listing = thing.parent();
 
-    $(thing).filter(".promotedlink, .sponsorshipbox")
-        .bind("onshow", function() {
-            var id = $(this).thing_id();
-            if($.inArray(id, reddit.tofetch) != -1) {
-                $.request("onload", {ids: reddit.tofetch.join(",")});
-                reddit.tofetch = [];
-            }
-            var tracker = reddit.trackers[id]; 
-            if($.defined(tracker)) {
-                var title = $(this).find("a.title");
-                var text;
-                if ($.browser.msie) {
-                    /* bugfix for IE7-8; links with text that look like
-                     * a url of some sort (including the @ character)
-                     * have their text changed when href is set.
-                     * see http://jsfiddle.net/JU2Vj/1/ for a distilled
-                     * reproduction of the bug */
-                    text = title.html();
-                }
-
-                save_href($(this).find("a.title"))
-                    .attr("href", tracker.click).end();
-                save_href($(this).find("a.thumbnail"))
-                    .attr("href", tracker.click).end();
-                $(this).find("img.promote-pixel").attr("src", tracker.show);
-
-                if ($.browser.msie) {
-                    if (text != title.html()) {
-                        title.html(text);
-                    }
-                }
-
-                delete reddit.trackers[id];
-            }
-        })
-        /* pre-trigger new event if already shown */
-        .filter(":visible").trigger("onshow");
-
     /* click on a title.. */
     $(thing).filter(".link")
         .find("a.title, a.comments").mousedown(function() {
-            /* the site is either stored in the sr dict, or we are on
-             * an sr and it is the current one */
-            var sr = reddit.sr[$(this).thing_id()] || reddit.cur_site;
-            update_reddit_count(sr);
             /* mark as clicked */
             $(this).addClass("click");
             /* set the click cookie. */
@@ -820,7 +703,7 @@ function sr_search(query) {
     query = query.toLowerCase();
     var cache = sr_cache();
     if (!cache[query]) {
-        $.request('search_reddit_names', {query: query},
+        $.request('search_reddit_names.json', {query: query},
                   function (r) {
                       cache[query] = r['names'];
                       update_dropdown(r['names']);
@@ -1324,10 +1207,6 @@ $(function() {
         /* set up the cookie domain */
         $.default_cookie_domain(reddit.cur_domain.split(':')[0]);
         
-        /* Count the rendering of this reddit */
-        if(reddit.cur_site)  
-           update_reddit_count(reddit.cur_site);
-
         /* visually mark the last-clicked entry */
         last_click();
 

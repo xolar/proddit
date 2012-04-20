@@ -34,6 +34,7 @@
         ${toolbar}
       </div>
       %endfor
+<<<<<<< HEAD
     <div>
     <p class="bottommenu">
 
@@ -42,6 +43,28 @@
     </p>
 		<br>
  		 <p><a href="http://github.com/reddit/reddit"><img src="/static/reddit_logo.png" alt="powered by reddit" /></a></p>
+=======
+>>>>>>> ad02b799127942ea8a3bdf9ec202178d8a26a26c
   </div>
+  %if not g.domain.endswith("reddit.com"):
+    <!-- http://code.reddit.com/LICENSE see Exhibit B -->
+    <a href="http://www.reddit.com/code/" style="text-align:center;display:block">
+      <img src="${s3_https_if_secure("http://sp.reddit.com/powered_by_reddit.png")}"
+           style="width:140px; height:47px; margin-bottom: 5px"/>
+    </a>
+  %endif
+  <p class="bottommenu">
+    ${text_with_links(
+            _("Use of this site constitutes acceptance of our "
+              "%(user_agreement)s and %(privacy_policy)s"), nocname=True,
+      user_agreement = dict(link_text=_("User Agreement {Genitive}"),
+                            path="http://reddit.com/help/useragreement"),
+      privacy_policy = dict(link_text=_("Privacy Policy {Genitive}"),
+                            path="http://reddit.com/help/privacypolicy"))}.
+    &copy; ${_("%(year)d reddit inc. All rights reserved.") % \
+    dict(year=datetime.datetime.now().timetuple()[0])}
+  </p>
+  <p class="bottommenu">REDDIT and the ALIEN Logo are registered trademarks of reddit inc.</p>
+  <p class="bottommenu serverinfo"><span class="icon">&pi;</span>&nbsp;<span class="content">Rendered by PID ${g.reddit_pid} on ${g.reddit_host} running ${g.short_version}.</span></p>
 </div>
 </div>

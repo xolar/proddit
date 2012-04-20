@@ -98,7 +98,7 @@ class LinkButtons(PrintableButtons):
         # do we show the distinguish button? among other things,
         # we never want it to appear on link listings -- only
         # comments pages
-        show_distinguish = (is_author and thing.can_ban 
+        show_distinguish = (is_author and (thing.can_ban or c.user_special_distinguish)
                             and getattr(thing, "expand_children", False))
 
         kw = {}
@@ -143,12 +143,14 @@ class CommentButtons(PrintableButtons):
         # do we show the delete button?
         show_delete = is_author and delete and not thing._deleted
 
-        show_distinguish = is_author and thing.can_ban
+        show_distinguish = is_author and (thing.can_ban or c.user_special_distinguish)
 
         PrintableButtons.__init__(self, "commentbuttons", thing,
                                   is_author = is_author, 
                                   profilepage = c.profilepage,
                                   permalink = thing.permalink,
+                                  new_window = c.user.pref_newwindow,
+                                  full_comment_path = thing.full_comment_path,
                                   deleted = thing.deleted,
                                   parent_permalink = thing.parent_permalink, 
                                   can_reply = thing.can_reply,

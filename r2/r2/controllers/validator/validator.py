@@ -19,12 +19,13 @@
 # All portions of the code written by CondeNet are Copyright (c) 2006-2010
 # CondeNet, Inc. All Rights Reserved.
 ################################################################################
-from pylons import c, request, g
+from pylons import c, g, request, response
 from pylons.i18n import _
 from pylons.controllers.util import abort
 from r2.lib import utils, captcha, promote
 from r2.lib.filters import unkeep_space, websafe, _force_unicode
 from r2.lib.filters import markdown_souptest
+from r2.lib.db import tdb_cassandra
 from r2.lib.db.operators import asc, desc
 from r2.lib.template_helpers import add_sr
 from r2.lib.jsonresponse import json_respond, JQueryResponse, JsonResponse
@@ -32,6 +33,7 @@ from r2.lib.jsontemplates import api_type
 from r2.lib.log import log_text
 from r2.models import *
 from r2.lib.authorize import Address, CreditCard
+from r2.lib.utils import constant_time_compare
 
 from r2.controllers.errors import errors, UserRequiredException
 from r2.controllers.errors import VerifiedUserRequiredException
@@ -153,14 +155,24 @@ def api_validate(response_type=None):
         def _api_validate(*simple_vals, **param_vals):
             def val(fn):
                 def newfn(self, *a, **env):
-                    c.render_style = api_type(request.params.get("renderstyle",
-                                                                 response_type))
-                    c.response_content_type = 'application/json; charset=UTF-8'
+                    renderstyle = request.params.get("renderstyle")
+                    if renderstyle:
+                        c.render_style = api_type(renderstyle)
+                    elif not c.extension:
+                        # if the request URL included an extension, don't
+                        # touch the render_style, since it was already set by
+                        # set_extension. if no extension was provided, default
+                        # to response_type.
+                        c.render_style = api_type(response_type)
+
                     # generate a response object
-                    if response_type is None or request.params.get('api_type') == "json":
-                        responder = JsonResponse()
-                    else:
+                    if response_type == "html" and not request.params.get('api_type') == "json":
                         responder = JQueryResponse()
+                    else:
+                        responder = JsonResponse()
+
+                    c.response_content_type = responder.content_type
+
                     try:
                         kw = _make_validated_kw(fn, simple_vals, param_vals, env)
                         return response_function(self, fn, responder,
@@ -188,8 +200,13 @@ def textresponse(self, self_method, responder, simple_vals, param_vals, *a, **kw
 
 @api_validate()
 def json_validate(self, self_method, responder, simple_vals, param_vals, *a, **kw):
-    r = self_method(self, *a, **kw)
-    return self.api_wrapper(r)
+    if c.extension != 'json':
+        abort(404)
+
+    val = self_method(self, responder, *a, **kw)
+    if not val:
+        val = responder.make_response()
+    return self.api_wrapper(val)
 
 @api_validate("html")
 def validatedForm(self, self_method, responder, simple_vals, param_vals,
@@ -463,7 +480,7 @@ class VSelfText(VMarkdown):
 
     def get_max_length(self):
         if c.site.link_type == "self":
-            return self._max_length * 3
+            return self._max_length * 4
         return self._max_length
 
     max_length = property(get_max_length, set_max_length)
@@ -521,25 +538,46 @@ def fullname_regex(thing_cls = None, multiple = False):
     return re.compile(r"\A" + pattern + r"\Z")
 
 class VByName(Validator):
+    # Lookup tdb_sql.Thing or tdb_cassandra.Thing objects by fullname. 
     splitter = re.compile('[ ,]+')
-    def __init__(self, param, thing_cls = None, multiple = False,
-                 error = errors.NO_THING_ID, **kw):
+    def __init__(self, param, thing_cls=None, multiple=False, limit=None,
+                 error=errors.NO_THING_ID, backend='sql', **kw):
+        # Limit param only applies when multiple is True
+        if not multiple and limit is not None:
+            raise TypeError('multiple must be True when limit is set')
         self.re = fullname_regex(thing_cls)
         self.multiple = multiple
+        self.limit = limit
         self._error = error
-        
+        self.backend = backend
+
         Validator.__init__(self, param, **kw)
     
     def run(self, items):
-        if items and self.multiple:
-            items = [item for item in self.splitter.split(items)
-                     if item and self.re.match(item)]
-        if items and (self.multiple or self.re.match(items)):
-            try:
-                return Thing._by_fullname(items, return_dict = False,
-                                          data=True)
-            except NotFound:
-                pass
+        if self.backend == 'cassandra':
+            # tdb_cassandra.Thing objects can't use the regex
+            if items and self.multiple:
+                items = [item for item in self.splitter.split(items)]
+                if self.limit and len(items) > self.limit:
+                    return self.set_error(errors.TOO_MANY_THING_IDS)
+            if items:                        
+                try:
+                    return tdb_cassandra.Thing._by_fullname(items, return_dict=False)
+                except NotFound:
+                    pass
+        else:
+            if items and self.multiple:
+                items = [item for item in self.splitter.split(items)
+                         if item and self.re.match(item)]
+                if self.limit and len(items) > self.limit:
+                    return self.set_error(errors.TOO_MANY_THING_IDS)
+            if items and (self.multiple or self.re.match(items)):
+                try:
+                    return Thing._by_fullname(items, return_dict=False,
+                                              data=True)
+                except NotFound:
+                    pass
+
         return self.set_error(self._error)
 
 class VByNameIfAuthor(VByName):
@@ -555,9 +593,11 @@ class VCaptcha(Validator):
     default_param = ('iden', 'captcha')
     
     def run(self, iden, solution):
-        if (not c.user_is_loggedin or c.user.needs_captcha()):
-            if not captcha.valid_solution(iden, solution):
+        if c.user.needs_captcha():
+            valid_captcha = captcha.valid_solution(iden, solution)
+            if not valid_captcha:
                 self.set_error(errors.BAD_CAPTCHA)
+            g.stats.action_event_count("captcha", valid_captcha)
 
 class VUser(Validator):
     def run(self, password = None):
@@ -569,6 +609,10 @@ class VUser(Validator):
 
 class VModhash(Validator):
     default_param = 'uh'
+    def __init__(self, param=None, fatal=True, *a, **kw):
+        Validator.__init__(self, param, *a, **kw)
+        self.fatal = fatal
+
     def run(self, uh):
         pass
 
@@ -580,6 +624,15 @@ class VAdmin(Validator):
     def run(self):
         if not c.user_is_admin:
             abort(404, "page not found")
+
+class VAdminOrAdminSecret(VAdmin):
+    def run(self, secret):
+        '''If validation succeeds, return True if the secret was used,
+        False otherwise'''
+        if secret and constant_time_compare(secret, g.ADMINSECRET):
+            return True
+        super(VAdminOrAdminSecret, self).run()
+        return False
 
 class VVerifiedUser(VUser):
     def run(self):
@@ -652,8 +705,8 @@ class VFlairManager(VSrModerator):
     subreddit administration."""
     pass
 
-class VSrCanDistinguish(VByName):
-    def run(self, thing_name):
+class VCanDistinguish(VByName):
+    def run(self, thing_name, how):
         if c.user_is_admin:
             return True
         elif c.user_is_loggedin:
@@ -663,8 +716,11 @@ class VSrCanDistinguish(VByName):
                 # comment, because this should only be used on links and
                 # comments
                 subreddit = item.subreddit_slow
-                if subreddit.can_distinguish(c.user):
+                if how in ("yes", "no") and subreddit.can_distinguish(c.user):
                     return True
+                elif how in ("special", "no") and c.user_special_distinguish:
+                    return True
+
         abort(403,'forbidden')
 
 class VSrCanAlter(VByName):
@@ -741,8 +797,9 @@ class VSubmitParent(VByName):
         abort(403, "forbidden")
 
 class VSubmitSR(Validator):
-    def __init__(self, srname_param, linktype_param = None):
+    def __init__(self, srname_param, linktype_param=None, promotion=False):
         self.require_linktype = False
+        self.promotion = promotion
 
         if linktype_param:
             self.require_linktype = True
@@ -761,7 +818,7 @@ class VSubmitSR(Validator):
             self.set_error(errors.SUBREDDIT_NOEXIST)
             return
 
-        if not c.user_is_loggedin or not sr.can_submit(c.user):
+        if not c.user_is_loggedin or not sr.can_submit(c.user, self.promotion):
             self.set_error(errors.SUBREDDIT_NOTALLOWED)
             return
 
@@ -778,14 +835,29 @@ class VSubmitSR(Validator):
 
         return sr
 
-pass_rx = re.compile(r"\A.{3,20}\Z")
+class VSubscribeSR(VByName):
+    def __init__(self, srid_param, srname_param):
+        VByName.__init__(self, (srid_param, srname_param)) 
 
-def chkpass(x):
-    return x if x and pass_rx.match(x) else None
+    def run(self, sr_id, sr_name):
+        if sr_id:
+            return VByName.run(self, sr_id)
+        elif not sr_name:
+            return
+
+        try:
+            sr = Subreddit._by_name(str(sr_name).strip())
+        except (NotFound, AttributeError, UnicodeEncodeError):
+            self.set_error(errors.SUBREDDIT_NOEXIST)
+            return
+
+        return sr
+
+MIN_PASSWORD_LENGTH = 3
 
 class VPassword(Validator):
     def run(self, password, verify):
-        if not chkpass(password):
+        if not (password and len(password) >= MIN_PASSWORD_LENGTH):
             self.set_error(errors.BAD_PASSWORD)
         elif verify != password:
             self.set_error(errors.BAD_PASSWORD_MATCH)
@@ -837,9 +909,31 @@ class VLogin(VRequired):
                 password = password.encode('utf8')
             user = valid_login(user_name, password)
         if not user:
-            return self.error()
+            self.error()
+            return False
         return user
 
+class VThrottledLogin(VLogin):
+    def __init__(self, *args, **kwargs):
+        VLogin.__init__(self, *args, **kwargs)
+        self.vdelay = VDelay("login")
+        self.vlength = VLength("user", max_length=100)
+        
+    def run(self, username, password):
+        if username:
+            username = username.strip()
+        username = self.vlength.run(username)
+
+        self.vdelay.run()
+        if (errors.RATELIMIT, "vdelay") in c.errors:
+            return False
+
+        user = VLogin.run(self, username, password)
+        if login_throttle(username, wrong_password=not user):
+            VDelay.record_violation("login", seconds=1, growfast=True)
+            c.errors.add(errors.WRONG_PASSWORD, field=self.param[1])
+        else:
+            return user
 
 class VSanitizedUrl(Validator):
     def run(self, url):
@@ -851,7 +945,7 @@ class VUrl(VRequired):
         self.lookup = lookup
         VRequired.__init__(self, item, errors.NO_URL, *a, **kw)
 
-    def run(self, url, sr = None):
+    def run(self, url, sr = None, resubmit=False):
         if sr is None and not isinstance(c.site, FakeSubreddit):
             sr = c.site
         elif sr:
@@ -872,7 +966,7 @@ class VUrl(VRequired):
         if url == 'self':
             if self.allow_self:
                 return url
-        elif not self.lookup:
+        elif not self.lookup or resubmit:
             return url
         elif url:
             try:
@@ -884,26 +978,37 @@ class VUrl(VRequired):
         return self.error(errors.BAD_URL)
 
 class VOptionalExistingUname(VRequired):
-    def __init__(self, item, allow_deleted=False, *a, **kw):
+    def __init__(self, item, allow_deleted=False, prefer_existing=False,
+                 *a, **kw):
         self.allow_deleted = allow_deleted
+        self.prefer_existing = prefer_existing
         VRequired.__init__(self, item, errors.NO_USER, *a, **kw)
 
     def run(self, name):
+        if self.prefer_existing:
+            result = self._lookup(name, False)
+            if not result and self.allow_deleted:
+                result = self._lookup(name, True)
+        else:
+            result = self._lookup(name, self.allow_deleted)
+        return result or self.error(errors.USER_DOESNT_EXIST)
+
+    def _lookup(self, name, allow_deleted):
         if name and name.startswith('~') and c.user_is_admin:
             try:
                 user_id = int(name[1:])
                 return Account._byID(user_id, True)
             except (NotFound, ValueError):
-                return self.error(errors.USER_DOESNT_EXIST)
+                return None
 
         # make sure the name satisfies our user name regexp before
         # bothering to look it up.
         name = chkuser(name)
         if name:
             try:
-                return Account._by_name(name, allow_deleted=self.allow_deleted)
+                return Account._by_name(name, allow_deleted=allow_deleted)
             except NotFound:
-                return self.error(errors.USER_DOESNT_EXIST)
+                return None
 
 class VExistingUname(VOptionalExistingUname):
     def run(self, name):
@@ -916,9 +1021,16 @@ class VMessageRecipient(VExistingUname):
     def run(self, name):
         if not name:
             return self.error()
-        if name.startswith('#'):
+        is_subreddit = False
+        if name.startswith('/r/'):
+            name = name[3:]
+            is_subreddit = True
+        elif name.startswith('#'):
+            name = name[1:]
+            is_subreddit = True
+        if is_subreddit:
             try:
-                s = Subreddit._by_name(name.strip('#'))
+                s = Subreddit._by_name(name)
                 if isinstance(s, FakeSubreddit):
                     raise NotFound, "fake subreddit"
                 if s._spam:
@@ -1079,6 +1191,8 @@ class VRatelimit(Validator):
         Validator.__init__(self, *a, **kw)
 
     def run (self):
+        if g.disable_ratelimit:
+            return
         to_check = []
         if self.rate_user and c.user_is_loggedin:
             to_check.append('user' + str(c.user._id36))
@@ -1119,6 +1233,8 @@ class VDelay(Validator):
         Validator.__init__(self, *a, **kw)
 
     def run (self):
+        if g.disable_ratelimit:
+            return
         key = "VDelay-%s-%s" % (self.category, request.ip)
         prev_violations = g.cache.get(key)
         if prev_violations:
@@ -1218,37 +1334,20 @@ class VOneOf(Validator):
         else:
             return val
 
-class VReason(Validator):
-    def run(self, reason):
-        if not reason:
-            return
+class VImageType(Validator):
+    def run(self, img_type):
+        if not img_type in ('png', 'jpg'):
+            return 'png'
+        return img_type
 
-        if reason.startswith('redirect_'):
-            dest = reason[9:]
-            if (not dest.startswith(c.site.path) and 
-                not dest.startswith("http:")):
-                dest = (c.site.path + dest).replace('//', '/')
-            return ('redirect', dest)
-        if reason.startswith('vote_'):
-            fullname = reason[5:]
-            t = Thing._by_fullname(fullname, data=True)
-            return ('redirect', t.make_permalink_slow())
-        elif reason.startswith('share_'):
-            fullname = reason[6:]
-            t = Thing._by_fullname(fullname, data=True)
-            return ('redirect', t.make_permalink_slow())
-        elif reason.startswith('reply_'):
-            fullname = reason[6:]
-            t = Thing._by_fullname(fullname, data=True)
-            return ('redirect', t.make_permalink_slow())
-        elif reason.startswith('sr_change_'):
-            sr_list = reason[10:].split(',')
-            fullnames = dict(i.split(':') for i in sr_list)
-            srs = Subreddit._by_fullname(fullnames.keys(), data = True,
-                                         return_dict = False)
-            sr_onoff = dict((sr, fullnames[sr._fullname] == 1) for sr in srs)
-            return ('subscribe', sr_onoff)
-
+class VSubredditSponsorship(VInt):
+    max = 1
+    min = 0
+    def run(self, val):
+        s = super(VSubredditSponsorship, self).run(val)
+        if s and not c.user_is_admin:
+            abort(403, "forbidden")
+        return s
 
 class ValidEmails(Validator):
     """Validates a list of email addresses passed in as a string and
@@ -1307,11 +1406,6 @@ class VCnameDomain(Validator):
             except UnicodeEncodeError:
                 self.set_error(errors.BAD_CNAME)
 
-class VTranslation(Validator):
-    def run(self, param):
-        from r2.lib.translation import Translator
-        if Translator.exists(param):
-            return Translator(locale = param)
 
 # NOTE: make sure *never* to have res check these are present
 # otherwise, the response could contain reference to these errors...!
@@ -1410,7 +1504,7 @@ class VDestination(Validator):
 
             u = UrlParser(dest)
 
-            if u.is_reddit_url():
+            if u.is_reddit_url(c.site):
                 return dest
 
         ip = getattr(request, "ip", "[unknown]")
@@ -1516,3 +1610,13 @@ class VFlairText(VLength):
     def __init__(self, param, max_length=64, **kw):
         VLength.__init__(self, param, max_length, **kw)
 
+class VFlairTemplateByID(VRequired):
+    def __init__(self, param, **kw):
+        VRequired.__init__(self, param, None, **kw)
+
+    def run(self, flair_template_id):
+        try:
+            return FlairTemplateBySubredditIndex.get_template(
+                c.site._id, flair_template_id)
+        except tdb_cassandra.NotFound:
+            return None

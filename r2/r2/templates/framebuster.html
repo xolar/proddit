@@ -1,11 +1,12 @@
 <%namespace file="reddit.html" import="javascript"/>
-<%namespace file="utils.html" import="js_preamble"/>
+<%namespace file="utils.html" import="js_setup"/>
 
 <html>
   <head>
     <title>escappit</title>
     <% from r2.lib import js %>
     ${unsafe(js.use('jquery', 'reddit'))}
+    ${js_setup()}
   </head>
   <body>
     <script type="text/javascript">

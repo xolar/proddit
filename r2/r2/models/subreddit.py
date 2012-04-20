@@ -75,7 +75,9 @@ class Subreddit(Thing, Printable):
                      link_type = 'any', # one of ('link', 'self', 'any')
                      flair_enabled = True,
                      flair_position = 'right', # one of ('left', 'right')
+                     link_flair_position = '', # one of ('', 'left', 'right')
                      flair_self_assign_enabled = False,
+                     link_flair_self_assign_enabled = False,
                      )
     _essentials = ('type', 'name', 'lang')
     _data_int_props = Thing._data_int_props + ('mod_actions', 'reported')
@@ -264,8 +266,10 @@ class Subreddit(Thing, Printable):
     def can_view(self, user):
         if c.user_is_admin:
             return True
-
-        if self.type in ('public', 'restricted', 'archived'):
+        
+        if self.spammy():
+            return False
+        elif self.type in ('public', 'restricted', 'archived'):
             return True
         elif c.user_is_loggedin:
             #private requires contributorship
@@ -650,6 +654,7 @@ class FakeSubreddit(Subreddit):
     def __init__(self):
         Subreddit.__init__(self)
         self.title = ''
+        self.link_flair_position = 'right'
 
     def is_moderator(self, user):
         return c.user_is_loggedin and c.user_is_admin
@@ -660,7 +665,7 @@ class FakeSubreddit(Subreddit):
     def can_comment(self, user):
         return False
 
-    def can_submit(self, user):
+    def can_submit(self, user, promotion=False):
         return False
 
     def can_change_stylesheet(self, user):
@@ -845,6 +850,10 @@ class DefaultSR(_DefaultSR):
         return "t5_6"
 
     @property
+    def type(self):
+        return self._base.type if self._base else "public"
+
+    @property
     def header(self):
         return (self._base and self._base.header) or _DefaultSR.header
 
@@ -926,14 +935,18 @@ class ModContribSR(_DefaultSR):
     def path(self):
         return '/r/' + self.real_path
 
+    @property
     def sr_ids(self):
         if c.user_is_loggedin:
             return Subreddit.special_reddits(c.user, self.query_param)
         else:
             return []
 
+    def rising_srs(self):
+        return self.sr_ids
+
     def get_links(self, sort, time):
-        return self.get_links_sr_ids(self.sr_ids(), sort, time)
+        return self.get_links_sr_ids(self.sr_ids, sort, time)
 
 class ModSR(ModContribSR):
     name  = "comunitati moderate de tine"
@@ -958,7 +971,7 @@ class SubSR(FakeSubreddit):
     def can_comment(self, user):
         return False
 
-    def can_submit(self, user):
+    def can_submit(self, user, promotion=False):
         return True
 
     @property
@@ -982,6 +995,7 @@ class DomainSR(FakeSubreddit):
         # switched over to use the non-_old variety.
         return queries.get_domain_links(self.domain, sort, time)
 
+Frontpage = DefaultSR()
 Sub = SubSR()
 Friends = FriendsSR()
 Mod = ModSR()

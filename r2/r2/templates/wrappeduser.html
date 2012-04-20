@@ -49,12 +49,12 @@
     %>
     ${plain_link(thing.name + thing.karma, "/user/%s" % thing.name,
                  _class = ' '.join(classes),
-                 _sr_path = False, target=target, title=thing.author_title)}
+                 _sr_path = False, target='_blank' if c.user.pref_newwindow else target, title=thing.author_title)}
     %if thing.flair_position == 'right':
       ${flair(thing, enabled=thing.force_show_flair)}
     %endif
     %if thing.include_flair_selector:
-      (<a class="flairselectbtn" href="javascript://">${_('edit')}</a>)
+      (<a class="flairselectbtn" href="javascript://void(0)">${_('edit')}</a>)
       <div class="flairselector drop-choices"></div>
       <form><input type="hidden" name="name" value="${thing.name}"></form>
     %endif

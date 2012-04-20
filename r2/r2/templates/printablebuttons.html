@@ -19,8 +19,7 @@
 ## All portions of the code written by CondeNet are Copyright (c) 2006-2010
 ## CondeNet, Inc. All Rights Reserved.
 ################################################################################
-<%namespace file="utils.html" import="plain_link" />
-<%namespace file="utils.html" import="pretty_button" />
+<%namespace file="utils.html" import="plain_link, pretty_button" />
 
 <%!
    from r2.lib.strings import strings
@@ -42,7 +41,10 @@
     %if not getattr(thing.thing, "use_big_modbuttons", False):
       %if not thing.show_spam:
         <li>
-           ${ynbutton(_("remove"), _("removed"), "remove")}
+           ${ynbutton(_("spam"), _("spammed"), "remove")}
+        </li>
+        <li>
+           ${ynbutton(_("remove"), _("removed"), "remove", hidden_data=dict(spam=False))}
         </li>
       %endif
 
@@ -63,6 +65,15 @@
   %endif
   %if thing.show_unmarknsfw:
     <li>${ynbutton(_("un-nsfw"), _("unmarked"), "unmarknsfw")}</li>
+  %endif
+  %if not getattr(thing, 'promoted', None) and c.site.link_flair_position and thing.show_flair:
+    <li>
+      <a class="flairselectbtn" href="javascript://void(0)">${_('flair')}</a>
+      <div class="flairselector drop-choices"></div>
+      <form>
+        <input type="hidden" name="link" value="${thing.thing._fullname}">
+      </form>
+    </li>
   %endif
 </%def>
 
@@ -120,11 +131,11 @@
     %if getattr(thing, "moderator_banned", None):
       <!-- pass -->
     %elif thing._spam:
-      ${pretty_button(_("confirm %(obj)s removal") % dict(obj=kind),
-      "big_mod_action", -1, "negative")}
+      ${pretty_button(_("confirm spam"), "big_mod_action", -2, "negative")}
+      ${pretty_button(_("remove ham"), "big_mod_action", -1, "neutral")}
     %else:
-      ${pretty_button(_("remove %(obj)s") % dict(obj=kind),
-                      "big_mod_action", -1, "negative")}
+      ${pretty_button(_("spam"), "big_mod_action", -2, "negative")}
+      ${pretty_button(_("remove"), "big_mod_action", -1, "neutral")}
     %endif
 
     %if getattr(thing, "approval_checkmark", None):
@@ -136,10 +147,13 @@
     %endif
 
     &#32;
-    <span class="removed" style="display:none">
+    <span class="status-msg spammed">
+      ${_("spammed")}
+    </span>
+    <span class="status-msg removed">
       ${_("removed")}
     </span>
-    <span class="approved" style="display:none">
+    <span class="status-msg approved">
       ${_("approved")}
     </span>
   </span>
@@ -378,21 +392,22 @@
                      question = None,
                      format = '%(link)s',
                      format_arg = 'link',
-                     hidden_data = {})">
+                     hidden_data = {},
+                     _class = '')">
   <%
      if question is None:
          question = _("are you sure?")
-     link = ('<a href="#" onclick="return toggle(this)">'
+     link = ('<a href="#" class="togglebutton" onclick="return toggle(this)">'
              + title + '</a>')
      link = format % {format_arg : link}
      link = unsafe(link.replace(" <", "&#32;<").replace("> ", ">&#32;"))
    %>
-  <form class="toggle ${op}-button" action="#" method="get">
+  <form class="toggle ${op}-button ${_class}" action="#" method="get">
     <input type="hidden" name="executed" value="${executed}"/>
     %for k, v in hidden_data.iteritems():
       <input type="hidden" name="${k}" value="${v}"/>
     %endfor
-    <span class="option active">
+    <span class="option main active">
       ${link}
     </span>
     <span class="option error">

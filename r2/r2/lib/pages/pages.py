@@ -22,9 +22,10 @@
 from r2.lib.wrapped import Wrapped, Templated, CachedTemplate
 from r2.models import Account, FakeAccount, DefaultSR, make_feedurl
 from r2.models import FakeSubreddit, Subreddit, Ad, AdSR
-from r2.models import Friends, All, Sub, NotFound, DomainSR, Random, Mod, RandomNSFW, MultiReddit
+from r2.models import Friends, All, Sub, NotFound, DomainSR, Random, Mod, RandomNSFW, MultiReddit, ModSR, Frontpage
 from r2.models import Link, Printable, Trophy, bidding, PromotionWeights, Comment
 from r2.models import Flair, FlairTemplate, FlairTemplateBySubredditIndex
+from r2.models import USER_FLAIR, LINK_FLAIR
 from r2.models.oauth2 import OAuth2Client
 from r2.models import ModAction
 from r2.models import Thing
@@ -125,11 +126,13 @@ class Reddit(Templated):
     enable_login_cover = True
     site_tracking      = True
     show_firsttext     = True
+    css_class          = None
     additional_css     = None
+    extra_page_classes = None
 
     def __init__(self, space_compress = True, nav_menus = None, loginbox = True,
                  infotext = '', content = None, short_description='', title = '', robots = None, 
-                 show_sidebar = True, footer = True, srbar = True,
+                 show_sidebar = True, footer = True, srbar = True, page_classes = None,
                  **context):
         Templated.__init__(self, **context)
         self.title          = title
@@ -141,6 +144,7 @@ class Reddit(Templated):
         self.space_compress = space_compress and not g.template_debug
         # instantiate a footer
         self.footer         = RedditFooter() if footer else None
+        self.supplied_page_classes = page_classes or []
 
         #put the sort menus at the top
         self.nav_menu = MenuArea(menus = nav_menus) if nav_menus else None
@@ -201,6 +205,7 @@ class Reddit(Templated):
 
         buttons.extend([
                 #NamedButton('traffic', css_class = 'reddit-traffic'),
+                NamedButton('modqueue', css_class = 'reddit-modqueue'),
                 NamedButton('reports', css_class = 'reddit-reported'),
                 NamedButton('spam', css_class = 'reddit-spam'),
                 NamedButton('banned', css_class = 'reddit-ban'),
@@ -231,7 +236,7 @@ class Reddit(Templated):
             ps.append(SponsorshipBox())
 
         no_ads_yet = True
-        if isinstance(c.site, MultiReddit) and c.user_is_loggedin:
+        if isinstance(c.site, (MultiReddit, ModSR)) and c.user_is_loggedin:
             srs = Subreddit._byID(c.site.sr_ids,data=True,
                                   return_dict=False)
             if srs:
@@ -390,6 +395,30 @@ class Reddit(Templated):
     def content(self):
         """returns a Wrapped (or renderable) item for the main content div."""
         return self.content_stack((self.infobar, self.nav_menu, self._content))
+
+    def page_classes(self):
+        classes = set()
+
+        if c.user_is_loggedin:
+            classes.add('loggedin')
+            if not isinstance(c.site, FakeSubreddit):
+                if c.site.is_subscriber(c.user):
+                    classes.add('subscriber')
+                if c.site.is_moderator(c.user):
+                    classes.add('moderator')
+                if c.site.is_contributor(c.user):
+                    classes.add('contributor')
+                if c.cname:
+                    classes.add('cname')
+        if isinstance(c.site, MultiReddit):
+            classes.add('multi-page')
+
+        if self.extra_page_classes:
+            classes.update(self.extra_page_classes)
+        if self.supplied_page_classes:
+            classes.update(self.supplied_page_classes)
+
+        return classes
 
 class AccountActivityBox(Templated):
     def __init__(self):
@@ -689,9 +718,11 @@ class BoringPage(Reddit):
     
     extension_handling= False
     
-    def __init__(self, pagename, **context):
+    def __init__(self, pagename, css_class=None, **context):
         self.pagename = pagename
         name = c.site.name or g.default_sr
+        if css_class:
+            self.css_class = css_class
         if "title" not in context:
             context['title'] = "%s: %s" % (name, pagename)
 
@@ -756,6 +787,21 @@ class RegisterPage(LoginPage):
     def login_template(cls, **kw):
         return Register(**kw)
 
+class AdminModeInterstitial(BoringPage):
+    def __init__(self, dest, *args, **kwargs):
+        self.dest = dest
+        BoringPage.__init__(self, _("turn admin on"),
+                            show_sidebar=False,
+                            *args, **kwargs)
+
+    def content(self):
+        return PasswordVerificationForm(dest=self.dest)
+
+class PasswordVerificationForm(Templated):
+    def __init__(self, dest):
+        self.dest = dest
+        Templated.__init__(self)
+
 class Login(Templated):
     """The two-unit login and register form."""
     def __init__(self, user_reg = '', user_login = '', dest=''):
@@ -780,6 +826,7 @@ class OAuth2Authorization(Templated):
 class SearchPage(BoringPage):
     """Search results page"""
     searchbox = False
+    extra_page_classes = ['search-page']
 
     def __init__(self, pagename, prev_search, elapsed_time,
                  num_results, search_params = {},
@@ -845,6 +892,7 @@ class LinkInfoPage(Reddit):
     """
 
     create_reddit_box = False
+    extra_page_classes = ['single-page']
 
     def __init__(self, link = None, comment = None,
                  link_title = '', subtitle = None, duplicates = None,
@@ -962,7 +1010,8 @@ class CommentPane(Templated):
         return "_".join(map(str, ["commentpane", self.article._fullname,
                                   num, self.sort, self.num, c.lang,
                                   self.can_reply, c.render_style,
-                                  c.user.pref_show_flair]))
+                                  c.user.pref_show_flair,
+                                  c.user.pref_show_link_flair]))
 
     def __init__(self, article, sort, comment, context, num, **kw):
         # keys: lang, num, can_reply, render_style
@@ -1015,8 +1064,9 @@ class CommentPane(Templated):
                 logged_in = c.user_is_loggedin
                 try:
                     c.user = UnloggedUser([c.lang])
-                    # Preserve the viewing user's flair preference.
+                    # Preserve the viewing user's flair preferences.
                     c.user.pref_show_flair = user.pref_show_flair
+                    c.user.pref_show_link_flair = user.pref_show_link_flair
                     c.user_is_loggedin = False
 
                     # render as if not logged in (but possibly with reply buttons)
@@ -1133,7 +1183,7 @@ class SubredditsPage(Reddit):
 
     def rightbox(self):
         ps = Reddit.rightbox(self)
-        subscribe_box = SubscriptionBox()
+        subscribe_box = SubscriptionBox(make_multi=True)
         num_reddits = len(subscribe_box.srs)
         ps.append(SideContentBox(_("your front page reddits (%s)") %
                                  num_reddits, [subscribe_box]))
@@ -1166,6 +1216,7 @@ class ProfilePage(Reddit):
     searchbox         = False
     create_reddit_box = False
     submit_box        = False
+    extra_page_classes = ['profile-page']
 
     def __init__(self, user, *a, **kw):
         self.user     = user
@@ -1255,8 +1306,10 @@ class ProfileBar(Templated):
                     if gold_days_left < 1:
                         self.gold_remaining = _("less than a day")
                     else:
-                        self.gold_remaining = timeuntil(self.gold_expiration,
-                                        precision=60 * 60 * 24 * 30) # months
+                        # "X months, Y days" if less than 2 months left, otherwise "X months"
+                        precision = 60 * 60 * 24 * 30 if gold_days_left > 60 else 60 * 60 * 24 
+                        self.gold_remaining = timeuntil(self.gold_expiration, precision)
+
                 if hasattr(user, "gold_subscr_id"):
                     self.gold_subscr_id = user.gold_subscr_id
             if user._id != c.user._id:
@@ -1397,7 +1450,7 @@ class SubredditTopBar(CachedTemplate):
                        css_class = 'sr-bar', _id = 'sr-bar')
 
     def special_reddits(self):
-        reddits = [All, Random]
+        reddits = [Frontpage, All, Random]
         if getattr(c.site, "over_18", False):
             reddits.append(RandomNSFW)
         if c.user_is_loggedin:
@@ -1430,7 +1483,7 @@ class SubredditTopBar(CachedTemplate):
 class SubscriptionBox(Templated):
     """The list of reddits a user is currently subscribed to to go in
     the right pane."""
-    def __init__(self, srs=None):
+    def __init__(self, srs=None, make_multi=False):
         if srs is None:
             srs = Subreddit.user_subreddits(c.user, ids = False, limit=None)
         srs.sort(key = lambda sr: sr.name.lower())
@@ -1438,7 +1491,14 @@ class SubscriptionBox(Templated):
         self.goldlink = None
         self.goldmsg = None
         self.prelink = None
-        
+
+        # Construct MultiReddit path
+        if make_multi:
+            mr_path = '/r/' + '+'.join([sr.name for sr in srs])
+            subscription_multi_path = mr_path 
+        else:
+            subscription_multi_path = None
+
         if len(srs) > Subreddit.sr_limit and c.user_is_loggedin:
             if not c.user.gold:
                 self.goldlink = "/gold"
@@ -1454,9 +1514,10 @@ class SubscriptionBox(Templated):
                 self.goldmsg = _("%(bonus)s bonus reddits") % bonus
                 self.prelink = ["/help/faq#HowmanyredditscanIsubscribeto",
                                 _("%s visible") % visible]
-        
+
         Templated.__init__(self, srs=srs, goldlink=self.goldlink,
-                           goldmsg=self.goldmsg)
+                           goldmsg=self.goldmsg, 
+                           subscription_multi_path=subscription_multi_path)
 
     @property
     def reddits(self):
@@ -1735,7 +1796,7 @@ class Frame(Wrapped):
                             domain     = g.domain))
         else:
             title = g.domain
-        Templated.__init__(self, url = url, title = title,
+        Wrapped.__init__(self, url = url, title = title,
                            fullname = fullname, thumbnail = thumbnail)
 
 class FrameToolbar(Wrapped):
@@ -1796,8 +1857,8 @@ class FrameToolbar(Wrapped):
 
 class NewLink(Templated):
     """Render the link submission form"""
-    def __init__(self, captcha = None, url = '', title= '', subreddits = (),
-                 then = 'comments', resubmit=False):
+    def __init__(self, captcha = None, url = '', title= '', text = '', selftext = '',
+                 subreddits = (), then = 'comments', resubmit=False):
 
         self.show_link = self.show_self = False
 
@@ -1812,7 +1873,12 @@ class NewLink(Templated):
         if self.show_self and self.show_link:
             all_fields = set(chain(*(parts for (tab, parts) in tabs)))
             buttons = []
-            self.default_tab = tabs[0][0]
+            
+            if selftext == 'true' or text != '':
+                self.default_tab = tabs[1][0]
+            else:
+                self.default_tab = tabs[0][0]
+
             for tab_name, parts in tabs:
                 to_show = ','.join('#' + p for p in parts)
                 to_hide = ','.join('#' + p for p in all_fields if p not in parts)
@@ -1835,7 +1901,7 @@ class NewLink(Templated):
             self.default_sr = c.site
 
         Templated.__init__(self, captcha = captcha, url = url,
-                         title = title, subreddits = subreddits,
+                         title = title, text = text, subreddits = subreddits,
                          then = then)
 
 class ShareLink(CachedTemplate):
@@ -2466,6 +2532,9 @@ class UserList(Templated):
         to be listing in this UserList instance"""
         raise NotImplementedError
 
+    def can_remove_self(self):
+        return False
+
     @property
     def container_name(self):
         return c.site._fullname
@@ -2478,15 +2547,21 @@ class FlairPane(Templated):
         tabs = [
             ('grant', _('grant flair'), FlairList(num, after, reverse, name,
                                                   user)),
-            ('templates', _('edit flair templates'), FlairTemplateList()),
+            ('templates', _('user flair templates'),
+             FlairTemplateList(USER_FLAIR)),
+            ('link_templates', _('link flair templates'),
+             FlairTemplateList(LINK_FLAIR)),
         ]
 
         Templated.__init__(
             self,
-            tabs=TabbedPane(tabs),
+            tabs=TabbedPane(tabs, linkable=True),
             flair_enabled=c.site.flair_enabled,
             flair_position=c.site.flair_position,
-            flair_self_assign_enabled=c.site.flair_self_assign_enabled)
+            link_flair_position=c.site.link_flair_position,
+            flair_self_assign_enabled=c.site.flair_self_assign_enabled,
+            link_flair_self_assign_enabled=
+                c.site.link_flair_self_assign_enabled)
 
 class FlairList(Templated):
     """List of users who are tagged with flair within a subreddit."""
@@ -2571,21 +2646,27 @@ class FlairCsv(Templated):
         return self.results_by_line[-1]
 
 class FlairTemplateList(Templated):
+    def __init__(self, flair_type):
+        Templated.__init__(self, flair_type=flair_type)
+
     @property
     def templates(self):
-        ids = FlairTemplateBySubredditIndex.get_template_ids(c.site._id)
+        ids = FlairTemplateBySubredditIndex.get_template_ids(
+                c.site._id, flair_type=self.flair_type)
         fts = FlairTemplate._byID(ids)
-        return [FlairTemplateEditor(fts[i]) for i in ids]
+        return [FlairTemplateEditor(fts[i], self.flair_type) for i in ids]
 
 class FlairTemplateEditor(Templated):
-    def __init__(self, flair_template):
+    def __init__(self, flair_template, flair_type):
         Templated.__init__(self,
                            id=flair_template._id,
                            text=flair_template.text,
                            css_class=flair_template.css_class,
                            text_editable=flair_template.text_editable,
-                           sample=FlairTemplateSample(flair_template),
-                           position=getattr(c.site, 'flair_position', 'right'))
+                           sample=FlairTemplateSample(flair_template,
+                                                      flair_type),
+                           position=getattr(c.site, 'flair_position', 'right'),
+                           flair_type=flair_type)
 
     def render(self, *a, **kw):
         res = Templated.render(self, *a, **kw)
@@ -2595,11 +2676,16 @@ class FlairTemplateEditor(Templated):
 
 class FlairTemplateSample(Templated):
     """Like a read-only version of FlairTemplateEditor."""
-    def __init__(self, flair_template):
-        wrapped_user = WrappedUser(c.user, subreddit=c.site, force_show_flair=True,
-                                   flair_template=flair_template)
-        Templated.__init__(self, flair_template_id=flair_template._id,
-                           wrapped_user=wrapped_user)
+    def __init__(self, flair_template, flair_type):
+        if flair_type == USER_FLAIR:
+            wrapped_user = WrappedUser(c.user, subreddit=c.site,
+                                       force_show_flair=True,
+                                       flair_template=flair_template)
+        else:
+            wrapped_user = None
+        Templated.__init__(self,
+                           flair_template=flair_template,
+                           wrapped_user=wrapped_user, flair_type=flair_type)
 
 class FlairPrefs(CachedTemplate):
     def __init__(self):
@@ -2618,37 +2704,63 @@ class FlairPrefs(CachedTemplate):
             user_flair_enabled=user_flair_enabled,
             wrapped_user=wrapped_user)
 
+class FlairSelectorLinkSample(CachedTemplate):
+    def __init__(self, link, site, flair_template):
+        flair_position = getattr(site, 'link_flair_position', 'right')
+        admin = bool(c.user_is_admin or site.is_moderator(c.user))
+        CachedTemplate.__init__(
+            self,
+            title=link.title,
+            flair_position=flair_position,
+            flair_template_id=flair_template._id,
+            flair_text=flair_template.text,
+            flair_css_class=flair_template.css_class,
+            flair_text_editable=admin or flair_template.text_editable,
+            )
+
 class FlairSelector(CachedTemplate):
     """Provide user with flair options according to subreddit settings."""
-    def __init__(self, user=None):
+    def __init__(self, user=None, link=None, site=None):
         if user is None:
             user = c.user
+        if site is None:
+            site = c.site
+        admin = bool(c.user_is_admin or site.is_moderator(c.user))
 
-        position = getattr(c.site, 'flair_position', 'right')
-
-        attr_pattern = 'flair_%s_%%s' % c.site._id
-        text = getattr(user, attr_pattern % 'text', '')
-        css_class = getattr(user, attr_pattern % 'css_class', '')
-
-        ids = FlairTemplateBySubredditIndex.get_template_ids(c.site._id)
-        template_dict = FlairTemplate._byID(ids)
-        templates = [template_dict[i] for i in ids]
-        for template in templates:
-            if template.covers((text, css_class)):
-                matching_template = template._id
-                break
+        if link:
+            flair_type = LINK_FLAIR
+            target = link
+            target_name = link._fullname
+            attr_pattern = 'flair_%s'
+            position = getattr(site, 'link_flair_position', 'right')
+            target_wrapper = (
+                lambda flair_template: FlairSelectorLinkSample(
+                    link, site, flair_template))
+            self_assign_enabled = (
+                c.user._id == link.author_id
+                and site.link_flair_self_assign_enabled)
         else:
-             matching_template = None
+            flair_type = USER_FLAIR
+            target = user
+            target_name = user.name
+            position = getattr(site, 'flair_position', 'right')
+            attr_pattern = 'flair_%s_%%s' % c.site._id
+            target_wrapper = (
+                lambda flair_template: WrappedUser(
+                    user, subreddit=site, force_show_flair=True,
+                    flair_template=flair_template,
+                    flair_text_editable=admin or template.text_editable))
+            self_assign_enabled = site.flair_self_assign_enabled
 
-        admin = bool(c.user_is_admin or c.site.is_moderator(c.user))
+        text = getattr(target, attr_pattern % 'text', '')
+        css_class = getattr(target, attr_pattern % 'css_class', '')
+        templates, matching_template = self._get_templates(
+                site, flair_type, text, css_class)
 
-        if c.site.flair_self_assign_enabled or admin:
-            choices = [
-                WrappedUser(
-                    user, subreddit=c.site, force_show_flair=True,
-                    flair_template=template,
-                    flair_text_editable=admin or template.text_editable)
-                for template in templates]
+        if self_assign_enabled or admin:
+            choices = [target_wrapper(template) for template in templates]
+        else:
+            choices = []
 
         # If one of the templates is already selected, modify its text to match
         # the user's current flair.
@@ -2659,13 +2771,23 @@ class FlairSelector(CachedTemplate):
                         choice.flair_text = text
                     break
 
-        wrapped_user = WrappedUser(user, subreddit=c.site,
-                                   force_show_flair=True)
-
         Templated.__init__(self, text=text, css_class=css_class,
                            position=position, choices=choices,
                            matching_template=matching_template,
-                           wrapped_user=wrapped_user)
+                           target_name=target_name)
+
+    def _get_templates(self, site, flair_type, text, css_class):
+        ids = FlairTemplateBySubredditIndex.get_template_ids(
+            site._id, flair_type)
+        template_dict = FlairTemplate._byID(ids)
+        templates = [template_dict[i] for i in ids]
+        for template in templates:
+            if template.covers((text, css_class)):
+                matching_template = template._id
+                break
+        else:
+             matching_template = None
+        return templates, matching_template
 
 
 class FriendList(UserList):
@@ -2748,6 +2870,10 @@ class ContributorList(UserList):
 class ModList(UserList):
     """Moderator list for a reddit."""
     type = 'moderator'
+    remove_self_action = _('leave')
+    remove_self_title = _('you are a moderator of this subreddit. %(action)s')
+    remove_self_confirm = _('stop being a moderator?')
+    remove_self_final = _('you are no longer a moderator')
 
     @property
     def form_title(self):
@@ -2756,6 +2882,9 @@ class ModList(UserList):
     @property
     def table_title(self):
         return _("moderators of %(reddit)s") % dict(reddit = c.site.name)
+
+    def can_remove_self(self):
+        return c.user_is_loggedin and c.site.is_moderator(c.user)
 
     def editable_fn(self, user):
         if not c.user_is_loggedin:
@@ -2958,17 +3087,18 @@ class Roadblocks(Templated):
                           else g.default_sr
 
 class TabbedPane(Templated):
-    def __init__(self, tabs):
+    def __init__(self, tabs, linkable=False):
         """Renders as tabbed area where you can choose which tab to
         render. Tabs is a list of tuples (tab_name, tab_pane)."""
         buttons = []
         for tab_name, title, pane in tabs:
-            buttons.append(JsButton(title, onclick="return select_tab_menu(this, '%s');" % tab_name))
+            onclick = "return select_tab_menu(this, '%s')" % tab_name
+            buttons.append(JsButton(title, tab_name=tab_name, onclick=onclick))
 
         self.tabmenu = JsNavMenu(buttons, type = 'tabmenu')
         self.tabs = tabs
 
-        Templated.__init__(self)
+        Templated.__init__(self, linkable=linkable)
 
 class LinkChild(object):
     def __init__(self, link, load = False, expand = False, nofollow = False):
@@ -3760,3 +3890,8 @@ class UserIPHistory(Templated):
     def __init__(self):
         self.ips = ips_by_account_id(c.user._id)
         super(UserIPHistory, self).__init__()
+
+class ApiHelp(Templated):
+    def __init__(self, api_docs, *a, **kw):
+        self.api_docs = api_docs
+        super(ApiHelp, self).__init__(*a, **kw)

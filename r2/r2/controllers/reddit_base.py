@@ -29,8 +29,8 @@ from r2.lib import pages, utils, filters, amqp, stats
 from r2.lib.utils import http_utils, is_subdomain, UniqueIterator, ip_and_slash16
 from r2.lib.cache import LocalCache, make_key, MemcachedError
 import random as rand
-from r2.models.account import valid_cookie, FakeAccount, valid_feed
-from r2.models.subreddit import Subreddit
+from r2.models.account import valid_cookie, FakeAccount, valid_feed, valid_admin_cookie
+from r2.models.subreddit import Subreddit, Frontpage
 from r2.models import *
 from errors import ErrorSet
 from validator import *
@@ -40,7 +40,7 @@ from r2.lib.jsontemplates import api_type, is_api
 from Cookie import CookieError
 from copy import copy
 from Cookie import CookieError
-from datetime import datetime
+from datetime import datetime, timedelta
 from hashlib import sha1, md5
 from urllib import quote, unquote
 import simplejson
@@ -123,6 +123,9 @@ class UnloggedUser(FakeAccount):
 
     def _unsubscribe(self, sr):
         pass
+
+    def valid_hash(self, hash):
+        return False
 
     def _commit(self):
         if self._dirty:
@@ -250,13 +253,12 @@ def set_subreddit():
 
     can_stale = request.method.upper() in ('GET','HEAD')
 
-    default_sr = DefaultSR()
-    c.site = default_sr
+    c.site = Frontpage
     if not sr_name:
         #check for cnames
         sub_domain = request.environ.get('sub_domain')
         if sub_domain and not sub_domain.endswith(g.media_domain):
-            c.site = Subreddit._by_domain(sub_domain) or default_sr
+            c.site = Subreddit._by_domain(sub_domain) or Frontpage
     elif sr_name == 'r':
         #reddits
         c.site = Sub
@@ -465,6 +467,7 @@ def paginated_listing(default_page_size=25, max_page_size=100, backend='sql'):
                   count=VCount('count'),
                   target=VTarget("target"),
                   show=VLength('show', 3))
+        @utils.wraps_api(fn)
         def new_fn(self, before, **env):
             if c.render_style == "htmllite":
                 c.link_target = env.get("target")
@@ -530,6 +533,17 @@ def cross_domain(origin_check=is_trusted_origin, **options):
 def require_https():
     if not c.secure:
         abort(403)
+
+def prevent_framing_and_css(allow_cname_frame=False):
+    def wrap(f):
+        @utils.wraps_api(f)
+        def no_funny_business(*args, **kwargs):
+            c.allow_styles = False
+            if not (allow_cname_frame and c.cname and not c.authorized_cname):
+                c.deny_frames = True
+            return f(*args, **kwargs)
+        return no_funny_business
+    return wrap
 
 class MinimalController(BaseController):
 
@@ -737,13 +751,22 @@ class MinimalController(BaseController):
 class RedditController(MinimalController):
 
     @staticmethod
-    def login(user, admin = False, rem = False):
-        c.cookies[g.login_cookie] = Cookie(value = user.make_cookie(admin = admin),
+    def login(user, rem=False):
+        c.cookies[g.login_cookie] = Cookie(value = user.make_cookie(),
                                            expires = NEVER if rem else None)
 
     @staticmethod
-    def logout(admin = False):
+    def logout():
         c.cookies[g.login_cookie] = Cookie(value='', expires=DELETE)
+
+    @staticmethod
+    def enable_admin_mode(user, first_login=None):
+        # no expiration time so the cookie dies with the browser session
+        c.cookies[g.admin_cookie] = Cookie(value=user.make_admin_cookie(first_login=first_login))
+
+    @staticmethod
+    def disable_admin_mode(user):
+        c.cookies[g.admin_cookie] = Cookie(value='', expires=DELETE)
 
     def pre(self):
         c.response_wrappers = []
@@ -772,12 +795,20 @@ class RedditController(MinimalController):
         # no logins for RSS feed unless valid_feed has already been called
         if not c.user:
             if c.extension != "rss":
-                (c.user, maybe_admin) = \
-                         valid_cookie(c.cookies[g.login_cookie].value
-                                      if g.login_cookie in c.cookies
-                                      else '')
-                if c.user:
-                    c.user_is_loggedin = True
+                session_cookie = c.cookies.get(g.login_cookie)
+                if session_cookie:
+                    c.user = valid_cookie(session_cookie.value)
+                    if c.user:
+                        c.user_is_loggedin = True
+
+                admin_cookie = c.cookies.get(g.admin_cookie)
+                if c.user_is_loggedin and admin_cookie:
+                    maybe_admin, first_login = valid_admin_cookie(admin_cookie.value)
+
+                    if maybe_admin:
+                        self.enable_admin_mode(c.user, first_login=first_login)
+                    else:
+                        self.disable_admin_mode(c.user)
 
             if not c.user:
                 c.user = UnloggedUser(get_browser_langs())
@@ -796,12 +827,8 @@ class RedditController(MinimalController):
                 read_mod_cookie()
             if hasattr(c.user, 'msgtime') and c.user.msgtime:
                 c.have_messages = c.user.msgtime
-            if hasattr(c.user, 'modmsgtime'):
-                c.show_mod_mail = True
-                if c.user.modmsgtime:
-                    c.have_mod_messages = c.user.modmsgtime
-            else:
-                c.show_mod_mail = Subreddit.reverse_moderator_ids(c.user)
+            c.show_mod_mail = Subreddit.reverse_moderator_ids(c.user)
+            c.have_mod_messages = getattr(c.user, "modmsgtime", False)
             c.user_is_admin = maybe_admin and c.user.name in g.admins
             c.user_special_distinguish = c.user.special_distinguish()
             c.user_is_sponsor = c.user_is_admin or c.user.name in g.sponsors

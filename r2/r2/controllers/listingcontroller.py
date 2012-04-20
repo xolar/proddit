@@ -44,12 +44,14 @@ from r2.lib import sup
 from r2.lib.promote import randomized_promotion_list, get_promote_srid
 import socket
 
+from api_docs import api_doc, api_section
 from admin import admin_profile_query
 
 from pylons.i18n import _
 from pylons import Response
 
 import random
+from functools import partial
 
 class ListingController(RedditController):
     """Generalized controller for pages with lists of links."""
@@ -81,6 +83,7 @@ class ListingController(RedditController):
 
     #extra parameters to send to the render_cls constructor
     render_params = {}
+    extra_page_classes = ['listing-page']
 
     @property
     def menus(self):
@@ -88,8 +91,7 @@ class ListingController(RedditController):
         etc) to be displayed on this listing page"""
         return []
 
-    @base_listing
-    def build_listing(self, num, after, reverse, count):
+    def build_listing(self, num, after, reverse, count, **kwargs):
         """uses the query() method to define the contents of the
         listing and renders the page self.render_cls(..).render() with
         the listing as contents"""
@@ -104,6 +106,7 @@ class ListingController(RedditController):
         content = self.content()
 
         res = self.render_cls(content = content,
+                              page_classes = self.extra_page_classes,
                               show_sidebar = self.show_sidebar,
                               nav_menus = self.menus,
                               title = self.title(),
@@ -161,8 +164,12 @@ class ListingController(RedditController):
         if (getattr(c.site, "_id", -1) == get_promote_srid() and 
             not c.user_is_sponsor):
             abort(403, 'forbidden')
-        listing = LinkListing(self.builder_obj, show_nums = self.show_nums)
-        return listing.listing()
+        pane = LinkListing(self.builder_obj, show_nums = self.show_nums).listing()
+        # Indicate that the comment tree wasn't built for comments
+        for i in pane:
+            if hasattr(i, 'full_comment_path'):
+                i.child = None
+        return pane
 
     def title(self):
         """Page <title>"""
@@ -174,9 +181,13 @@ class ListingController(RedditController):
 
     builder_wrapper = staticmethod(default_thing_wrapper())
 
+    @base_listing
+    @api_doc(api_section.listings, extensions=['json', 'xml'])
     def GET_listing(self, **env):
         check_cheating('site')
         return self.build_listing(**env)
+
+listing_api_doc = partial(api_doc, section=api_section.listings, extends=ListingController.GET_listing)
 
 class FixListing(object):
     """When sorting by hotness, computing a listing when the before/after
@@ -290,6 +301,7 @@ class HotController(FixListing, ListingController):
                 res = wrap_links(link_ids, wrapper = self.builder_wrapper,
                                  num = 1, keep_fn = lambda x: x.fresh, 
                                  skip = True)
+                res.parent_name = "promoted"
                 if res.things:
                     return res
 
@@ -310,6 +322,10 @@ class HotController(FixListing, ListingController):
                                                limit=srlimit,
                                                over18=over18)
             return normalized_hot(sr_ids)
+
+        elif isinstance(c.site, MultiReddit):
+            return normalized_hot(c.site.kept_sr_ids, obey_age_limit=False)
+
         #if not using the query_cache we still want cached front pages
         elif (not g.use_query_cache
               and not isinstance(c.site, FakeSubreddit)
@@ -330,6 +346,7 @@ class HotController(FixListing, ListingController):
     def title(self):
         return c.site.title
 
+    @listing_api_doc(uri='/hot')
     def GET_listing(self, **env):
         self.infotext = request.get.get('deleted') and strings.user_deleted
         return ListingController.GET_listing(self, **env)
@@ -343,6 +360,7 @@ class SavedController(ListingController):
         return queries.get_saved(c.user)
 
     @validate(VUser())
+    @listing_api_doc(uri='/saved')
     def GET_listing(self, **env):
         return ListingController.GET_listing(self, **env)
 
@@ -389,6 +407,7 @@ class NewController(ListingController):
         return self.redirect(request.fullpath + query_string(dict(sort=sort)))
 
     @validate(sort = VMenu('controller', NewMenu))
+    @listing_api_doc(uri='/new')
     def GET_listing(self, sort, **env):
         self.sort = sort
         return ListingController.GET_listing(self, **env)
@@ -426,6 +445,7 @@ class BrowseController(ListingController):
     # TODO: this is a hack with sort.
     @validate(sort = VOneOf('sort', ('top', 'controversial')),
               t = VMenu('sort', ControversyTimeMenu))
+    @listing_api_doc(uri='/{sort}', uri_variants=['/top', '/controversial'])
     def GET_listing(self, sort, t, **env):
         self.sort = sort
         if sort == 'top':
@@ -571,6 +591,10 @@ class UserController(ListingController):
     @validate(vuser = VExistingUname('username'),
               sort = VMenu('sort', ProfileSortMenu, remember = False),
               time = VMenu('t', TimeMenu, remember = False))
+    @listing_api_doc(section=api_section.users, uri='/{username}/{where}',
+                     uri_variants=['/{username}/' + where for where in [
+                                       'overview', 'submitted', 'commented',
+                                       'liked', 'disliked', 'hidden']])
     def GET_listing(self, where, vuser, sort, time, **env):
         self.where = where
         self.sort = sort
@@ -606,7 +630,9 @@ class UserController(ListingController):
         return ListingController.GET_listing(self, **env)
 
     @validate(vuser = VExistingUname('username'))
+    @api_doc(section=api_section.users, uri='/{username}/about', extensions=['json'])
     def GET_about(self, vuser):
+        """Return information about the user, including karma and gold status."""
         if not is_api() or not vuser:
             return self.abort404()
         return Reddit(content = Wrapped(vuser)).render()
@@ -616,6 +642,9 @@ class MessageController(ListingController):
     show_nums = False
     render_cls = MessagePage
     allow_stylesheets = False
+    # note: this intentionally replaces the listing-page class which doesn't
+    # conceptually fit for styling these pages.
+    extra_page_classes = ['messages-page']
 
     @property
     def menus(self):
@@ -707,7 +736,14 @@ class MessageController(ListingController):
         if (self.where == 'messages' and 
             (c.user.pref_threaded_messages or self.message)):
             return Listing(self.builder_obj).listing()
-        return ListingController.listing(self)
+        pane = ListingController.listing(self)
+
+        # Indicate that the comment tree wasn't built for comments
+        for i in pane.things:
+            if i.was_comment:
+                i.child = None
+
+        return pane
 
     def query(self):
         if self.where == 'messages':
@@ -749,6 +785,9 @@ class MessageController(ListingController):
     @validate(VUser(),
               message = VMessageID('mid'),
               mark = VOneOf('mark',('true','false')))
+    @listing_api_doc(section=api_section.messages,
+                     uri='/message/{where}',
+                     uri_variants=['/message/inbox', '/message/unread', '/message/sent'])
     def GET_listing(self, where, mark, message, subwhere = None, **env):
         if not (c.default_sr or c.site.is_moderator(c.user) or c.user_is_admin):
             abort(403, "forbidden")
@@ -818,6 +857,10 @@ class RedditsController(ListingController):
                 reddits._filter(Subreddit.c.over_18 == False)
 
         return reddits
+
+    @listing_api_doc(section=api_section.subreddits,
+                     uri='/reddits/{where}',
+                     uri_variants=['/reddits/popular', '/reddits/new', '/reddits/banned'])
     def GET_listing(self, where, **env):
         self.where = where
         return ListingController.GET_listing(self, **env)
@@ -865,8 +908,20 @@ class MyredditsController(ListingController):
 
         return stack
 
+    def build_listing(self, after=None, **kwargs):
+        if after and isinstance(after, Subreddit):
+            after = SRMember._fast_query(after, c.user, self.where,
+                                         data=False).values()[0]
+        if after and not isinstance(after, SRMember):
+            abort(400, 'gimme a srmember')
+
+        return ListingController.build_listing(self, after=after, **kwargs)
+
     @validate(VUser())
-    def GET_listing(self, where = 'inbox', **env):
+    @listing_api_doc(section=api_section.subreddits,
+                     uri='/reddits/mine/{where}',
+                     uri_variants=['/reddits/mine/subscriber', '/reddits/mine/contributor', '/reddits/mine/moderator'])
+    def GET_listing(self, where='subscriber', **env):
         self.where = where
         return ListingController.GET_listing(self, **env)
 

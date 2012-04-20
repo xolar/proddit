@@ -511,6 +511,7 @@ class StaleCacheChain(CacheChain):
         self.realcache = realcache
         self.caches = (localcache, realcache) # for the other
                                               # CacheChain machinery
+        self.stats = None
 
     def get(self, key, default=None, stale = False, **kw):
         if kw.get('allow_local', True) and key in self.caches[0]:
@@ -618,7 +619,7 @@ class CassandraCacheChain(CacheChain):
                     if value is None:
                         value = self.cassa.get(key,
                                                read_consistency_level = rcl)
-                except cassandra.ttypes.NotFoundException:
+                except CassandraNotFound:
                     value = default
 
                 # due to an old bug in NoneResult caching, we still

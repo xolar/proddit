@@ -39,7 +39,7 @@ class ModAction(tdb_cassandra.UuidThing, Printable):
              'addcontributor': _('add contributor'),
              'removecontributor': _('remove contributor'),
              'editsettings': _('edit settings'),
-             'editflair': _('edit user flair'),
+             'editflair': _('edit flair'),
              'distinguish': _('distinguish'),
              'marknsfw': _('mark nsfw')}
 
@@ -54,14 +54,17 @@ class ModAction(tdb_cassandra.UuidThing, Printable):
              'addcontributor': _('added approved contributor'),
              'removecontributor': _('removed approved contributor'),
              'editsettings': _('edited settings'),
-             'editflair': _('edited user flair'),
+             'editflair': _('edited flair'),
              'distinguish': _('distinguished'),
              'marknsfw': _('marked nsfw')}
 
     _details_text = {# approve comment/link
                      'unspam': _('unspam'),
+                     'confirm_ham': _('confirmed ham'),
                      # remove comment/link
                      'confirm_spam': _('confirmed spam'),
+                     'remove': _('removed not spam'),
+                     'spam': _('removed spam'),
                      # removemoderator
                      'remove_self': _('removed self'),
                      # editsettings
@@ -87,8 +90,10 @@ class ModAction(tdb_cassandra.UuidThing, Printable):
                      'flair_delete': _('delete flair'),
                      'flair_csv': _('edit by csv'),
                      'flair_enabled': _('toggle flair enabled'),
-                     'flair_position': _('toggle flair position'),
+                     'flair_position': _('toggle user flair position'),
+                     'link_flair_position': _('toggle link flair position'),
                      'flair_self_enabled': _('toggle user assigned flair enabled'),
+                     'link_flair_self_enabled': _('toggle submitter assigned link flair enabled'),
                      'flair_template': _('add/edit flair templates'),
                      'flair_delete_template': _('delete flair template'),
                      'flair_clear_template': _('clear flair templates'),

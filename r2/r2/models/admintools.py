@@ -32,7 +32,7 @@ from copy import copy
 class AdminTools(object):
 
     def spam(self, things, auto=True, moderator_banned=False,
-             banner=None, date = None, **kw):
+             banner=None, date=None, train_spam=True, **kw):
         from r2.lib.db import queries
 
         all_things = tup(things)
@@ -46,17 +46,28 @@ class AdminTools(object):
             if getattr(t, "promoted", None) is not None:
                 g.log.debug("Refusing to mark promotion %r as spam" % t)
                 continue
-            t._spam = True
-            ban_info = copy(getattr(t, 'ban_info', {}))
-            ban_info.update(auto = auto,
-                            moderator_banned = moderator_banned,
-                            banned_at = date or datetime.now(g.tz),
-                            **kw)
 
+            if not t._spam and train_spam:
+                note = 'spam'
+            elif not t._spam and not train_spam:
+                note = 'remove not spam'
+            elif t._spam and not train_spam:
+                note = 'confirm spam'
+            elif t._spam and train_spam:
+                note = 'reinforce spam'
+
+            t._spam = True
+
+            ban_info = copy(getattr(t, 'ban_info', {}))
             if isinstance(banner, dict):
                 ban_info['banner'] = banner[t._fullname]
             else:
                 ban_info['banner'] = banner
+            ban_info.update(auto=auto,
+                            moderator_banned=moderator_banned,
+                            banned_at=date or datetime.now(g.tz),
+                            **kw)
+            ban_info['note'] = note
 
             t.ban_info = ban_info
             t._commit()
@@ -66,8 +77,9 @@ class AdminTools(object):
             self.set_last_sr_ban(new_things)
 
         queries.ban(new_things)
+        queries.new_spam_filtered(all_things)
 
-    def unspam(self, things, unbanner = None):
+    def unspam(self, things, unbanner=None, train_spam=True, insert=True):
         from r2.lib.db import queries
 
         things = tup(things)
@@ -89,15 +101,20 @@ class AdminTools(object):
             ban_info['unbanned_at'] = datetime.now(g.tz)
             if unbanner:
                 ban_info['unbanner'] = unbanner
+            if ban_info.get('reset_used', None) == None:
+                ban_info['reset_used'] = False
+            else:
+                ban_info['reset_used'] = True
             t.ban_info = ban_info
             t._spam = False
             t._commit()
 
-        # auto is always False for unbans
         self.author_spammer(things, False)
         self.set_last_sr_ban(things)
 
-        queries.unban(things)
+        if insert:
+            queries.unban(things)
+        queries.new_spam_filtered(things)
 
     def author_spammer(self, things, spam):
         """incr/decr the 'spammer' field for the author of every
@@ -305,6 +322,9 @@ def update_gold_users(verbose=False):
         else:
             delta, account = minimum
             print "Next expiration is %s, in %d days" % (account.name, delta.days)
+
+def admin_ratelimit(user):
+    return True
 
 def is_banned_IP(ip):
     return False

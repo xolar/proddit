@@ -183,6 +183,17 @@ class ThingJsonTemplate(JsonTemplate):
                     - time.timezone)
         elif attr == "child":
             return CachedVariable("childlisting")
+
+        if attr in ["num_reports", "banned_by", "approved_by"]:
+            if c.user_is_loggedin and thing.subreddit.is_moderator(c.user):
+                if attr == "num_reports":
+                    return thing.reported
+                ban_info = getattr(thing, "ban_info", {})
+                if attr == "banned_by":
+                    return ban_info.get("banner") if ban_info.get('moderator_banned') else True
+                elif attr == "approved_by":
+                    return ban_info.get("unbanner")
+
         return getattr(thing, attr, None)
 
     def data(self, thing):
@@ -201,7 +212,10 @@ class SubredditJsonTemplate(ThingJsonTemplate):
                                                 url          = "path",
                                                 over18       = "over_18",
                                                 description  = "description",
-                                                display_name = "name")
+                                                display_name = "name",
+                                                header_img   = "header",
+                                                header_size  = "header_size",
+                                                header_title = "header_title")
 
     def thing_attr(self, thing, attr):
         # Don't reveal revenue information via /r/lounge's subscribers
@@ -267,6 +281,9 @@ class LinkJsonTemplate(ThingJsonTemplate):
                                                 selftext     = "selftext",
                                                 selftext_html= "selftext_html",
                                                 num_comments = "num_comments",
+                                                num_reports  = "num_reports",
+                                                banned_by    = "banned_by",
+                                                approved_by  = "approved_by",
                                                 subreddit    = "subreddit",
                                                 subreddit_id = "subreddit_id",
                                                 is_self      = "is_self", 
@@ -326,6 +343,9 @@ class CommentJsonTemplate(ThingJsonTemplate):
                                                 link_id      = "link_id",
                                                 subreddit    = "subreddit",
                                                 subreddit_id = "subreddit_id",
+                                                num_reports  = "num_reports",
+                                                banned_by    = "banned_by",
+                                                approved_by  = "approved_by",
                                                 parent_id    = "parent_id",
                                                 )
 
@@ -399,6 +419,7 @@ class MessageJsonTemplate(ThingJsonTemplate):
                                                 first_message= "first_message")
 
     def thing_attr(self, thing, attr):
+        from r2.models import Message
         if attr == "was_comment":
             return thing.was_comment
         elif attr == "context":
@@ -417,6 +438,9 @@ class MessageJsonTemplate(ThingJsonTemplate):
             return safemarkdown(thing.body)
         elif attr == "author" and getattr(thing, "hide_author", False):
             return None
+        elif attr == "parent_id":
+            if getattr(thing, "parent_id", None):
+                return make_fullname(Message, thing.parent_id)
         return ThingJsonTemplate.thing_attr(self, thing, attr)
 
     def rendered_data(self, wrapped):
@@ -536,3 +560,48 @@ class FlairListJsonTemplate(JsonTemplate):
 class FlairCsvJsonTemplate(JsonTemplate):
     def render(self, thing, *a, **kw):
         return ObjectTemplate([l.__dict__ for l in thing.results_by_line])
+
+class StylesheetTemplate(ThingJsonTemplate):
+    _data_attrs_ = dict(subreddit_id = '_fullname',
+                        stylesheet = 'stylesheet_contents',
+                        images = '_images')
+
+    def kind(self, wrapped):
+        return 'stylesheet'
+
+    def images(self):
+        images = []
+        for name, url in c.site.get_images():
+            images.append({'name': name,
+                           'link': 'url(%%%%%s%%%%)' % name,
+                           'url': url})
+        return images
+
+    def thing_attr(self, thing, attr):
+        if attr == '_images':
+            return self.images()
+        elif attr == '_fullname':
+            return c.site._fullname
+        return ThingJsonTemplate.thing_attr(self, thing, attr)
+
+class SubredditSettingsTemplate(ThingJsonTemplate):
+    _data_attrs_ = dict(subreddit_id = 'site._fullname',
+                        title = 'site.title',
+                        description = 'site.description',
+                        language = 'site.lang',
+                        subreddit_type = 'site.type',
+                        content_options = 'site.link_type',
+                        over_18 = 'site.over_18',
+                        default_set = 'site.allow_top',
+                        show_media = 'site.show_media',
+                        domain = 'site.domain',
+                        domain_css = 'site.css_on_cname',
+                        domain_sidebar = 'site.show_cname_sidebar')
+
+    def kind(self, wrapped):
+        return 'subreddit_settings'
+
+    def thing_attr(self, thing, attr):
+        if attr.startswith('site.') and thing.site:
+            return getattr(thing.site, attr[5:])
+        return ThingJsonTemplate.thing_attr(self, thing, attr)

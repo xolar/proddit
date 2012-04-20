@@ -39,7 +39,7 @@
 function admincheck(elem) {
   var admins = ${unsafe(simplejson.dumps(thing.admins))};
 
-  if (admins.indexOf(elem.value) >= 0) {
+  if ($.inArray(elem.value, admins) >= 0) {
     $(".admin-to").text(elem.value);
     $(".clippy").show();
   } else {
@@ -50,7 +50,7 @@ function admincheck(elem) {
 
 <div class="spacer">
   <%utils:round_field title="${_('to')}", 
-                      description="${_('(nume utilizator, sau # urmat de numele prodditului)')}">
+                      description="${_('(nume utilizator, sau /r/ urmat de numele prodditului)')}">
     <input type="text" name="to" value="${thing.to or ''}"
            onchange="admincheck(this)"/>
     ${error_field("NO_USER", "to")}

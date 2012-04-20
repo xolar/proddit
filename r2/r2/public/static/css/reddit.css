@@ -248,6 +248,11 @@ ul.flat-vert {text-align: left;}
 	background-image: url(../modmailgray.png);  /* SPRITE */
 }
 .user {color: gray;}
+.user .userkarma {
+    cursor: help;
+    font-weight: bold;
+    border-bottom: 1px dotted gray;	
+}
 
 .pagename {
     font-weight: bold;
@@ -663,7 +668,7 @@ ul.flat-vert {text-align: left;}
 
 a.author { margin-right: 0.5em; }
 
-.flair {
+.flair, .linkflair {
     display: inline-block;
     margin-right: .5em;
     padding: 0 2px;
@@ -679,7 +684,16 @@ a.author { margin-right: 0.5em; }
     font-size: xx-small;
 }
 
+.linkflair {
+    font-size: x-small;
+    max-width: 10em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .link .flair {
+    font-size: x-small;
     margin-top: -1px;
 }
 
@@ -764,17 +778,86 @@ a.author { margin-right: 0.5em; }
     text-decoration: none !important;
 }
 
-.flairselector li { border: 1px solid white; cursor: pointer; }
+.flairselector li {
+    border: 1px solid white;
+    cursor: pointer;
+    display: block !important;
+    padding-left: 4px;
+}
+
+.flairselector li a {
+    color: #369 !important;
+    font-weight: normal !important;
+}
+
 .flairselector li:hover { background-color: #bbb;  border: 1px solid #bbb; }
 .flairselector li a:hover { text-decoration: none; }
 .flairselector li.selected { border: dashed 1px black; }
+.flairselector .title { font-size: x-small !important; }
 
 .flairselector form {
     border-top: solid 1px gray;
     clear: both;
+    display: block;
     padding-top: 4px;
     text-align: center;
 }
+
+.flairoptionpane {
+    margin-bottom: 4px;
+    max-height: 200px;
+    overflow: auto;
+    text-align: center;
+}
+
+.flairselector .customizer { display: inline-block; }
+.flairselector .customizer input { display: none; }
+.flairselector .customizer button { display: inline !important; }
+
+.flairselector .flairremove { display: none; }
+
+.media-button .option { color: red; }
+.media-button .option.active {
+    background: transparent none no-repeat scroll right center;
+    background-image: url(../reddit-button-play.png);   /* SPRITE */
+    padding-right: 15px;
+    color: #336699;
+}
+
+.embededmedia { margin-top: 5px; margin-left: 60px; }
+
+.thing .title {
+    color: blue;
+    margin-right: .4em;
+    padding: 0px;
+    overflow: hidden;
+}
+
+.thing .title:visited { color: #551a8b }
+.thing .title.click { color: #551a8b } 
+
+.thing .title.loggedin { color: blue }
+.thing .title.loggedin:visited { color: #551a8b }
+.thing .title.loggedin.click { color: #551a8b } 
+.thing .title.loggedin.click:visited { color: #551a8b }
+
+.sitetable { list-style-type: none; }
+.ajaxhook { position: absolute; top: -1000px; left: 0px; }
+.nextprev { color: gray; font-size: larger; margin-top: 10px;}
+
+/* corner help */
+.help a.help {
+    color: #808080;
+    text-decoration: underline;
+}
+
+.help a.open {
+    margin: 0px 5px 5px 0;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+}
+
 
 .help.help-cover {
     background-color: #F8F8F8;
@@ -893,7 +976,7 @@ a.author { margin-right: 0.5em; }
 }
 
 .organic-listing .sponsored-tagline {
-    right: 6.4em;
+    right: 6.8em;
 }
 
 .sponsored-tagline {
@@ -1054,6 +1137,11 @@ a.star { text-decoration: none; color: #ff6024 }
 }
 
 .entry .buttons a:hover {text-decoration: underline}
+
+.entry .buttons .status-msg {
+    display: none;
+    margin-right: .5em;
+}
 
 /* links */
 
@@ -1810,6 +1898,42 @@ label + #moresearchinfo {
 .usertable td, .usertable th { padding: 0 .7em }
 .usertable { white-space: nowrap }
 
+.usertable .remove-self {
+    display: inline-block;
+    margin: 1em 0 .5em;
+    padding: 11px 15px;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+}
+
+.usertable .moderator.remove-self {
+    background: #fdffe8;
+}
+
+.usertable .remove-self .option.main:before {
+    margin-right: 7px;
+}
+
+.usertable .remove-self .option {
+    display: inline;
+}
+
+.usertable .remove-self .togglebutton, .usertable .remove-self .error {
+    display: none;
+    font-size: inherit;
+    border-left: 1px solid #bbb;
+    padding: 4px 15px;
+    padding-right: 0;
+    margin-left: 10px;
+}
+
+.usertable .remove-self .active .togglebutton {
+    display: inline;
+}
+
+.usertable .remove-self .error.active {
+    display: inline;
+}
 
 .aboutpage {  margin-right: 320px; }
 .aboutpage p { margin: 5px; }
@@ -2852,7 +2976,7 @@ ul#image-preview-list .description pre {
     border-color: lightgray;
     padding: 5px; 
     margin: 5px; 
-    width: 100%;
+    width: 900px;
 }
 
 #preview-table > table > tbody > tr { padding-bottom: 10px;  }
@@ -4207,7 +4331,7 @@ dd { margin-left: 20px;  }
     font-size: 130%;
 }
 
-.titlebox form.toggle {
+.titlebox form.toggle, .leavemoderator {
     margin: 0;
     padding: 5px 0px;
     font-size: smaller;
@@ -4215,7 +4339,8 @@ dd { margin-left: 20px;  }
     background: white none no-repeat scroll center left;
 }
 
-.titlebox form.leavemoderator-button:before,
+.usertable .remove-self .main:before,
+.titlebox .leavemoderator:before,
 .titlebox form.leavecontributor-button:before,
 .icon-menu .reddit-edit:before,
 .icon-menu .reddit-traffic:before,
@@ -4227,6 +4352,7 @@ dd { margin-left: 20px;  }
 .icon-menu .reddit-moderators:before,
 .icon-menu .moderator-mail:before,
 .icon-menu .reddit-contributors:before,
+.icon-menu .reddit-modqueue:before,
 .giftgold a:before,
 .gold-form h1.goldgift:before {
     height: 16px;
@@ -4237,7 +4363,7 @@ dd { margin-left: 20px;  }
     margin-right: 5px;
 }
 
-.titlebox form.leavemoderator-button:before {
+.titlebox .leavemoderator:before, .moderator.remove-self .main:before {
     background-image: url(../shield.png); /* SPRITE */
 }
 
@@ -4295,6 +4421,9 @@ dd { margin-left: 20px;  }
 }
 .icon-menu .reddit-contributors:before {
     background-image: url(../pencil.png); /* SPRITE */
+}
+.icon-menu .reddit-modqueue:before {
+    background-image: url(../reddit_modqueue.png); /* SPRITE */
 }
 
 .linkinfo {
@@ -4475,23 +4604,35 @@ a.pretty-button:hover { text-decoration: none !important }
     outline-style: none;
 }
 
-a.pretty-button.negative {
+a.pretty-button {
     color: black;
+}
+
+a.pretty-button.pressed {
+    color: white;
+}
+
+a.pretty-button.negative {
     background-image: url(../bg-button-negative-unpressed.png);
 }
 
 a.pretty-button.negative.pressed {
-    color: white;
     background-image: url(../bg-button-negative-pressed.png);
 }
 
+a.pretty-button.neutral {
+    background-image: url(../bg-button-neutral-unpressed.png); /* SPRITE stretch-x */
+}
+
+a.pretty-button.neutral.pressed {
+    background-image: url(../bg-button-neutral-pressed.png); /* SPRITE stretch-x */
+}
+
 a.pretty-button.positive {
-    color: black;
     background-image: url(../bg-button-positive-unpressed.png);
 }
 
 a.pretty-button.positive.pressed {
-    color: white;
     background-image: url(../bg-button-positive-pressed.png);
 }
 
@@ -5033,4 +5174,193 @@ tr.gold-accent + tr > td {
 }
 .modactions.marknsfw {
     background-image: url(../modactions_marknsfw.png); /* SPRITE */
+}
+
+.adminpasswordform {
+    margin-bottom: .5em;
+    display: inline-block;
+}
+
+.content.api-help {
+    font-size: 1.25em;
+    margin: 0 auto;
+    max-width: 950px;
+}
+
+.api-help .contents {
+    padding: 0 20px;
+    margin-left: 24em;
+    margin-top: 20px;
+}
+
+.api-help .contents .section {
+    margin-bottom: 2em;
+}
+
+.api-help .sidebar {
+    float: left;
+    margin-left: 10px;
+}
+
+.api-help .sidebar .head {
+    position: relative;
+    background: url(../xray-snoo-head.png) top center no-repeat;
+    height: 188px;
+    margin-bottom: -78px;
+    z-index: 2;
+}
+
+.api-help .sidebar .feet {
+    position: relative;
+    background: url(../xray-snoo-feet.png) top center no-repeat;
+    height: 75px;
+    margin-top: -42px;
+    z-index: 2;
+}
+
+.api-help .toc {
+    background: #181818 url(../xray-snoo-body.png) center repeat-y;
+    border: 5px solid #959595;
+    border-radius: 8px;
+    padding: 15px 2em 0 2em;
+    width: 18em;
+}
+
+.api-help .contents .introduction {
+    position: relative;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    margin-bottom: -1em;
+}
+
+.api-help .contents .introduction p {
+    margin: 1em 14px;
+}
+
+.api-help .contents .introduction strong {
+    color: #222;
+    font-weight: bold;
+}
+
+.api-help .introduction:before,
+.api-help .introduction:after {
+    position: absolute;
+    display: block;
+    content: '';
+    border: 15px solid;
+    border-style: solid solid outset; /* mitigates firefox drawing a thicker arrow */
+}
+
+.api-help .introduction:before {
+    border-color: transparent #ccc transparent transparent;
+    left: -31px;
+    top: 58px;
+}
+
+.api-help .introduction:after {
+    border-color: transparent white transparent transparent;
+    left: -28px;
+    top: 58px;
+}
+
+.api-help .toc ul {
+    position: relative;
+    margin-top: .5em;
+    margin-bottom: 1.5em;
+    z-index: 10;
+}
+
+.api-help .toc > ul > li > strong {
+    color: #aaa;
+}
+
+.api-help .toc a.section {
+    color: #888;
+    font-weight: bold;
+}
+
+.api-help .toc a {
+    color: #8EB0D2;
+}
+
+.api-help .toc a:hover, .api-help .endpoint a:hover {
+    text-decoration: underline;
+}
+
+.api-help em.placeholder {
+    font-style: italic;
+    font-weight: normal;
+}
+
+.api-help .toc em.placeholder {
+    color: #8EB0D2;
+}
+
+.api-help .endpoint em.placeholder {
+    color: #369;
+}
+
+.api-help .endpoint, .api-help .section .description {
+    margin-bottom: 1.5em;
+}
+
+.api-help .methods h2 {
+    color: black;
+    font-size: 1.45em;
+    text-align: middle;
+    margin-top: 1.5em;
+    margin-bottom: 1em;
+    border-bottom: 1px solid #aaa;
+}
+
+.api-help .endpoint .info {
+    padding-left: 1em;
+    border-left: 1px solid #ddd;
+}
+
+.api-help .endpoint h3, .api-help .endpoint .uri-variants {
+    color: #369;
+    margin-bottom: .5em;
+}
+
+.api-help .endpoint .uri-variants {
+    opacity: .85;
+    font-weight: bold;
+    margin-top: -.5em;
+    margin-left: 3em;
+}
+
+.api-help .endpoint .method, .api-help .endpoint .extensions {
+    font-weight: normal;
+    color: gray;
+}
+
+.api-help .endpoint .extensions {
+    margin-left: .5em;
+}
+
+.api-help .endpoint .links {
+    float: right;
+}
+
+.api-help .endpoint .links a {
+    margin-left: .85em;
+    opacity: .45;
+}
+
+.api-help .endpoint:hover .links a {
+    opacity: 1;
+}
+
+.api-help .parameters {
+    background: #f0f0f0;
+    border-collapse: separate;
+    border-radius: 3px;
+    padding: 5px 10px;
+    width: 100%;
+}
+
+.api-help .parameters .name {
+    font-family: 'Courier New', monospace;
+    width: 50%;
 }

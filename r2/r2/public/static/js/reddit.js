@@ -325,6 +325,9 @@ function linkstatus(form) {
 function subscribe(reddit_name) {
     return function() { 
         if (reddit.logged) {
+            if (reddit.cur_site == reddit_name) {
+                $('body').addClass('subscriber');
+            }
             $.things(reddit_name).find(".entry").addClass("likes");
             $.request("subscribe", {sr: reddit_name, action: "sub"});
         }
@@ -334,6 +337,9 @@ function subscribe(reddit_name) {
 function unsubscribe(reddit_name) {
     return function() { 
         if (reddit.logged) {
+            if (reddit.cur_site == reddit_name) {
+                $('body').removeClass('subscriber');
+            }
             $.things(reddit_name).find(".entry").removeClass("likes");
             $.request("subscribe", {sr: reddit_name, action: "unsub"});
         }
@@ -929,9 +935,9 @@ function edit_usertext(elem) {
 }
 
 function cancel_usertext(elem) {
-    var t = $(elem).thing().debug();
-    t.find(".edit-usertext:first").parent("li").andSelf().show(); 
-    hide_edit_usertext(t.find(".usertext:first"));
+    var t = $(elem);
+    t.thing().find(".edit-usertext:first").parent("li").andSelf().show(); 
+    hide_edit_usertext(t.closest(".usertext"));
 }
 
 function save_usertext(elem) {
@@ -1135,13 +1141,16 @@ function big_mod_action(elem, dir) {
          id: thing_id
       };
 
+      elem.siblings(".status-msg").hide();
       if (dir == -1) {
+        d.spam = false;
         $.request("remove", d, null, true);
         elem.siblings(".removed").show();
-        elem.siblings(".approved").hide();
+      } else if (dir == -2) {
+        $.request("remove", d, null, true);
+        elem.siblings(".spammed").show();
       } else if (dir == 1) {
         $.request("approve", d, null, true);
-        elem.siblings(".removed").hide();
         elem.siblings(".approved").show();
       }
    }
@@ -1239,7 +1248,7 @@ $(function() {
 
 function show_friend(account_fullname) {
     var label = '<a class="friend" title="friend" href="/prefs/friends">F</a>';
-    var ua = $(".author.id-" + account_fullname).addClass("friend")
+    var ua = $("div.content .author.id-" + account_fullname).addClass("friend")
         .next(".userattrs").each(function() {
                 if (!$(this).html()) {
                     $(this).html(" [" + label + "]");

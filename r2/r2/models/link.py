@@ -27,7 +27,7 @@ from r2.lib.utils.trial_utils import trial_info
 from account import Account, DeletedUser
 from subreddit import Subreddit
 from printable import Printable
-from r2.config import cache
+from r2.config import cache, extensions
 from r2.lib.memoize import memoize
 from r2.lib.filters import _force_utf8
 from r2.lib import utils
@@ -35,6 +35,7 @@ from r2.lib.log import log_text
 from mako.filters import url_escape
 from r2.lib.strings import strings, Score
 from r2.lib.db import tdb_cassandra
+from r2.models.subreddit import MultiReddit
 
 from pylons import c, g, request
 from pylons.i18n import ungettext, _
@@ -60,7 +61,9 @@ class Link(Thing, Printable):
                      disable_comments = False,
                      selftext = '',
                      noselfreply = False,
-                     ip = '0.0.0.0')
+                     ip = '0.0.0.0',
+                     flair_text = None,
+                     flair_css_class = None)
     _essentials = ('sr_id', 'author_id')
     _nsfw = re.compile(r"\bnsfw\b", re.I)
 
@@ -216,10 +219,15 @@ class Link(Thing, Printable):
             if wrapped.hidden:
                 return False
 
+        # Don't hide from API users
+        if c.render_style in extensions.API_TYPES:
+            return True
+
         # hide NSFW links from non-logged users and under 18 logged users 
-        # if they're not explicitly visiting an NSFW subreddit
-        if ((not c.user_is_loggedin and c.site != wrapped.subreddit)
-            or (c.user_is_loggedin and not c.over18)):
+        # if they're not explicitly visiting an NSFW subreddit or a multireddit
+        if (((not c.user_is_loggedin and c.site != wrapped.subreddit)
+            or (c.user_is_loggedin and not c.over18))
+            and not (isinstance(c.site, MultiReddit) and c.over18)):
             is_nsfw = bool(wrapped.over_18)
             is_from_nsfw_sr = bool(wrapped.subreddit.over_18)
 
@@ -249,6 +257,14 @@ class Link(Thing, Printable):
         elif style == "compact":
             s.append(c.permalink_page)
         s.append(getattr(wrapped, 'media_object', {}))
+        s.append(wrapped.flair_text)
+        s.append(wrapped.flair_css_class)
+
+        # if browsing a single subreddit, incorporate link flair position
+        # in the key so 'flair' buttons show up appropriately for mods
+        if hasattr(c.site, '_id'):
+            s.append(c.site.link_flair_position)
+
         return s
 
     def make_permalink(self, sr, force_domain = False):
@@ -577,9 +593,11 @@ class PromotedLink(Link):
 
 class Comment(Thing, Printable):
     _data_int_props = Thing._data_int_props + ('reported',)
-    _defaults = dict(reported = 0, parent_id = None, 
-                     moderator_banned = False, new = False, 
-                     banned_before_moderator = False)
+    _defaults = dict(reported=0,
+                     parent_id=None,
+                     moderator_banned=False,
+                     new=False,
+                     banned_before_moderator=False)
     _essentials = ('link_id', 'author_id')
 
     def _markdown(self):
@@ -922,9 +940,16 @@ class MoreChildren(MoreComments):
     pass
 
 class Message(Thing, Printable):
-    _defaults = dict(reported = 0, was_comment = False, parent_id = None,
-                     new = False,  first_message = None, to_id = None,
-                     sr_id = None, to_collapse = None, author_collapse = None)
+    _defaults = dict(reported=0,
+                     was_comment=False,
+                     parent_id=None,
+                     new=False,
+                     first_message=None,
+                     to_id=None,
+                     sr_id=None,
+                     to_collapse=None,
+                     author_collapse=None,
+                     from_sr=False)
     _data_int_props = Thing._data_int_props + ('reported', )
     _essentials = ('author_id',)
     cache_ignore = set(["to", "subreddit"]).union(Printable.cache_ignore)

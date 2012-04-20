@@ -214,6 +214,8 @@ body[orient="landscape"] > #topbar > h1 { margin-left: -125px; width: 250px; }
 
 .link > .thing_options { font-size: x-small; margin: none; display: block; float: left; clear: left; margin: 2px 0px 0px 10px; }
 
+.nsfw-warning { -moz-border-radius: 3px; -webkit-border-radius: 3px; -o-border-radius: 3px; -ms-border-radius: 3px; -khtml-border-radius: 3px; border-radius: 3px; color: #ac3939; text-decoration: none; font-weight: normal; font-size: 9px; margin-left: 5px; padding: 0 2px; border: 1px solid #d27979 !important; }
+
 /* Comment count */
 .commentcount { float: right; margin: 5px; width: 45px; text-align: right; }
 
@@ -547,4 +549,6 @@ body.toolbar { margin: 0px; padding: 0px; overflow: hidden; }
 
 a.author { margin-right: 0.5em; }
 
-.flair { margin-top: 2px; margin-right: 0.5em; padding: 0px 2px; display: inline-block; background: whiteSmoke; color: #545454; border: 1px solid #dedede; font-size: 9px; -moz-border-radius: 2px; -webkit-border-radius: 2px; -o-border-radius: 2px; -ms-border-radius: 2px; -khtml-border-radius: 2px; border-radius: 2px; -moz-box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.9); -webkit-box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.9); -o-box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.9); box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.9); }
+.flair, .linkflair { margin-top: 2px; margin-right: 0.5em; padding: 0px 2px; display: inline-block; background: whiteSmoke; color: #545454; border: 1px solid #dedede; font-size: 9px; -moz-border-radius: 2px; -webkit-border-radius: 2px; -o-border-radius: 2px; -ms-border-radius: 2px; -khtml-border-radius: 2px; border-radius: 2px; -moz-box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.9); -webkit-box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.9); -o-box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.9); box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.9); }
+
+.linkflair { font-weight: normal; max-width: 10em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

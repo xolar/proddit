@@ -497,6 +497,7 @@ class Link(Thing, Printable):
             item.commentcls = CachedVariable("commentcls")
             item.midcolmargin = CachedVariable("midcolmargin")
             item.comment_label = CachedVariable("numcomments")
+            item.lastedited = CachedVariable("lastedited")
 
             item.as_deleted = False
             if item.deleted and not c.user_is_admin:
@@ -532,6 +533,8 @@ class Link(Thing, Printable):
             item.expunged = False
             if item.is_self:
                 item.expunged = Link._should_expunge_selftext(item)
+
+            item.editted = getattr(item, "editted", False)
 
         if user_is_loggedin:
             incr_counts(wrapped)
@@ -832,6 +835,9 @@ class Comment(Thing, Printable):
                                      nofollow = item.nofollow,
                                      target = item.target,
                                      extra_css = extra_css)
+                                     
+            item.lastedited = CachedVariable("lastedited")
+
         # Run this last
         Printable.add_props(user, wrapped)
 
@@ -1092,8 +1098,7 @@ class Message(Thing, Printable):
                       for x in wrapped if x.sr_id is not None
                       and isinstance(x.lookups[0], Message))
         # load the unread mod list for the same reason
-        mod_unread = set(getattr(r,'_thing2') for r in queries.merge_results(
-            *[queries.get_unread_subreddit_messages(sr) for sr in msg_srs]))
+        mod_unread = set(queries.get_unread_subreddit_messages_multi(msg_srs))
 
         for item in wrapped:
             item.to = tos.get(item.to_id)
@@ -1224,8 +1229,8 @@ class CassandraSave(SimpleRelation):
     _cf_name = 'Save'
     _connection_pool = 'main'
 
-    # thing1_cls = Account
-    # thing2_cls = Link
+    _thing1_cls = Account
+    _thing2_cls = Link
 
     @classmethod
     def _save(cls, *a, **kw):
@@ -1258,6 +1263,9 @@ class CassandraHide(SimpleRelation):
     _ttl = 7*24*60*60
     _connection_pool = 'main'
 
+    _thing1_cls = Account
+    _thing2_cls = Link
+
     @classmethod
     def _hide(cls, *a, **kw):
         return cls._create(*a, **kw)
@@ -1265,10 +1273,6 @@ class CassandraHide(SimpleRelation):
     @classmethod
     def _unhide(cls, *a, **kw):
         return cls._uncreate(*a, **kw)
-
-class CassandraClick(SimpleRelation):
-    _use_db = True
-    _cf_name = 'Click'
 
 class SavesByAccount(tdb_cassandra.View):
     _use_db = True

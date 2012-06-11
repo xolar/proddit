@@ -25,6 +25,7 @@ from r2.lib.utils import vote_hash, UrlParser, timesince, is_subdomain
 
 from r2.lib.media import s3_direct_url
 
+import babel.numbers
 from mako.filters import url_escape
 import simplejson
 import os.path
@@ -262,6 +263,10 @@ def replace_render(listing, item, render_func):
                 replacements['timesince'] = timesince(item._date)
 
             replacements['time_period'] = calc_time_period(item._date)
+
+        # compute the last edited time here so we don't end up caching it
+        if hasattr(item, "editted") and not isinstance(item.editted, bool):
+            replacements['lastedited'] = timesince(item.editted)
 
         # Set in front.py:GET_comments()
         replacements['previous_visits_hex'] = c.previous_visits_hex
@@ -501,3 +506,10 @@ def add_attr(attrs, kind, label=None, link=None, cssclass=None, symbol=None):
         raise ValueError ("Got weird kind [%s]" % kind)
 
     attrs.append( (priority, symbol, cssclass, label, link, img) )
+
+
+def format_number(number, locale=None):
+    if not locale:
+        locale = c.locale
+
+    return babel.numbers.format_number(number, locale=locale)

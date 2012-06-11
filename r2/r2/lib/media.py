@@ -20,6 +20,8 @@
 # CondeNet, Inc. All Rights Reserved.
 ################################################################################
 
+import subprocess
+
 from pylons import g, config
 
 from r2.models.link import Link
@@ -48,6 +50,13 @@ threads = 20
 log = g.log
 
 MEDIA_FILENAME_LENGTH = 12
+
+
+def optimize_jpeg(filename, optimizer):
+    if optimizer:
+        with open(os.path.devnull, 'w') as devnull:
+            subprocess.check_call((optimizer, filename),
+                                  stdout=devnull)
 
 
 def thumbnail_url(link):

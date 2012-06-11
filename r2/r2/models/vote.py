@@ -136,8 +136,6 @@ class CassandraLinkVote(CassandraVote):
     _cf_name = 'LinkVote'
     _read_consistency_level = tdb_cassandra.CL.ONE
 
-    # these parameters aren't actually meaningful, they just help
-    # keep track
     # _views = [VotesByLink, VotesByDay]
     _thing1_cls = Account
     _thing2_cls = Link
@@ -161,8 +159,6 @@ class CassandraCommentVote(CassandraVote):
     _cf_name = 'CommentVote'
     _read_consistency_level = tdb_cassandra.CL.ONE
 
-    # these parameters aren't actually meaningful, they just help
-    # keep track
     _thing1_cls = Account
     _thing2_cls = Comment
 
@@ -227,7 +223,7 @@ class Vote(MultiRelation('vote',
             # we don't do this if it's the author's initial automatic
             # vote, because we checked it in with _ups == 1
             update_score(obj, up_change, down_change,
-                         v.valid_thing, old_valid_thing)
+                         v, old_valid_thing)
 
         if v.valid_user:
             author = Account._byID(obj.author_id, data=True)

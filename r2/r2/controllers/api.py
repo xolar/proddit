@@ -187,6 +187,7 @@ class ApiController(RedditController):
                    VCaptcha(),
                    VRatelimit(rate_user = True, rate_ip = True,
                               prefix = "rate_submit_"),
+                   VShamedDomain('url'),
                    ip = ValidIP(),
                    sr = VSubmitSR('sr', 'kind'),
                    url = VUrl(['url', 'sr', 'resubmit']),
@@ -248,7 +249,8 @@ class ApiController(RedditController):
             check_domain = True
 
             # check for no url, or clear that error field on return
-            if form.has_errors("url", errors.NO_URL, errors.BAD_URL):
+            if form.has_errors("url", errors.NO_URL, errors.BAD_URL,
+                                      errors.DOMAIN_BANNED):
                 pass
             elif form.has_errors("url", errors.ALREADY_SUB):
                 check_domain = False
@@ -266,13 +268,8 @@ class ApiController(RedditController):
                 g.log.warning("%s is trying to submit url=None (title: %r)"
                               % (request.ip, title))
             elif check_domain:
+
                 banmsg = is_banned_domain(url, request.ip)
-
-# Uncomment if we want to let spammers know we're on to them
-#            if banmsg:
-#                form.set_html(".field-url.BAD_URL", banmsg)
-#                return
-
         else:
             form.has_errors('text', errors.TOO_LONG)
 
@@ -587,7 +584,8 @@ class ApiController(RedditController):
             jquery("#" + type + "-table").show(
                 ).find("table").insert_table_rows(user_row)
 
-            if type != 'friend':
+            if type != 'friend' and (type != 'banned' or
+                                     friend.has_interacted_with(container)):
                 msg = strings.msg_add_friend.get(type)
                 subj = strings.subj_add_friend.get(type)
                 if msg and subj and friend.name != c.user.name:
@@ -744,6 +742,7 @@ class ApiController(RedditController):
     @noresponse(VUser(),
                 VModhash(),
                 thing = VByNameIfAuthor('id'))
+    @api_doc(api_section.links_and_comments)
     def POST_del(self, thing):
         if not thing: return
         '''for deleting all sorts of things'''
@@ -913,7 +912,7 @@ class ApiController(RedditController):
 
             if (item._date < timeago('3 minutes')
                 or (item._ups + item._downs > 2)):
-                item.editted = True
+                item.editted = c.start_time
 
             item._commit()
 
@@ -1366,6 +1365,7 @@ class ApiController(RedditController):
                    title = VLength("title", max_length = 100),
                    header_title = VLength("header-title", max_length = 500),
                    domain = VCnameDomain("domain"),
+                   public_description = VMarkdown("public_description", max_length = 500),
                    description = VMarkdown("description", max_length = 5120),
                    lang = VLang("lang"),
                    over_18 = VBoolean('over_18'),
@@ -1391,7 +1391,7 @@ class ApiController(RedditController):
                   if k in ('name', 'title', 'domain', 'description', 'over_18',
                            'show_media', 'show_cname_sidebar', 'type', 'link_type', 'lang',
                            "css_on_cname", "header_title", 
-                           'allow_top'))
+                           'allow_top', 'public_description'))
 
         #if a user is banned, return rate-limit errors
         if c.user._spam:
@@ -1417,6 +1417,7 @@ class ApiController(RedditController):
         elif form.has_errors('domain', errors.BAD_CNAME, errors.USED_CNAME):
             form.find('#example_domain').hide()
         elif (form.has_errors(('type', 'link_type'), errors.INVALID_OPTION) or
+              form.has_errors('public_description', errors.TOO_LONG) or
               form.has_errors('description', errors.TOO_LONG)):
             pass
 
@@ -1490,7 +1491,7 @@ class ApiController(RedditController):
             username = None
         d = dict(username=username, q=q, sort=sort, t=t)
         hex = md5(repr(d)).hexdigest()
-        key = "indextankfeedback-%s-%s-%s" % (timestamp[:10], request.ip, hex)
+        key = "searchfeedback-%s-%s-%s" % (timestamp[:10], request.ip, hex)
         d['timestamp'] = timestamp
         d['approval'] = approval
         g.hardcache.set(key, d, time=86400 * 7)
@@ -2153,9 +2154,7 @@ class ApiController(RedditController):
             else:
                 site = Subreddit._byID(link.sr_id, data=True)
                 # make sure c.user has permission to set flair on this link
-                if not (c.user_is_admin or site.is_moderator(c.user)
-                        or (site.link_flair_self_assign_enabled
-                            and link.author_id == c.user._id)):
+                if not c.user_is_admin and not site.is_moderator(c.user):
                     abort(403, 'forbidden')
         else:
             flair_type = USER_FLAIR
@@ -2540,6 +2539,7 @@ class ApiController(RedditController):
             link.flair_text = text
             link.flair_css_class = css_class
             link._commit()
+            changed(link)
 
             if ((c.site.is_moderator(c.user) or c.user_is_admin)):
                 ModAction.create(c.site, c.user, action='editflair',

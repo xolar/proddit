@@ -35,19 +35,6 @@
        id="${thing.site._fullname}"
      %endif
      >
-%if thing.site:
-  <h1>${_("community settings")}
-  %if thing.site:
-    | &#32;<strong>${thing.site.name}</strong>
-  %endif
-  </h1>
-%else:
-  %if thing.name:
-    <p class="infobar">
-      ${_("that subreddit doesn't exist, but you can create it here.")}</p>
-  %endif
-  <h1>${_("create a community")}</h1>
-%endif
 
 <div class="pretty-form" id="sr-form">
 
@@ -79,7 +66,16 @@
   </%utils:line_field>
 
   <%utils:line_field title="${_('description')}" css_class="usertext"
-                     description="${_('500 characters max.  Make them count.')}">
+                     description="${_('publicly describe your subreddit for all to see. 500 characters max.')}">
+    %if thing.site and thing.site.public_description:
+     ${UserText(None, text=thing.site.public_description or "", editable=True, creating=True, name="public_description", have_form=False)}
+    %else:
+     ${UserText(None, text="", creating=True, name="public_description", have_form=False)}
+    %endif
+  </%utils:line_field>
+
+  <%utils:line_field title="${_('sidebar')}" css_class="usertext"
+                     description="${_('shown in the sidebar of your subreddit. 5120 characters max.')}">
     %if thing.site and thing.site.description:
      ${UserText(None, text = thing.site.description or "", editable = True, creating = True, name="description", have_form = False)}
     %else:
@@ -167,7 +163,7 @@
     </div>
   </%utils:line_field>
 
-%if c.user_is_admin:
+% if thing.site and thing.site.domain != thing.site._defaults['domain']:
   <%utils:line_field title="${_('domain')}" css_class="usertext">
     <div class="delete-field">
       %if thing.site and c.site.domain:
@@ -202,7 +198,7 @@
       </div>
     </div>
   </%utils:line_field>
-  %endif
+% endif
 
 %if thing.site:
   <input type="hidden" name="sr" value="${thing.site._fullname}"/> 

@@ -38,6 +38,7 @@ from r2.lib.db.operators import desc
 from r2.lib.db import queries
 from r2.lib.db.tdb_cassandra import MultiColumnQuery
 from r2.lib.strings import strings
+
 from r2.lib.solrsearch import RelatedSearchQuery, SubredditSearchQuery
 from r2.lib.indextank import IndextankQuery, IndextankException, InvalidIndextankQuery
 from r2.lib.contrib.pysolr import SolrError
@@ -113,13 +114,12 @@ class FrontController(RedditController):
 
     @prevent_framing_and_css()
     @validate(VAdmin(),
-              article = VLink('article'))
-    def GET_details(self, article):
-        """The (now depricated) details page.  Content on this page
+              thing = VByName('article'))
+    def GET_details(self, thing):
+        """The (now deprecated) details page.  Content on this page
         has been subsubmed by the presence of the LinkInfoBar on the
         rightbox, so it is only useful for Admin-only wizardry."""
-        return DetailsPage(link = article, expand_children=False).render()
-
+        return DetailsPage(thing=thing, expand_children=False).render()
 
     def GET_selfserviceoatmeal(self):
         return BoringPage(_("self service help"), 
@@ -359,6 +359,10 @@ class FrontController(RedditController):
         return res
 
     def GET_stylesheet(self):
+        # de-stale the subreddit object so we don't poison nginx's cache
+        if not isinstance(c.site, FakeSubreddit):
+            c.site = Subreddit._byID(c.site._id, data=True, stale=False)
+
         if hasattr(c.site,'stylesheet_contents') and not g.css_killswitch:
             c.allow_loggedin_cache = True
             self.check_modified(c.site,'stylesheet_contents',
@@ -397,15 +401,12 @@ class FrontController(RedditController):
               action=VOneOf('type', ModAction.actions))
     @api_doc(api_section.moderation)
     def GET_moderationlog(self, num, after, reverse, count, mod, action):
-        if not c.user_is_loggedin:
+        if not c.user_is_loggedin or not (c.user_is_admin or
+                                          c.site.is_moderator(c.user)):
             return self.abort404()
 
         if isinstance(c.site, (MultiReddit, ModSR)):
             srs = Subreddit._byID(c.site.sr_ids, return_dict=False)
-
-            # check that user is mod on all requested srs
-            if not Subreddit.user_mods_all(c.user, srs) and not c.user_is_admin:
-                return self.abort404()
 
             # grab all moderators
             mod_ids = set(Subreddit.get_all_mod_ids(srs))
@@ -416,8 +417,6 @@ class FrontController(RedditController):
         elif isinstance(c.site, FakeSubreddit):
             return self.abort404()
         else:
-            if not c.site.is_moderator(c.user) and not c.user_is_admin:
-                return self.abort404()
             mod_ids = c.site.moderators
             mods = Account._byID(mod_ids, data=True)
 
@@ -440,7 +439,9 @@ class FrontController(RedditController):
                          title=_('filter by action'), type='lightdrop', css_class='modaction-drop'),
                 NavMenu(mod_buttons, base_path=base_path, 
                         title=_('filter by moderator'), type='lightdrop')]
-        return EditReddit(content=panes, nav_menus=menus,
+        return EditReddit(content=panes,
+                          nav_menus=menus,
+                          location="log",
                           extension_handling=False).render()
 
     def _make_spamlisting(self, location, num, after, reverse, count):
@@ -507,7 +508,7 @@ class FrontController(RedditController):
 
         if not c.user_is_loggedin:
             return self.abort404()
-        if isinstance(c.site, ModSR):
+        if isinstance(c.site, (ModSR, MultiReddit)):
             level = 'mod'
         elif isinstance(c.site, ContribSR):
             level = 'contrib'
@@ -527,8 +528,9 @@ class FrontController(RedditController):
         else:
             return self.abort404()
 
-        return EditReddit(content = pane,
-                          extension_handling = extension_handling).render()
+        return EditReddit(content=pane,
+                          location=location,
+                          extension_handling=extension_handling).render()
 
     def _edit_normal_reddit(self, location, num, after, reverse, count, created,
                             name, user):
@@ -540,6 +542,7 @@ class FrontController(RedditController):
             if created == 'true':
                 pane.append(InfoBar(message = strings.sr_created))
             c.allow_styles = True
+            c.site = Subreddit._byID(c.site._id, data=True, stale=False)
             pane.append(CreateSubreddit(site = c.site))
         elif location == 'moderators':
             pane = ModList(editable = is_moderator)
@@ -581,8 +584,9 @@ class FrontController(RedditController):
         else:
             return self.abort404()
 
-        return EditReddit(content = pane,
-                          extension_handling = extension_handling).render()
+        return EditReddit(content=pane,
+                          location=location,
+                          extension_handling=extension_handling).render()
 
     @base_listing
     @prevent_framing_and_css(allow_cname_frame=True)
@@ -600,6 +604,11 @@ class FrontController(RedditController):
             except NotFound:
                 c.errors.add(errors.USER_DOESNT_EXIST, field='name')
         if isinstance(c.site, ModContribSR):
+            return self._edit_modcontrib_reddit(location, num, after, reverse,
+                                                count, created)
+        elif isinstance(c.site, MultiReddit):
+            if not (c.user_is_admin or c.site.is_moderator(c.user)):
+                self.abort403()
             return self._edit_modcontrib_reddit(location, num, after, reverse,
                                                 count, created)
         elif isinstance(c.site, AllSR) and c.user_is_admin:
@@ -716,6 +725,7 @@ class FrontController(RedditController):
         try:
             cleanup_message = None
             try:
+                q = IndextankQuery(query, site, sort)
                 if query:
                     query = query.replace('proddit:','reddit:')
                     
@@ -723,6 +733,7 @@ class FrontController(RedditController):
                 num, t, spane = self._search(q, num=num, after=after, 
                                              reverse = reverse, count = count)
             except InvalidIndextankQuery:
+
                 # strip the query down to a whitelist
                 cleaned = re.sub("[^\w\s]+", "", query)
                 cleaned = cleaned.lower()
@@ -733,6 +744,7 @@ class FrontController(RedditController):
                     cleanup_message = strings.completely_invalid_search_query
                 else:
                     q = IndextankQuery(cleaned, site, sort)
+
                     num, t, spane = self._search(q, num=num, after=after, 
                                                  reverse=reverse, count=count)
                     cleanup_message = strings.invalid_search_query % {
@@ -750,11 +762,13 @@ class FrontController(RedditController):
                              nav_menus = [SearchSortMenu(default=sort)],
                              search_params = dict(sort = sort), 
                              infotext=cleanup_message,
-                             simple=False, site=c.site, 
-                             restrict_sr=restrict_sr).render()
+                             simple=False, site=c.site,
+                             restrict_sr=restrict_sr,
+                             ).render()
 
             return res
         except (IndextankException, socket.error), e:
+
             return self.search_fail(e)
 
     def _search(self, query_obj, num, after, reverse, count=0):
@@ -773,6 +787,7 @@ class FrontController(RedditController):
         try:
             res = listing.listing()
         except (IndextankException, SolrError, socket.error), e:
+
             return self.search_fail(e)
         timing = time_module.time() - builder.start_time
 

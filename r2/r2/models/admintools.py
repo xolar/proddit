@@ -77,7 +77,6 @@ class AdminTools(object):
             self.set_last_sr_ban(new_things)
 
         queries.ban(new_things)
-        queries.new_spam_filtered(all_things)
 
     def unspam(self, things, unbanner=None, train_spam=True, insert=True):
         from r2.lib.db import queries
@@ -112,9 +111,7 @@ class AdminTools(object):
         self.author_spammer(things, False)
         self.set_last_sr_ban(things)
 
-        if insert:
-            queries.unban(things)
-        queries.new_spam_filtered(things)
+        queries.unban(things, insert)
 
     def author_spammer(self, things, spam):
         """incr/decr the 'spammer' field for the author of every
@@ -332,6 +329,9 @@ def is_banned_IP(ip):
 def is_banned_domain(dom, ip):
     return None
 
+def is_shamed_domain(dom, ip):
+    return False, None, None
+
 def valid_thing(v, karma, *a, **kw):
     return not v._thing1._spam
 
@@ -345,7 +345,7 @@ def login_throttle(username, wrong_password):
 def apply_updates(user):
     pass
 
-def update_score(obj, up_change, down_change, new_valid_thing, old_valid_thing):
+def update_score(obj, up_change, down_change, vote, old_valid_thing):
      obj._incr('_ups',   up_change)
      obj._incr('_downs', down_change)
 

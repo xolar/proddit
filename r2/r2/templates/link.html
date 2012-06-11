@@ -30,7 +30,7 @@
 %>
  
 <%inherit  file="printable.html"/>
-<%namespace file="utils.html" import="plain_link, thing_timestamp" />
+<%namespace file="utils.html" import="plain_link, thing_timestamp, edited" />
 <%namespace file="printablebuttons.html" import="toggle_button" />
  
 <%def name="numcol()">
@@ -79,12 +79,8 @@
  </%def>
 
 <%def name="flair()">
-  <% css = thing.flair_css_class or '' %>
-  %if c.user.pref_show_link_flair and (thing.flair_text or css):
-    ## TODO: clean this up
-    <span class="linkflair ${' '.join('linkflair-' + c for c in css.split())}">
-      ${thing.flair_text}
-    </span>
+  %if c.user.pref_show_link_flair and thing.flair_text:
+    <span class="linkflairlabel">${thing.flair_text}</span>
   %endif
 </%def>
 
@@ -170,6 +166,10 @@
 
 <%def name="thing_css_class(what)" buffered="True">
 ${parent.thing_css_class(what)} ${"over18" if thing.over_18 else ""}
+%if c.user.pref_show_link_flair and (thing.flair_text or thing.flair_css_class):
+  <% css = thing.flair_css_class or '' %>
+  linkflair ${' '.join('linkflair-' + c for c in css.split())}
+%endif
 </%def>
 
 <%def name="thing_data_attributes(what)" buffered="True">
@@ -223,23 +223,24 @@ ${parent.thing_data_attributes(what)} data-ups="${what.upvotes}" data-downs="${w
 <%def name="tagline()">
   <%
     if thing.score_fmt == Score.points:
-      taglinetext = "<span>" + _("%(score)s submitted %(when)s ago") + "</span>"
+      taglinetext = "<span>" + _("%(score)s submitted %(when)s ago%(lastedited)s") + "</span>"
       if thing.different_sr:
          taglinetext += " <span>" + _("by %(author)s to %(reddit)s") + "</span>"
       else:
          taglinetext += " <span>" + _("by %(author)s") + "</span>"
     elif thing.different_sr:
-      taglinetext = _("submitted %(when)s ago by %(author)s to %(reddit)s")
+      taglinetext = _("submitted %(when)s ago%(lastedited)s by %(author)s to %(reddit)s")
     else:
-      taglinetext = _("submitted %(when)s ago by %(author)s")
+      taglinetext = _("submitted %(when)s ago%(lastedited)s by %(author)s")
     taglinetext = taglinetext.replace(" ", "&#32;")
   %>
 
   ${unsafe(taglinetext % dict(reddit = self.subreddit(), 
                               score = capture(self.score, thing, thing.likes, tag='span'),
                               when = capture(thing_timestamp, thing, thing.timesince),
-                              author = WrappedUser(thing.author, thing.attribs, thing).render()))}
-
+                              author = WrappedUser(thing.author, thing.attribs, thing).render(),
+                              lastedited = capture(edited, thing, thing.lastedited)
+                              ))}
 </%def>
 
 <%def name="child()">
